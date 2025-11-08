@@ -12,7 +12,7 @@ https://leanqha.github.io/techup-frontend/
 Клонируем репозиторий и переходим в папку проекта:
 
 ```
-git clone https://github.com/1eanq/techup-frontend.git
+git clone https://github.com/leanq/techup-frontend.git
 cd techup-frontend
 ```
 
