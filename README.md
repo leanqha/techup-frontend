@@ -1,73 +1,120 @@
-# React + TypeScript + Vite
+Памятка для разработчиков
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Добро пожаловать! Ниже описан рекомендуемый рабочий процесс для работы с этим проектом на React + Vite.
 
-Currently, two official plugins are available:
+⸻
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Клонирование репозитория
 
-## React Compiler
+Клонируем репозиторий и переходим в папку проекта:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+git clone https://github.com/1eanq/techup-frontend.git
+cd techup-frontend
 
-## Expanding the ESLint configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+⸻
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2. Установка зависимостей
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Устанавливаем все нужные пакеты:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+npm install
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+⸻
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. Запуск локального сервера
+
+Для разработки запускаем локальный сервер:
+
+npm run dev
+
+	•	Открой браузер: http://localhost:5173￼
+	•	Любые изменения в src/ будут автоматически отображаться (hot reload).
+
+⸻
+
+4. Ветвление и разработка
+
+4.1 Основные ветки
+	•	main — стабильная версия, деплой на GitHub Pages.
+	•	develop — рабочая ветка, куда сливаются проверенные изменения.
+	•	feature/<имя> — ветки для каждой новой фичи.
+
+4.2 Создание ветки для работы
+
+Создаём ветку от develop для своей задачи:
+
+git checkout develop
+git pull origin develop
+git checkout -b feature/<ваша_фича>
+
+	•	<ваша_фича> — имя ветки по сути задачи, например feature/login-form.
+
+⸻
+
+5. Работа с кодом
+	1.	Вносим изменения в своей ветке.
+	2.	Добавляем файлы и делаем коммиты:
+
+git add .
+git commit -m "Краткое описание изменений"
+
+	•	Пишите понятные сообщения коммитов.
+
+⸻
+
+6. Публикация ветки на GitHub
+
+Отправляем ветку на GitHub:
+
+git push -u origin feature/<ваша_фича>
+
+
+⸻
+
+7. Pull Request
+	1.	На GitHub создаём Pull Request в ветку develop.
+	2.	Ждём ревью от ведущего проекта.
+	3.	После одобрения Pull Request сливается в develop.
+
+Важно: не пушить напрямую в develop или main.
+
+⸻
+
+8. Обновление локальной ветки
+
+Чтобы забрать последние изменения из develop:
+
+git checkout develop
+git pull origin develop
+git checkout feature/<ваша_фича>
+git merge develop
+
+
+⸻
+
+9. Деплой
+	•	Деплой на GitHub Pages происходит с ветки main (или develop, если настроено).
+	•	Для обновления сайта достаточно сделать merge develop → main, и Actions автоматически задеплоит проект.
+
+⸻
+
+10. Полезные команды Git
+
+# Посмотреть ветки
+git branch -a
+
+# Переключиться на ветку
+git checkout <ветка>
+
+# Слияние ветки
+git merge <ветка>
+
+# Просмотр статуса
+git status
+
+
+⸻
+
+Следуя этой памятке, каждый разработчик сможет безопасно работать и коммитить изменения без конфликтов.
