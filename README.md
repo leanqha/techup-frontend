@@ -122,3 +122,114 @@ git status
 ---
 
 Следуя этой памятке, каждый разработчик сможет безопасно работать и коммитить изменения без конфликтов.
+
+API Documentation
+
+Base URL
+
+https://<your-domain>/api/v1
+
+
+⸻
+
+Health Check
+
+GET /health
+	•	Проверка состояния сервиса.
+	•	Response: 200 OK
+
+⸻
+
+Account Routes
+
+Public Endpoints
+
+POST /account/register
+	•	Регистрация пользователя.
+	•	Body: { "email": string, "password": string, "name": string }
+	•	Response: 201 Created
+
+POST /account/login
+	•	Логин пользователя.
+	•	Body: { "email": string, "password": string }
+	•	Response: { "access_token": string, "refresh_token": string }
+
+POST /account/refresh
+	•	Обновление access_token по refresh_token.
+	•	Body: { "refresh_token": string }
+	•	Response: { "access_token": string }
+
+Protected Endpoints
+
+Require Authorization header: Bearer <token>
+
+GET /account/secure/profile
+	•	Получение профиля текущего пользователя.
+	•	Response: { "id": int, "email": string, "name": string, "role": string }
+
+POST /account/secure/change-password
+	•	Смена пароля.
+	•	Body: { "old_password": string, "new_password": string }
+
+PUT /account/secure/update
+	•	Обновление данных профиля.
+	•	Body: { "name": string, "email": string }
+
+POST /account/secure/set-role
+	•	Изменение роли пользователя (только admin).
+	•	Body: { "user_id": int, "role": string }
+
+⸻
+
+Schedule Routes
+
+Require Authorization
+
+GET /schedule/search
+	•	Поиск расписания.
+	•	Query parameters: faculty_id, group_id, teacher_id, date
+	•	Response: [{ "lesson_id": int, "group": string, "subject": string, "teacher": string, "room": string, "time": string }]
+
+⸻
+
+Map / Building Routes
+
+Require Authorization
+
+GET /map/buildings
+	•	Получение списка всех зданий.
+	•	Response: [{ "id": int, "name": string, "address": string }]
+
+GET /map/buildings/:building_id/rooms
+	•	Получение всех комнат в здании.
+	•	Response: [{ "id": int, "name": string, "floor": int }]
+
+GET /map/shortest-path/:start/:end
+	•	Кратчайший путь между двумя комнатами.
+	•	Response: { "path": [int], "distance": float }
+
+⸻
+
+Admin Routes
+
+Require Authorization + Admin Role
+
+POST /admin/faculty
+	•	Добавление нового факультета.
+	•	Body: { "name": string }
+
+POST /admin/group
+	•	Добавление новой группы.
+	•	Body: { "name": string, "faculty_id": int }
+
+POST /admin/lesson
+	•	Добавление нового занятия.
+	•	Body: { "subject": string, "group_id": int, "teacher_id": int, "room_id": int, "time": string }
+
+⸻
+
+Swagger
+
+GET /swagger/
+	•	Swagger документация с возможностью тестирования эндпоинтов.
+	•	Откройте: https://<your-domain>/swagger/index.html
