@@ -1,0 +1,154 @@
+/* AuthPage.css */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: linear-gradient(to bottom right, #f8fafc, #ffffff);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 28rem;
+    margin: 0 auto;
+    background-color: #ffffff;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.auth-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.auth-header p {
+    font-size: 0.875rem;
+    color: #64748b;
+    text-align: center;
+    margin-top: 0.25rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.auth-label {
+    display: block;
+}
+
+.auth-label-text {
+    font-size: 0.875rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.auth-label input {
+    margin-top: 0.25rem;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    outline: none;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.auth-label input:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px #38bdf8;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper button {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.password-strength {
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.auth-remember {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.auth-error {
+    font-size: 0.875rem;
+    color: #dc2626;
+}
+
+.auth-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.auth-actions button:first-child {
+    flex: 1;
+    padding: 0.5rem;
+    background-color: #0ea5e9;
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.auth-actions button:first-child:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auth-actions button:first-child:hover:enabled {
+    background-color: #0284c7;
+}
+
+.auth-actions button:last-child {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    background-color: white;
+}
+
+.auth-footer {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.auth-footer a {
+    text-decoration: underline;
+}
+
+.auth-copyright {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
