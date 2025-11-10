@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
 import './AuthPage.css';
@@ -16,8 +17,10 @@ export default function AuthPage() {
     const [remember, setRemember] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    const navigate = useNavigate();
+
     const validateEmail = (v: string) => /^\S+@\S+\.\S+$/.test(v);
-    const validatePassword = (v: string) => v.length >= 6;
+    const validatePassword = (v: string) => v.length >= 8;
     const validateName = (v: string) => v.trim().length >= 2;
 
     const resetErrors = () => setError(null);
@@ -27,8 +30,8 @@ export default function AuthPage() {
         resetErrors();
 
         if (!validateEmail(email)) { setError("Введите корректный email"); return; }
-        if (!validatePassword(password)) { setError("Пароль должен быть минимум 6 символов"); return; }
-        if (mode === "register" && !validateName(name)) { setError("Имя должно быть минимум 2 символа"); return; }
+        if (!validatePassword(password)) { setError("Пароль должен быть минимум 8 символов"); return; }
+        if (mode === "register" && !validateName(name)) { setError("Некорректное имя"); return; }
 
         setLoading(true);
 
@@ -49,8 +52,13 @@ export default function AuthPage() {
                 return;
             }
 
-            // Успешный логин → редирект на главную страницу
-            window.location.href = "/";
+            if (data.token) {
+                localStorage.setItem("token", data.token);
+            }
+
+            if (mode === "login") {
+                navigate("/home");
+            }
         } catch (err) {
             setError("Сетевая ошибка");
         } finally {

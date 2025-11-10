@@ -1,10 +1,17 @@
 /* AuthPage.css */
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 .auth-page {
     min-height: 100vh;
+    width: 100vw; /* <— добавляем */
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* <— центрируем горизонтально */
     padding: 1.5rem;
     background: linear-gradient(to bottom right, #f8fafc, #ffffff);
 }
@@ -12,7 +19,6 @@
 .auth-container {
     width: 100%;
     max-width: 28rem;
-    margin: 0 auto;
     background-color: #ffffff;
     box-shadow: 0 10px 15px rgba(0,0,0,0.1);
     border-radius: 1rem;
