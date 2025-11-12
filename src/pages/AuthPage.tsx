@@ -42,7 +42,8 @@ export default function AuthPage() {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                credentials: "include" // ✅ кука будет автоматически сохранена
             });
 
             const data = await response.json();
@@ -52,9 +53,8 @@ export default function AuthPage() {
                 return;
             }
 
-            if (data.token) {
-                localStorage.setItem("token", data.token);
-            }
+            // ✅ Не сохраняем токен в localStorage
+            // Сервер уже поставил httpOnly куку
 
             if (mode === "login") {
                 navigate("/home");

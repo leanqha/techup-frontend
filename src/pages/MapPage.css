@@ -1,0 +1,129 @@
+.map-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f4ff, #e8ecff);
+    font-family: "Inter", sans-serif;
+    color: #333;
+    padding: 40px 20px;
+}
+
+.map-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2b3a67;
+    margin-bottom: 30px;
+}
+
+.map-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+label {
+    font-weight: 600;
+    color: #2b3a67;
+}
+
+select {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.2s;
+}
+
+select:focus {
+    border-color: #4c6ef5;
+}
+
+button {
+    background-color: #4c6ef5;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+    background-color: #3658d5;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.map-error {
+    color: #d9534f;
+    margin-top: 15px;
+    font-weight: 600;
+}
+
+.map-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px 40px;
+    text-align: center;
+    margin-top: 30px;
+    transition: 0.3s ease;
+}
+
+.map-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.path-list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.path-node {
+    display: flex;
+    align-items: center;
+}
+
+.node {
+    background-color: #4c6ef5;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 50px;
+    font-size: 1rem;
+}
+
+.arrow {
+    font-size: 1.3rem;
+    margin: 0 8px;
+    color: #4c6ef5;
+}
+
+.distance {
+    font-size: 1.2rem;
+    color: #2b3a67;
+}

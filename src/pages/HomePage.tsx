@@ -1,41 +1,46 @@
-// src/pages/HomePage.tsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import "./HomePage.css";
 
-type HomePageProps = {
+interface HomePageProps {
     onLogout?: () => void;
-};
+}
 
 const HomePage: React.FC<HomePageProps> = ({ onLogout }) => {
+    const navigate = useNavigate();
+
     return (
-        <div style={{
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            background: "linear-gradient(to bottom right, #f0f4f8, #ffffff)",
-            fontFamily: "sans-serif"
-        }}>
-            <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>Главная страница</h1>
-            <p style={{ fontSize: "1rem", color: "#555" }}>
-                Добро пожаловать! Вы успешно вошли в систему.
-            </p>
-            {onLogout && (
-                <button
-                    onClick={onLogout}
-                    style={{
-                        marginTop: "2rem",
-                        padding: "0.5rem 1rem",
-                        backgroundColor: "#0ea5e9",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "0.5rem",
-                        cursor: "pointer"
-                    }}
-                >
-                    Выйти
-                </button>
-            )}
+        <div className="home-page">
+            <div className="home-container">
+                <div className="home-header">
+                    <h1>Главная страница</h1>
+                    <p>Выберите раздел, чтобы продолжить</p>
+                </div>
+
+                <div className="home-actions">
+                    <button onClick={() => navigate("/profile")} className="home-btn">
+                        Профиль
+                    </button>
+                    <button onClick={() => navigate("/schedule")} className="home-btn">
+                        Расписание
+                    </button>
+                    <button onClick={() => navigate("/map")} className="home-btn">
+                        Карта
+                    </button>
+                    <button onClick={() => navigate("/login")} className="home-btn">
+                        Авторизация
+                    </button>
+                    {onLogout && (
+                        <button onClick={onLogout} className="home-btn logout-btn">
+                            Выйти
+                        </button>
+                    )}
+                </div>
+
+                <div className="home-footer">
+                    <p>© 2025 TechUp. Все права защищены.</p>
+                </div>
+            </div>
         </div>
     );
 };

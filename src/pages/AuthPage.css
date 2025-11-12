@@ -135,10 +135,11 @@ html, body {
 .auth-actions button:last-child {
     padding: 0.5rem 0.75rem;
     border: 1px solid #e2e8f0;
+    color: white;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     cursor: pointer;
-    background-color: white;
+    background-color: #0284c7;
 }
 
 .auth-footer {
