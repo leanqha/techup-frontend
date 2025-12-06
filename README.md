@@ -1,210 +1,75 @@
-https://leanqha.github.io/techup-frontend/
+# React + TypeScript + Vite
 
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Памятка для разработчиков
+Currently, two official plugins are available:
 
-Добро пожаловать! Ниже описан рекомендуемый рабочий процесс для работы с этим проектом на React + Vite.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
----
+## React Compiler
 
-### 1. Клонирование репозитория
+The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
 
-Клонируем репозиторий и переходим в папку проекта:
+Note: This will impact Vite dev & build performances.
 
-```
-git clone https://github.com/leanq/techup-frontend.git
-cd techup-frontend
-```
+## Expanding the ESLint configuration
 
----
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-### 2. Установка зависимостей
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-Устанавливаем все нужные пакеты:
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-```
-npm install
-```
-
----
-
-### 3. Запуск локального сервера
-
-Для разработки запускаем локальный сервер:
-
-```
-npm run dev
-```
-
-- Открой браузер: http://localhost:5173
-- Любые изменения в src/ будут автоматически отображаться (hot reload).
-
----
-
-### 4. Ветвление и разработка
-
-#### 4.1 Основные ветки
-
-- `main` — стабильная версия, деплой на GitHub Pages.
-- `develop` — рабочая ветка, куда сливаются проверенные изменения.
-- `feature/<имя>` — ветки для каждой новой фичи.
-
-#### 4.2 Создание ветки для работы
-
-Создаём ветку от `develop` для своей задачи:
-
-```
-git checkout develop
-git pull origin develop
-git checkout -b feature/<ваша_фича>
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-- `<ваша_фича>` — имя ветки по сути задачи, например `feature/login-form`.
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
----
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-### 5. Работа с кодом
-
-1. Вносим изменения в своей ветке.  
-2. Добавляем файлы и делаем коммиты:
-
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-git add .
-git commit -m "Краткое описание изменений"
-```
-
-- Пишите понятные сообщения коммитов.
-
----
-
-### 6. Публикация ветки на GitHub
-
-Отправляем ветку на GitHub:
-
-```
-git push -u origin feature/<ваша_фича>
-```
-
----
-
-### 7. Pull Request
-
-1. На GitHub создаём Pull Request в ветку `develop`.  
-2. Ждём ревью от ведущего проекта.  
-3. После одобрения Pull Request сливается в `develop`.
-
-**Важно:** не пушить напрямую в `develop` или `main`.
-
----
-
-### 8. Обновление локальной ветки
-
-Чтобы забрать последние изменения из `develop`:
-
-```
-git checkout develop
-git pull origin develop
-git checkout feature/<ваша_фича>
-git merge develop
-```
-
----
-
-### 9. Деплой
-
-- Деплой на GitHub Pages происходит с ветки `main` (или `develop`, если настроено).  
-- Для обновления сайта достаточно сделать merge `develop` → `main`, и Actions автоматически задеплоит проект.
-
----
-
-### 10. Полезные команды Git
-
-| Команда                  | Описание                |
-|--------------------------|-------------------------|
-| `git branch -a`          | Посмотреть ветки        |
-| `git checkout <ветка>`   | Переключиться на ветку  |
-| `git merge <ветка>`      | Слияние ветки           |
-| `git status`             | Просмотр статуса        |
-
----
-
-Следуя этой памятке, каждый разработчик сможет безопасно работать и коммитить изменения без конфликтов.
-
----
-
-## API Documentation
-
-**Base URL:**  
-`https://<your-domain>/api/v1`
-
----
-
-### Health Check
-
-| Метод | Эндпоинт | Описание                   | Ответ       |
-|-------|----------|----------------------------|-------------|
-| GET   | /health  | Проверка состояния сервиса | 200 OK      |
-
----
-
-### Account Routes
-
-#### Public Endpoints
-
-| Метод | Эндпоинт           | Описание                 | Тело запроса                                              | Ответ                                                 |
-|-------|--------------------|--------------------------|-----------------------------------------------------------|-------------------------------------------------------|
-| POST  | /account/register  | Регистрация пользователя | `{ "email": string, "password": string, "name": string }` | 201 Created                                           |
-| POST  | /account/login     | Логин пользователя       | `{ "email": string, "password": string }`                 | `{ "access_token": string, "refresh_token": string }` |
-| POST  | /account/refresh   | Обновление access_token  | `{ "refresh_token": string }`                             | `{ "access_token": string }`                          |
-
-#### Protected Endpoints  
-*Require Authorization header: Bearer `<token>`*
-
-| Метод | Эндпоинт                        | Описание                                   | Тело запроса                                         | Ответ                                                            |
-|-------|---------------------------------|--------------------------------------------|------------------------------------------------------|------------------------------------------------------------------|
-| GET   | /account/secure/profile         | Получение профиля текущего пользователя    | —                                                    | `{ "id": int, "email": string, "name": string, "role": string }` |
-| POST  | /account/secure/change-password | Смена пароля                               | `{ "old_password": string, "new_password": string }` | —                                                                |
-| PUT   | /account/secure/update          | Обновление данных профиля                  | `{ "name": string, "email": string }`                | —                                                                |
-| POST  | /account/secure/set-role        | Изменение роли пользователя (только admin) | `{ "user_id": int, "role": string }`                 | —                                                                |
-
----
-
-### Schedule Routes
-
-*Require Authorization*
-
-| Метод | Эндпоинт         | Описание         | Параметры запроса                              | Ответ                                                                                                             |
-|-------|------------------|------------------|------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| GET   | /schedule/search | Поиск расписания | `faculty_id`, `group_id`, `teacher_id`, `date` | `[ { "lesson_id": int, "group": string, "subject": string, "teacher": string, "room": string, "time": string } ]` |
-
----
-
-### Map / Building Routes
-
-*Require Authorization*
-
-| Метод | Эндпоинт                           | Описание                    | Ответ                                                           |
-|-------|------------------------------------|-----------------------------|-----------------------------------------------------------------|
-| GET   | /map/buildings                     | Получение списка всех зданий | `[ { "id": int, "name": string, "address": string } ]`         |
-| GET   | /map/buildings/:building_id/rooms  | Получение всех комнат в здании | `[ { "id": int, "name": string, "floor": int } ]`            |
-| GET   | /map/path/:start/:end              | Кратчайший путь между двумя комнатами | `{ "path": [string], "distance": float }`             |
-
----
-
-### Admin Routes
-
-*Require Authorization + Admin Role*
-
-| Метод | Эндпоинт       | Описание                     | Тело запроса                                                                                |
-|-------|----------------|------------------------------|---------------------------------------------------------------------------------------------|
-| POST  | /admin/faculty | Добавление нового факультета | `{ "name": string }`                                                                        |
-| POST  | /admin/group   | Добавление новой группы      | `{ "name": string, "faculty_id": int }`                                                     |
-| POST  | /admin/lesson  | Добавление нового занятия    | `{ "subject": string, "group_id": int, "teacher_id": int, "room_id": int, "time": string }` |
-
----
-
-### Swagger
-
-| Метод | Эндпоинт   | Описание                                       |
-|-------|------------|------------------------------------------------|
-| GET   | /swagger/  | Swagger документация с возможностью тестирования эндпоинтов. Откройте: https://<your-domain>/swagger/index.html |
