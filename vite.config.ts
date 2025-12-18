@@ -1,13 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// Замените <repo-name> на имя репозитория
 export default defineConfig({
-  plugins: [
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler']],
-      },
-    }),
-  ],
+    base: '/techup-frontend/',
+    plugins: [
+        react({
+            babel: {
+                plugins: [['babel-plugin-react-compiler']],
+            },
+        }),
+    ],
 })
