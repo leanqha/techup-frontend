@@ -1,12 +1,11 @@
 // src/pages/ProfilePage.tsx
-// src/pages/ProfilePage.tsx
-import type {Profile} from '../api/types/types.ts';
+import { useAuth } from '../context/AuthContext';
 
-type Props = {
-    profile: Profile;
-};
+export function ProfilePage() {
+    const { profile } = useAuth();
 
-export function ProfilePage({ profile }: Props) {
+    if (!profile) return null;
+
     return (
         <div style={{ padding: 24, maxWidth: 600 }}>
             <h1>Profile</h1>

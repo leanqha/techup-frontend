@@ -1,13 +1,12 @@
 // src/layout/Header.tsx
 import { useNavigate } from 'react-router-dom';
-import type {Profile} from '../api/types/types.ts';
+import { useAuth } from '../context/AuthContext';
 
-type Props = {
-    profile: Profile;
-};
-
-export function Header({ profile }: Props) {
+export function Header() {
+    const { profile } = useAuth();
     const navigate = useNavigate();
+
+    if (!profile) return null;
 
     const hour = new Date().getHours();
     const greeting =
@@ -24,7 +23,6 @@ export function Header({ profile }: Props) {
             <button
                 className="avatar"
                 onClick={() => navigate('/profile')}
-                title="Профиль"
             >
                 {profile.first_name[0]}
             </button>

@@ -72,3 +72,12 @@
     padding: 24px;
     overflow-y: auto;
 }
+
+.logout {
+    margin-top: auto;
+    background: none;
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    padding: 8px 0;
+}

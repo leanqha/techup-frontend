@@ -1,13 +1,15 @@
+// src/components/ProtectedRoute.tsx
 import { Navigate } from 'react-router-dom';
-import type {Profile} from '../api/types/types.ts';
+import { useAuth } from '../context/AuthContext';
 import type {JSX} from "react";
 
-type Props = {
-    profile: Profile | null;
-    children: JSX.Element;
-};
+export function ProtectedRoute({ children }: { children: JSX.Element }) {
+    const { profile, loading } = useAuth();
 
-export function ProtectedRoute({ profile, children }: Props) {
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
     if (!profile) {
         return <Navigate to="/auth" replace />;
     }
