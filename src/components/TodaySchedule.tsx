@@ -53,7 +53,7 @@ export function TodaySchedule() {
                     <li key={lesson.id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 10, borderRadius: 8 }}>
                         <div><strong>{lesson.subject}</strong> ({lesson.classroom})</div>
                         <div>
-                            {formatTime(lesson.startTime)} - {formatTime(lesson.endTime)}
+                            {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                         </div>
                         <div>Преподаватель: {lesson.teacher}</div>
                         {lesson.note?.text && <div><strong>Заметка:</strong> {lesson.note.text}</div>}
