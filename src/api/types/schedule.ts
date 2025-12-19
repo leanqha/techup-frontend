@@ -6,25 +6,25 @@ export type Faculty = {
 
 export type Group = {
     id: number;
-    facultyId: number;
+    faculty_id: number;
     name: string;
     course: number;
     degree: string; // "бакалавриат" | "магистратура"
-    yearStart: number;
+    year_start: number;
     specialization: string;
-    isActive: boolean;
+    is_active: boolean;
 };
 
 export type Lesson = {
     id: number;
-    groupId: number;
+    group_id: number;
     date: string; // ISO string
-    startTime: string; // ISO string
-    endTime: string;   // ISO string
+    start_time: string; // ISO string
+    end_time: string;   // ISO string
     subject: string;
     teacher: string;
     classroom: string;
-    createdAt: string;
+    created_at: string;
     note?: LessonNote;
 };
 
