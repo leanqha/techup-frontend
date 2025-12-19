@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 type Profile = {
-    id: string;
+    id: number;
     uid: string;
     email: string;
     firstName: string;
@@ -10,21 +10,32 @@ type Profile = {
 };
 
 function App() {
+    const [profile, setProfile] = useState<Profile | null>(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [message, setMessage] = useState('');
-    const [profile, setProfile] = useState<Profile | null>(null);
 
-    // Проверяем профиль пользователя
+    // Проверяем текущего пользователя
+    const fetchProfile = async () => {
+        try {
+            const res = await fetch('/api/v1/account/secure/profile', {
+                credentials: 'include', // важно для HTTP-only куки
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setProfile(data);
+            } else {
+                setProfile(null);
+            }
+        } catch (err) {
+            setProfile(null);
+        }
+    };
+
     useEffect(() => {
-        fetch('/api/v1/account/secure/profile', {
-            credentials: 'include', // важное для HTTP-only cookie
-        })
-            .then(res => res.json())
-            .then(data => setProfile(data))
-            .catch(() => setProfile(null));
+        fetchProfile();
     }, []);
 
     const register = async () => {
@@ -39,11 +50,11 @@ function App() {
             const data = await res.json();
             if (res.ok) {
                 setMessage('Registration successful!');
-                setProfile(data.user);
+                fetchProfile();
             } else {
                 setMessage(data.error || 'Registration failed');
             }
-        } catch (err) {
+        } catch {
             setMessage('Server error');
         }
     };
@@ -60,32 +71,32 @@ function App() {
             const data = await res.json();
             if (res.ok) {
                 setMessage('Login successful!');
-                // После логина подтягиваем профиль
-                const profileRes = await fetch('/api/v1/account/secure/profile', {
-                    credentials: 'include',
-                });
-                const profileData = await profileRes.json();
-                setProfile(profileData);
+                fetchProfile();
             } else {
                 setMessage(data.error || 'Login failed');
             }
-        } catch (err) {
+        } catch {
             setMessage('Server error');
         }
     };
 
     const logout = async () => {
-        await fetch('/api/v1/account/secure/logout', {
-            method: 'POST',
-            credentials: 'include',
-        });
-        setProfile(null);
-        setMessage('Logged out');
+        try {
+            await fetch('/api/v1/account/secure/logout', {
+                method: 'POST',
+                credentials: 'include',
+            });
+            setProfile(null);
+            setMessage('Logged out');
+        } catch {
+            setMessage('Logout failed');
+        }
     };
 
     return (
         <div style={{ padding: 20 }}>
             <h1>TechUp Frontend</h1>
+
             {profile ? (
                 <div>
                     <h2>Welcome, {profile.firstName} {profile.lastName}</h2>
@@ -108,6 +119,7 @@ function App() {
                     <button onClick={login}>Login</button>
                 </div>
             )}
+
             {message && <p>{message}</p>}
         </div>
     );
