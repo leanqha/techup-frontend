@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
-import {useAuth} from '../context/useAuth';
-import type {Lesson} from '../api/types/schedule';
-import {fetchLessons} from '../api/schedule';
+import {useAuth} from '../context/useAuth.ts';
+import type {Lesson} from '../api/types/schedule.ts';
+import {fetchLessons} from '../api/schedule.ts';
 import {formatTime} from "../utils/date.ts";
 
 export function TodaySchedule() {
