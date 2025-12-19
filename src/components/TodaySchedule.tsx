@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react';
 import {useAuth} from '../context/useAuth';
 import type {Lesson} from '../api/types/schedule';
 import {fetchLessons} from '../api/schedule';
+import {formatTime} from "../utils/date.ts";
 
 export function TodaySchedule() {
     const { profile } = useAuth();
@@ -52,8 +53,7 @@ export function TodaySchedule() {
                     <li key={lesson.id} style={{ marginBottom: 12, border: '1px solid #ddd', padding: 10, borderRadius: 8 }}>
                         <div><strong>{lesson.subject}</strong> ({lesson.classroom})</div>
                         <div>
-                            {new Date(lesson.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{' '}
-                            {new Date(lesson.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatTime(lesson.startTime)} - {formatTime(lesson.endTime)}
                         </div>
                         <div>Преподаватель: {lesson.teacher}</div>
                         {lesson.note?.text && <div><strong>Заметка:</strong> {lesson.note.text}</div>}
