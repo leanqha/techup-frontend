@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
+import {TodaySchedule} from "../components/TodaySchedule.tsx";
 
 export function HomePage() {
     const navigate = useNavigate();
@@ -15,6 +16,7 @@ export function HomePage() {
     return (
         <div style={{ padding: 24 }}>
             <h1>Dashboard</h1>
+            <TodaySchedule/>
 
             <div className="grid">
                 {tiles.map(tile => (

@@ -9,6 +9,7 @@ export type Profile = {
     email: string;
     first_name: string;
     last_name: string;
+    group_id: number;
     group_name: string;
     role: string;
 };
