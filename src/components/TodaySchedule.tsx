@@ -19,16 +19,15 @@ export function TodaySchedule() {
                 if (!cancelled) setLoading(true);
 
                 const today = new Date();
-                const from = today.toISOString().split('T')[0]; // YYYY-MM-DD
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const from = `${yyyy}-${mm}-${dd}`;
                 const data = await fetchLessons(profile.group_id, from, from);
-                if (!cancelled) setLessons(data || []); // защита на случай null
+                if (!cancelled) setLessons(data || []);
             } catch (err: unknown) {
                 if (!cancelled) {
-                    if (err instanceof Error) {
-                        setError(err.message);
-                    } else {
-                        setError('Unknown error');
-                    }
+                    setError(err instanceof Error ? err.message : 'Unknown error');
                 }
             } finally {
                 if (!cancelled) setLoading(false);
