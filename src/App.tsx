@@ -1,29 +1,116 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 
-const App: React.FC = () => {
-    const [status, setStatus] = useState<string>("Загрузка...");
+type Profile = {
+    id: string;
+    uid: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+};
 
+function App() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [message, setMessage] = useState('');
+    const [profile, setProfile] = useState<Profile | null>(null);
+
+    // Проверяем профиль пользователя
     useEffect(() => {
-        fetch("/api/v1/health")
-            .then((res) => {
-                if (!res.ok) throw new Error("Ошибка сети");
-                return res.json();
-            })
-            .then((data) => {
-                setStatus(data.status || "OK");
-            })
-            .catch((err) => {
-                console.error(err);
-                setStatus("Ошибка подключения к API");
-            });
+        fetch('/api/v1/account/secure/profile', {
+            credentials: 'include', // важное для HTTP-only cookie
+        })
+            .then(res => res.json())
+            .then(data => setProfile(data))
+            .catch(() => setProfile(null));
     }, []);
 
+    const register = async () => {
+        setMessage('');
+        try {
+            const res = await fetch('/api/v1/account/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email, password, firstName, lastName }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMessage('Registration successful!');
+                setProfile(data.user);
+            } else {
+                setMessage(data.error || 'Registration failed');
+            }
+        } catch (err) {
+            setMessage('Server error');
+        }
+    };
+
+    const login = async () => {
+        setMessage('');
+        try {
+            const res = await fetch('/api/v1/account/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ email, password }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMessage('Login successful!');
+                // После логина подтягиваем профиль
+                const profileRes = await fetch('/api/v1/account/secure/profile', {
+                    credentials: 'include',
+                });
+                const profileData = await profileRes.json();
+                setProfile(profileData);
+            } else {
+                setMessage(data.error || 'Login failed');
+            }
+        } catch (err) {
+            setMessage('Server error');
+        }
+    };
+
+    const logout = async () => {
+        await fetch('/api/v1/account/secure/logout', {
+            method: 'POST',
+            credentials: 'include',
+        });
+        setProfile(null);
+        setMessage('Logged out');
+    };
+
     return (
-        <div style={{ fontFamily: "sans-serif", textAlign: "center", marginTop: "50px" }}>
-            <h1>Тестовое приложение TechUp COCИ</h1>
-            <p>Статус API: <strong>{status}</strong></p>
+        <div style={{ padding: 20 }}>
+            <h1>TechUp Frontend</h1>
+            {profile ? (
+                <div>
+                    <h2>Welcome, {profile.firstName} {profile.lastName}</h2>
+                    <p>Email: {profile.email}</p>
+                    <p>Role: {profile.role}</p>
+                    <button onClick={logout}>Logout</button>
+                </div>
+            ) : (
+                <div>
+                    <h2>Register</h2>
+                    <input placeholder="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+                    <input placeholder="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+                    <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+                    <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+                    <button onClick={register}>Register</button>
+
+                    <h2>Login</h2>
+                    <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+                    <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+                    <button onClick={login}>Login</button>
+                </div>
+            )}
+            {message && <p>{message}</p>}
         </div>
     );
-};
+}
 
 export default App;
