@@ -7,7 +7,7 @@ export type Profile = {
     id: number;
     uid: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     role: string;
 };
