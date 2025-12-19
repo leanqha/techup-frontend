@@ -13,8 +13,8 @@ function App() {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
+    const [first_name, setFirstName] = useState('');
+    const [last_name, setLastName] = useState('');
     const [message, setMessage] = useState('');
 
     // Проверяем текущего пользователя
@@ -35,6 +35,7 @@ function App() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchProfile();
     }, []);
 
@@ -45,7 +46,7 @@ function App() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ email, password, firstName, lastName }),
+                body: JSON.stringify({ email, password, first_name, last_name }),
             });
             const data = await res.json();
             if (res.ok) {
@@ -107,8 +108,8 @@ function App() {
             ) : (
                 <div>
                     <h2>Register</h2>
-                    <input placeholder="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-                    <input placeholder="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+                    <input placeholder="First Name" value={first_name} onChange={e => setFirstName(e.target.value)} />
+                    <input placeholder="Last Name" value={last_name} onChange={e => setLastName(e.target.value)} />
                     <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
                     <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
                     <button onClick={register}>Register</button>
