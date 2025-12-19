@@ -12,6 +12,7 @@ export function ProfilePage() {
 
             <div style={{ marginTop: 24 }}>
                 <p><strong>Full name:</strong> {profile.first_name} {profile.last_name}</p>
+                {profile.group_name && <p><strong>Group:</strong> {profile.group_name}</p>}
                 <p><strong>Email:</strong> {profile.email}</p>
                 <p><strong>Role:</strong> {profile.role}</p>
             </div>
