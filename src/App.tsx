@@ -20,7 +20,7 @@ const App: React.FC = () => {
 
     return (
         <div style={{ fontFamily: "sans-serif", textAlign: "center", marginTop: "50px" }}>
-            <h1>Тестовое приложение TechUp</h1>
+            <h1>Тестовое приложение TechUp COCИ</h1>
             <p>Статус API: <strong>{status}</strong></p>
         </div>
     );
