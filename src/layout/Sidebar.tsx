@@ -18,6 +18,7 @@ export function Sidebar() {
             <nav>
                 <NavLink to="/">Dashboard</NavLink>
                 <NavLink to="/profile">Profile</NavLink>
+                    <NavLink to="/schedule">Расписание</NavLink>
             </nav>
 
             <button className="logout" onClick={onLogout}>

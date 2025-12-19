@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AuthPage } from './pages/AuthPage';
 import { useAuth } from './context/useAuth.ts';
+import {SchedulePage} from "./pages/SchedulePage.tsx";
 
 function App() {
     const { profile, refreshProfile } = useAuth();
@@ -37,6 +38,17 @@ function App() {
                     <ProtectedRoute>
                         <Layout>
                             <ProfilePage />
+                        </Layout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/schedule"
+                element={
+                    <ProtectedRoute>
+                        <Layout>
+                            <SchedulePage />
                         </Layout>
                     </ProtectedRoute>
                 }
