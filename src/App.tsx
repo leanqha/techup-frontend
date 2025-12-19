@@ -5,6 +5,7 @@ import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import {Layout} from "./layout/Layout.tsx";
 
 function App() {
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -51,7 +52,9 @@ function App() {
                     path="/"
                     element={
                         <ProtectedRoute profile={profile}>
-                            <HomePage />
+                            <Layout profile={profile!}>
+                                <HomePage />
+                            </Layout>
                         </ProtectedRoute>
                     }
                 />
@@ -60,7 +63,9 @@ function App() {
                     path="/profile"
                     element={
                         <ProtectedRoute profile={profile}>
-                            <ProfilePage profile={profile!} />
+                            <Layout profile={profile!}>
+                                <ProfilePage profile={profile!} />
+                            </Layout>
                         </ProtectedRoute>
                     }
                 />
