@@ -1,13 +1,15 @@
+import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
 export function HomePage() {
+    const navigate = useNavigate();
+
     const tiles = [
-        { title: 'Profile', action: () => alert('Profile') },
+        { title: 'Profile', action: () => navigate('/profile') },
         { title: 'Settings', action: () => alert('Settings') },
         { title: 'Users', action: () => alert('Users') },
         { title: 'Reports', action: () => alert('Reports') },
         { title: 'Analytics', action: () => alert('Analytics') },
-        { title: 'Logout', action: () => alert('Logout') },
     ];
 
     return (

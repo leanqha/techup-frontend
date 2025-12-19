@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import type {Profile} from './api/types/types.ts';
 import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
+import { ProfilePage } from './pages/ProfilePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -51,6 +52,15 @@ function App() {
                     element={
                         <ProtectedRoute profile={profile}>
                             <HomePage />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute profile={profile}>
+                            <ProfilePage profile={profile!} />
                         </ProtectedRoute>
                     }
                 />
