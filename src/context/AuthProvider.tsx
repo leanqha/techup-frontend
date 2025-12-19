@@ -1,6 +1,5 @@
-// src/context/AuthProvider.tsx
-import { useEffect, useState, type ReactNode } from 'react';
-import { AuthContext } from './AuthContext';
+import {type ReactNode, useEffect, useState } from 'react';
+import { AuthContext, type AuthContextType } from './AuthContext';
 import type {Profile} from '../api/types/types.ts';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -25,17 +24,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     }
                 }
             } catch {
-                if (!cancelled) {
-                    setProfile(null);
-                }
+                if (!cancelled) setProfile(null);
             } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
+                if (!cancelled) setLoading(false);
             }
         };
 
         loadProfile();
+
         return () => {
             cancelled = true;
         };
@@ -45,7 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await fetch('/api/v1/account/secure/profile', {
             credentials: 'include',
         });
-
         if (res.ok) {
             const data = await res.json();
             setProfile(data);
@@ -62,11 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
     };
 
-    return (
-        <AuthContext.Provider
-            value={{ profile, loading, refreshProfile, logout }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+    const value: AuthContextType = { profile, loading, refreshProfile, logout };
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

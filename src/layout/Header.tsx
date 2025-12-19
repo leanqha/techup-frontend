@@ -1,6 +1,6 @@
 // src/layout/Header.tsx
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth.ts';
 
 export function Header() {
     const { profile } = useAuth();

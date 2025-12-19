@@ -1,5 +1,5 @@
 // src/pages/ProfilePage.tsx
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth.ts';
 
 export function ProfilePage() {
     const { profile } = useAuth();

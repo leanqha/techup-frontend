@@ -4,7 +4,7 @@ import { Layout } from './layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AuthPage } from './pages/AuthPage';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './context/useAuth.ts';
 
 function App() {
     const { profile, refreshProfile } = useAuth();
