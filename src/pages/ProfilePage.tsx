@@ -12,7 +12,7 @@ export function ProfilePage({ profile }: Props) {
             <h1>Profile</h1>
 
             <div style={{ marginTop: 24 }}>
-                <p><strong>Full name:</strong> {profile.firstName} {profile.lastName}</p>
+                <p><strong>Full name:</strong> {profile.first_name} {profile.last_name}</p>
                 <p><strong>Email:</strong> {profile.email}</p>
                 <p><strong>Role:</strong> {profile.role}</p>
             </div>
