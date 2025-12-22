@@ -17,8 +17,8 @@ export function Sidebar() {
             <h2 className="logo">TechUp</h2>
 
             <nav>
-                <NavLink to="/">Dashboard</NavLink>
-                <NavLink to="/profile">Profile</NavLink>
+                <NavLink to="/">Главная</NavLink>
+                <NavLink to="/profile">Профиль</NavLink>
                 <NavLink to="/schedule">Расписание</NavLink>
                 {profile?.role === 'admin' && (<NavLink to="/admin">Админка</NavLink>)}
             </nav>

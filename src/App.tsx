@@ -13,6 +13,7 @@ function App() {
 
     return (
         <Routes>
+
             <Route
                 path="/auth"
                 element={
@@ -65,6 +66,7 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
         </Routes>
     );
 }
