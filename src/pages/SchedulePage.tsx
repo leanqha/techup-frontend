@@ -3,7 +3,7 @@ import { useAuth } from '../context/useAuth';
 import { fetchLessons, searchLessons } from '../api/schedule';
 import { formatTime } from '../utils/date';
 import { ScheduleFilters } from '../components/ScheduleFilters';
-import type {Dispatch, SetStateAction} from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
 export type Lesson = {
     id: number;
@@ -93,7 +93,7 @@ export function SchedulePage() {
         try {
             const data = await searchLessons({
                 date: filterDate || undefined,
-                teacherId: filterTeacherId ? Number(filterTeacherId) : undefined,
+                teacherId: filterTeacherId ?? undefined,
                 groupId: profile?.group_id,
                 classroom: filterClassroom || undefined,
             });
@@ -114,67 +114,76 @@ export function SchedulePage() {
 
     /* ===== grouping ===== */
 
-    const lessonsByDate =
-        lessons.length === 0
-            ? {}
-            : lessons.reduce<Record<string, Lesson[]>>((acc, lesson) => {
-                const date = lesson.date.slice(0, 10);
-                if (!acc[date]) acc[date] = [];
-                acc[date].push(lesson);
-                return acc;
-            }, {});
+    const lessonsByDate: Record<string, Lesson[]> = lessons?.length
+        ? lessons.reduce<Record<string, Lesson[]>>((acc, lesson) => {
+            const date = lesson.date.slice(0, 10);
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(lesson);
+            return acc;
+        }, {})
+        : {};
 
     /* ================= render ================= */
+
+    const dates = Object.keys(lessonsByDate);
 
     return (
         <div style={{ padding: 16 }}>
             <h1>Расписание</h1>
 
-            <WeekControls
-                weekOffset={weekOffset}
-                setWeekOffset={setWeekOffset}
-            />
+            <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
             <ScheduleFilters
                 date={filterDate}
-                teacherId={filterTeacherId}   // number | null
-                classroom={filterClassroom}   // string
+                teacherId={filterTeacherId}
+                classroom={filterClassroom}
                 onChange={({ date, teacherId, classroom }) => {
                     setFilterDate(date);
-                    setFilterTeacherId(teacherId); // теперь тип совпадает
+                    setFilterTeacherId(teacherId);
                     setFilterClassroom(classroom);
                 }}
                 onSearch={handleSearch}
             />
 
-            {lessons.length === 0 && <p>Пар нет</p>}
+            {/* ===== placeholder ===== */}
+            {dates.length === 0 && (
+                <div style={{ padding: 16, fontStyle: 'italic', color: '#555' }}>
+                    Пар нет
+                </div>
+            )}
 
-            {Object.entries(lessonsByDate).map(([date, dayLessons]) => (
+            {dates.map(date => (
                 <div key={date} style={{ marginBottom: 24 }}>
                     <h3>{date}</h3>
 
-                    {dayLessons.map(lesson => (
-                        <div
-                            key={lesson.id}
-                            style={{
-                                padding: 12,
-                                borderRadius: 8,
-                                border: '1px solid #e5e7eb',
-                                marginBottom: 8,
-                            }}
-                        >
-                            <strong>
-                                {lesson.subject} ({lesson.classroom})
-                            </strong>
+                    {lessonsByDate[date]?.length ? (
+                        lessonsByDate[date].map(lesson => (
+                            <div
+                                key={lesson.id}
+                                style={{
+                                    padding: 12,
+                                    borderRadius: 8,
+                                    border: '1px solid #e5e7eb',
+                                    marginBottom: 8,
+                                }}
+                            >
+                                <strong>
+                                    {lesson.subject} ({lesson.classroom})
+                                </strong>
 
-                            <div>
-                                {formatTime(lesson.start_time)} –{' '}
-                                {formatTime(lesson.end_time)}
+                                <div>
+                                    {formatTime(lesson.start_time)} –{' '}
+                                    {formatTime(lesson.end_time)}
+                                </div>
+
+                                <div>Преподаватель: {lesson.teacher}</div>
                             </div>
-
-                            <div>Преподаватель: {lesson.teacher}</div>
+                        ))
+                    ) : (
+                        <div style={{ padding: 8, fontStyle: 'italic', color: '#555' }}>
+                            Пар нет
                         </div>
-                    ))}
+                    )}
                 </div>
             ))}
         </div>
@@ -191,17 +200,9 @@ function WeekControls({
 }) {
     return (
         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-            <button onClick={() => setWeekOffset(v => v - 1)}>
-                ← Предыдущая
-            </button>
-
-            <button onClick={() => setWeekOffset(0)}>
-                Сегодня
-            </button>
-
-            <button onClick={() => setWeekOffset(v => v + 1)}>
-                Следующая →
-            </button>
+            <button onClick={() => setWeekOffset(v => v - 1)}>← Предыдущая</button>
+            <button onClick={() => setWeekOffset(0)}>Сегодня</button>
+            <button onClick={() => setWeekOffset(v => v + 1)}>Следующая →</button>
         </div>
     );
 }
