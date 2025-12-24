@@ -8,6 +8,7 @@ export type Profile = {
     uid: string;
     email: string;
     first_name: string;
+    middle_name: string;
     last_name: string;
     group_id: number;
     group_name: string;

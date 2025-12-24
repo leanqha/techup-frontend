@@ -1,4 +1,5 @@
 import type {Lesson} from "./types/schedule.ts";
+import type {Profile} from "./types/types.ts";
 
 export async function fetchLessons(groupId: number, from: string, to: string): Promise<Lesson[]> {
     const res = await fetch(`/api/v1/schedule/lessons?group_id=${groupId}&from=${from}&to=${to}`, {
@@ -15,9 +16,13 @@ export type SearchLessonsParams = {
     classroom?: string;
 };
 
-export async function searchLessons(params: SearchLessonsParams): Promise<Lesson[]> {
+export async function searchLessons(params: {
+    date?: string;
+    teacherId?: number;
+    groupId?: number;
+    classroom?: string;
+}): Promise<Lesson[]> {
     const query = new URLSearchParams();
-
     if (params.date) query.append('date', params.date);
     if (params.teacherId) query.append('teacher_id', String(params.teacherId));
     if (params.groupId) query.append('group_id', String(params.groupId));
@@ -27,15 +32,12 @@ export async function searchLessons(params: SearchLessonsParams): Promise<Lesson
         credentials: 'include',
     });
 
-    if (!res.ok) {
-        throw new Error('Ошибка поиска');
-    }
+    if (!res.ok) throw new Error('Ошибка поиска уроков');
 
     return res.json();
 }
 
-// src/api/schedule.ts
-export async function fetchTeachers(): Promise<{ id: number; name: string }[]> {
+export async function fetchTeachers(): Promise<Profile[]> {
     const res = await fetch('/api/v1/schedule/teachers', { credentials: 'include' });
     if (!res.ok) throw new Error('Ошибка получения преподавателей');
     return res.json();

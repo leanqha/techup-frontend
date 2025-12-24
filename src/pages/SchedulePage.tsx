@@ -45,9 +45,9 @@ export function SchedulePage() {
     const [error, setError] = useState<string | null>(null);
 
     /* ===== filters ===== */
-    const [filterDate, setFilterDate] = useState('');
-    const [filterTeacherId, setFilterTeacherId] = useState('');
-    const [filterClassroom, setFilterClassroom] = useState('');
+    const [filterDate, setFilterDate] = useState('');       // string для input[type=date]
+    const [filterTeacherId, setFilterTeacherId] = useState<number | null>(null); // number | null для API
+    const [filterClassroom, setFilterClassroom] = useState(''); // string
 
     /* ===== load week schedule ===== */
 
@@ -137,11 +137,11 @@ export function SchedulePage() {
 
             <ScheduleFilters
                 date={filterDate}
-                teacherId={filterTeacherId}
-                classroom={filterClassroom}
+                teacherId={filterTeacherId}   // number | null
+                classroom={filterClassroom}   // string
                 onChange={({ date, teacherId, classroom }) => {
                     setFilterDate(date);
-                    setFilterTeacherId(teacherId);
+                    setFilterTeacherId(teacherId); // теперь тип совпадает
                     setFilterClassroom(classroom);
                 }}
                 onSearch={handleSearch}
