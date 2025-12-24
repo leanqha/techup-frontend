@@ -33,3 +33,16 @@ export async function searchLessons(params: SearchLessonsParams): Promise<Lesson
 
     return res.json();
 }
+
+// src/api/schedule.ts
+export async function fetchTeachers(): Promise<{ id: number; name: string }[]> {
+    const res = await fetch('/api/v1/schedule/teachers', { credentials: 'include' });
+    if (!res.ok) throw new Error('Ошибка получения преподавателей');
+    return res.json();
+}
+
+export async function fetchClassrooms(): Promise<string[]> {
+    const res = await fetch('/api/v1/schedule/classrooms', { credentials: 'include' });
+    if (!res.ok) throw new Error('Ошибка получения аудиторий');
+    return res.json();
+}
