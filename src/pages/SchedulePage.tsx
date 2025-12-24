@@ -1,7 +1,9 @@
-import {type Dispatch, type SetStateAction, useEffect, useState} from 'react';
-import { useAuth } from '../context/useAuth.ts';
-import { fetchLessons } from '../api/schedule';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../context/useAuth';
+import { fetchLessons, searchLessons } from '../api/schedule';
 import { formatTime } from '../utils/date';
+import { ScheduleFilters } from '../components/ScheduleFilters';
+import type {Dispatch, SetStateAction} from 'react';
 
 export type Lesson = {
     id: number;
@@ -13,6 +15,8 @@ export type Lesson = {
     teacher: string;
     classroom: string;
 };
+
+/* ================= helpers ================= */
 
 function getWeekRange(offset: number) {
     const now = new Date();
@@ -30,13 +34,22 @@ function getWeekRange(offset: number) {
     };
 }
 
+/* ================= page ================= */
+
 export function SchedulePage() {
     const { profile } = useAuth();
-    const [weekOffset, setWeekOffset] = useState(0);
 
+    const [weekOffset, setWeekOffset] = useState(0);
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    /* ===== filters ===== */
+    const [filterDate, setFilterDate] = useState('');
+    const [filterTeacherId, setFilterTeacherId] = useState('');
+    const [filterClassroom, setFilterClassroom] = useState('');
+
+    /* ===== load week schedule ===== */
 
     useEffect(() => {
         if (!profile?.group_id) return;
@@ -71,46 +84,70 @@ export function SchedulePage() {
         };
     }, [profile?.group_id, weekOffset]);
 
-    /* ===== РАННИЕ RETURN — КРИТИЧНО ===== */
+    /* ===== search ===== */
 
-    if (loading) {
-        return <p>Загрузка расписания…</p>;
-    }
+    const handleSearch = async () => {
+        setLoading(true);
+        setError(null);
 
-    if (error) {
-        return <p style={{ color: 'red' }}>{error}</p>;
-    }
+        try {
+            const data = await searchLessons({
+                date: filterDate || undefined,
+                teacherId: filterTeacherId ? Number(filterTeacherId) : undefined,
+                groupId: profile?.group_id,
+                classroom: filterClassroom || undefined,
+            });
 
-    if (lessons.length === 0) {
-        return (
-            <div>
-                <WeekControls
-                    weekOffset={weekOffset}
-                    setWeekOffset={setWeekOffset}
-                />
-                <p>Пар нет</p>
-            </div>
-        );
-    }
+            setLessons(Array.isArray(data) ? data : []);
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : 'Ошибка поиска');
+            setLessons([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    /* ===== ГРУППИРОВКА ПО ДНЯМ ===== */
+    /* ===== early return ===== */
 
-    const lessonsByDate = lessons.reduce<Record<string, Lesson[]>>(
-        (acc, lesson) => {
-            const date = lesson.date.slice(0, 10);
-            if (!acc[date]) acc[date] = [];
-            acc[date].push(lesson);
-            return acc;
-        },
-        {}
-    );
+    if (loading) return <p>Загрузка расписания…</p>;
+    if (error) return <p style={{ color: 'red' }}>{error}</p>;
+
+    /* ===== grouping ===== */
+
+    const lessonsByDate =
+        lessons.length === 0
+            ? {}
+            : lessons.reduce<Record<string, Lesson[]>>((acc, lesson) => {
+                const date = lesson.date.slice(0, 10);
+                if (!acc[date]) acc[date] = [];
+                acc[date].push(lesson);
+                return acc;
+            }, {});
+
+    /* ================= render ================= */
 
     return (
-        <div>
+        <div style={{ padding: 16 }}>
+            <h1>Расписание</h1>
+
             <WeekControls
                 weekOffset={weekOffset}
                 setWeekOffset={setWeekOffset}
             />
+
+            <ScheduleFilters
+                date={filterDate}
+                teacherId={filterTeacherId}
+                classroom={filterClassroom}
+                onChange={({ date, teacherId, classroom }) => {
+                    setFilterDate(date);
+                    setFilterTeacherId(teacherId);
+                    setFilterClassroom(classroom);
+                }}
+                onSearch={handleSearch}
+            />
+
+            {lessons.length === 0 && <p>Пар нет</p>}
 
             {Object.entries(lessonsByDate).map(([date, dayLessons]) => (
                 <div key={date} style={{ marginBottom: 24 }}>
@@ -129,10 +166,12 @@ export function SchedulePage() {
                             <strong>
                                 {lesson.subject} ({lesson.classroom})
                             </strong>
+
                             <div>
                                 {formatTime(lesson.start_time)} –{' '}
                                 {formatTime(lesson.end_time)}
                             </div>
+
                             <div>Преподаватель: {lesson.teacher}</div>
                         </div>
                     ))}
@@ -142,8 +181,7 @@ export function SchedulePage() {
     );
 }
 
-/* ===== КНОПКИ ПЕРЕКЛЮЧЕНИЯ НЕДЕЛЬ ===== */
-
+/* ================= components ================= */
 
 function WeekControls({
                           setWeekOffset,
