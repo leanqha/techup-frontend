@@ -124,9 +124,7 @@ export function SchedulePage() {
         : {};
 
     /* ================= render ================= */
-
-    const dates = Object.keys(lessonsByDate);
-
+    Object.keys(lessonsByDate);
     return (
         <div style={{ padding: 16 }}>
             <h1>Расписание</h1>
@@ -146,18 +144,19 @@ export function SchedulePage() {
             />
 
             {/* ===== placeholder ===== */}
-            {dates.length === 0 && (
+            {(!lessons || lessons.length === 0) && (
                 <div style={{ padding: 16, fontStyle: 'italic', color: '#555' }}>
                     Пар нет
                 </div>
             )}
 
-            {dates.map(date => (
+            {/* ===== по датам ===== */}
+            {Object.entries(lessonsByDate).map(([date, dayLessons]) => (
                 <div key={date} style={{ marginBottom: 24 }}>
                     <h3>{date}</h3>
 
-                    {lessonsByDate[date]?.length ? (
-                        lessonsByDate[date].map(lesson => (
+                    {Array.isArray(dayLessons) && dayLessons.length > 0 ? (
+                        dayLessons.map(lesson => (
                             <div
                                 key={lesson.id}
                                 style={{
@@ -172,8 +171,7 @@ export function SchedulePage() {
                                 </strong>
 
                                 <div>
-                                    {formatTime(lesson.start_time)} –{' '}
-                                    {formatTime(lesson.end_time)}
+                                    {formatTime(lesson.start_time)} – {formatTime(lesson.end_time)}
                                 </div>
 
                                 <div>Преподаватель: {lesson.teacher}</div>
