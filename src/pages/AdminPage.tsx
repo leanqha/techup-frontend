@@ -54,6 +54,10 @@ export function AdminPage() {
                 skipEmptyLines: true,
             });
 
+            console.log('PARSED RAW:', parsed.data);
+            console.log('FIRST ROW:', parsed.data[0]);
+            console.log('ROWS COUNT:', parsed.data.length);
+
             const rows = (parsed.data as any[]).map(r => {
                 const clean: any = {};
                 Object.keys(r).forEach(k => {
@@ -62,11 +66,15 @@ export function AdminPage() {
                 return clean;
             });
 
+            console.log('ROWS AFTER CLEAN:', rows);
+            console.log('FIRST CLEAN ROW:', rows[0]);
+
             const lessons: Lesson[] = [];
             let idCounter = 1;
             const endDate = new Date(semesterEnd);
 
             rows.forEach(row => {
+                console.log('ROW:', row);
                 if (!row.date) return;
 
                 const [d, m, y] = row.date.split('.');
