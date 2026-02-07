@@ -7,13 +7,11 @@ export function HomePage() {
 
     const tiles = [
         { title: 'Профиль', action: () => navigate('/profile') },
-        { title: 'Settings', action: () => alert('Settings') },
-        { title: 'Users', action: () => alert('Users') },
+        { title: 'Расписание', action: () => alert('/schedule') },
         { title: 'Обратная связь', action: () => window.open(
             'https://docs.google.com/forms/d/e/1FAIpQLSd76B06oxBRQtjt_L-8EJ-8VZJRUNbXFxXctRZRInKcaqe5zQ/viewform?usp=dialog',
             '_blank')
         },
-        { title: 'Analytics', action: () => alert('Analytics') },
     ];
 
     return (
