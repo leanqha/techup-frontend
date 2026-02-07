@@ -28,7 +28,7 @@ export function AdminPage() {
 
     const normalizeTime = (t: string) => {
         const [h, m] = t.trim().split(':');
-        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
+        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
     };
 
     const readFileText = async (file: File) => {
