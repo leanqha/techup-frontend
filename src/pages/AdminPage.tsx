@@ -31,6 +31,16 @@ export function AdminPage() {
         return `${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
     };
 
+    const readFileText = async (file: File) => {
+        const buffer = await file.arrayBuffer();
+
+        try {
+            return new TextDecoder('utf-8').decode(buffer);
+        } catch {
+            return new TextDecoder('windows-1251').decode(buffer);
+        }
+    };
+
     const handleUpload = async () => {
         if (!file) {
             setMessage('Выберите CSV файл');
@@ -46,35 +56,38 @@ export function AdminPage() {
         setMessage(null);
 
         try {
-            const text = await file.text();
+            const text = await readFileText(file);
 
             const parsed = Papa.parse(text, {
                 header: true,
-                delimiter: '\t',
+                delimiter: ',',
+                newline: '\r\n',
                 skipEmptyLines: true,
             });
-
-            console.log('PARSED RAW:', parsed.data);
-            console.log('FIRST ROW:', parsed.data[0]);
-            console.log('ROWS COUNT:', parsed.data.length);
 
             const rows = (parsed.data as any[]).map(r => {
                 const clean: any = {};
                 Object.keys(r).forEach(k => {
-                    clean[k.trim()] = typeof r[k] === 'string' ? r[k].trim() : r[k];
+                    const key = k.replace(/\ufeff/g, '').trim();
+                    clean[key] =
+                        typeof r[k] === 'string'
+                            ? r[k].replace(/\ufeff/g, '').trim()
+                            : r[k];
                 });
                 return clean;
             });
 
-            console.log('ROWS AFTER CLEAN:', rows);
-            console.log('FIRST CLEAN ROW:', rows[0]);
+            if (!rows.length) {
+                setMessage('CSV пустой или не распознан');
+                setLoading(false);
+                return;
+            }
 
             const lessons: Lesson[] = [];
             let idCounter = 1;
             const endDate = new Date(semesterEnd);
 
             rows.forEach(row => {
-                console.log('ROW:', row);
                 if (!row.date) return;
 
                 const [d, m, y] = row.date.split('.');
@@ -92,22 +105,25 @@ export function AdminPage() {
                         classroom: row.classroom || '',
                     });
 
-                    // двухнедельный цикл
                     currentDate = addDays(currentDate, 14);
                 }
             });
 
+            if (!lessons.length) {
+                setMessage('Не удалось сформировать занятия');
+                setLoading(false);
+                return;
+            }
+
             const res = await fetch('/api/v1/admin/schedule/import', {
                 method: 'POST',
                 credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(lessons),
             });
 
             if (res.status === 201) {
-                setMessage('Расписание успешно импортировано');
+                setMessage(`Импортировано занятий: ${lessons.length}`);
             } else {
                 const data = await res.json();
                 setMessage(data.error || 'Ошибка импорта');
