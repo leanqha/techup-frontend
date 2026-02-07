@@ -16,8 +16,9 @@ type Lesson = {
 
 export function AdminPage() {
     const { profile } = useAuth();
+
     const [file, setFile] = useState<File | null>(null);
-    const [semesterEnd, setSemesterEnd] = useState<string>('2026-05-31');
+    const [semesterEnd, setSemesterEnd] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
@@ -25,11 +26,17 @@ export function AdminPage() {
         return <p>У вас нет доступа к админке</p>;
     }
 
+    const normalizeTime = (t: string) => {
+        const [h, m] = t.trim().split(':');
+        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
+    };
+
     const handleUpload = async () => {
         if (!file) {
-            setMessage('Выберите файл');
+            setMessage('Выберите CSV файл');
             return;
         }
+
         if (!semesterEnd) {
             setMessage('Выберите дату окончания семестра');
             return;
@@ -40,40 +47,38 @@ export function AdminPage() {
 
         try {
             const text = await file.text();
-            const parsed = Papa.parse(text, { header: true, skipEmptyLines: true }).data as any[];
+
+            const parsed = Papa.parse(text, {
+                header: true,
+                delimiter: '\t',
+                skipEmptyLines: true,
+            });
+
+            const rows = parsed.data as any[];
 
             const lessons: Lesson[] = [];
             let idCounter = 1;
             const endDate = new Date(semesterEnd);
 
-            parsed.forEach(row => {
-                // Преобразуем дату из CSV dd.MM.yyyy → yyyy-MM-dd
-                const dateParts = row['date'].split('.');
-                let currentDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+            rows.forEach(row => {
+                if (!row.date) return;
+
+                const [d, m, y] = row.date.split('.');
+                let currentDate = new Date(`${y}-${m}-${d}`);
 
                 while (currentDate <= endDate) {
-                    // Корректное преобразование времени
-                    const [startH, startM] = row['start_time'].split(':').map(Number);
-                    const [endH, endM] = row['end_time'].split(':').map(Number);
-
-                    const startTime = new Date(currentDate);
-                    startTime.setHours(startH, startM, 0, 0);
-
-                    const endTime = new Date(currentDate);
-                    endTime.setHours(endH, endM, 0, 0);
-
                     lessons.push({
                         id: idCounter++,
-                        group_id: Number(row['group']),
+                        group_id: Number(row.group),
                         date: format(currentDate, 'yyyy-MM-dd'),
-                        start_time: startTime.toISOString(),
-                        end_time: endTime.toISOString(),
-                        subject: row['subject'] || '',
-                        teacher_id: Number(row['teacher_id'] || 0),
-                        classroom: row['classroom'] || '',
+                        start_time: normalizeTime(row.start_time),
+                        end_time: normalizeTime(row.end_time),
+                        subject: row.subject || '',
+                        teacher_id: Number(row.teacher_id || 0),
+                        classroom: row.classroom || '',
                     });
 
-                    // Следующее занятие через 14 дней (двухнедельный цикл)
+                    // двухнедельный цикл
                     currentDate = addDays(currentDate, 14);
                 }
             });
@@ -81,7 +86,9 @@ export function AdminPage() {
             const res = await fetch('/api/v1/admin/schedule/import', {
                 method: 'POST',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify(lessons),
             });
 
@@ -93,7 +100,7 @@ export function AdminPage() {
             }
         } catch (err) {
             console.error(err);
-            setMessage('Ошибка сервера или формата CSV');
+            setMessage('Ошибка обработки CSV');
         } finally {
             setLoading(false);
         }
@@ -104,13 +111,21 @@ export function AdminPage() {
             <h1>Админка</h1>
 
             <div style={{ marginBottom: 12 }}>
-                <input type="file" accept=".csv" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+                <input
+                    type="file"
+                    accept=".csv"
+                    onChange={e => setFile(e.target.files?.[0] ?? null)}
+                />
             </div>
 
             <div style={{ marginBottom: 12 }}>
                 <label>
                     Дата окончания семестра:{' '}
-                    <input type="date" value={semesterEnd} onChange={e => setSemesterEnd(e.target.value)} />
+                    <input
+                        type="date"
+                        value={semesterEnd}
+                        onChange={e => setSemesterEnd(e.target.value)}
+                    />
                 </label>
             </div>
 
