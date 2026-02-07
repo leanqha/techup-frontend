@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { fetchLessons, searchLessons } from '../api/schedule';
-import { formatTime, formatDate } from '../utils/date';
+import {formatTime, formatDate, toDMY} from '../utils/date';
 import { ScheduleFilters } from '../components/ScheduleFilters';
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -127,7 +127,7 @@ export function SchedulePage() {
     Object.keys(lessonsByDate);
     return (
         <div style={{ padding: 16 }}>
-            <h1>Расписание!</h1>
+            <h1>Расписание</h1>
 
             <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
@@ -153,7 +153,7 @@ export function SchedulePage() {
             {/* ===== по датам ===== */}
             {Object.entries(lessonsByDate).map(([date, dayLessons]) => (
                 <div key={date} style={{ marginBottom: 24 }}>
-                    <h3>{formatDate(date)}</h3>
+                    <h3>{toDMY(formatDate(date))}</h3>
 
                     {Array.isArray(dayLessons) && dayLessons.length > 0 ? (
                         dayLessons.map(lesson => (
