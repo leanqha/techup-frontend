@@ -179,7 +179,7 @@ export function SchedulePage() {
                         ))
                     ) : (
                         <div style={{ padding: 8, fontStyle: 'italic', color: '#555' }}>
-                            Пар нет
+                            Пар нет!
                         </div>
                     )}
                 </div>
