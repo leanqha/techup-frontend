@@ -6,12 +6,12 @@ import { addDays, format, parse } from 'date-fns';
 
 type Lesson = {
     id: number;
-    group_id: string;
+    group_id: number;
     date: string;
     start_time: string;
     end_time: string;
     subject: string;
-    teacher_id: string;
+    teacher_id: number;
     classroom: string;
 };
 
@@ -69,12 +69,12 @@ export function AdminPage() {
 
                     lessons.push({
                         id: idCounter++,
-                        group_id: row['group'],
+                        group_id: Number(row['group']),
                         date: format(currentDate, 'yyyy-MM-dd'),
                         start_time: startTime.toISOString(),
                         end_time: endTime.toISOString(),
                         subject: row['subject'],
-                        teacher_id: row['teacher_id'],
+                        teacher_id: Number(row['teacher_id']),
                         classroom: row['classroom'],
                     });
 
