@@ -1,6 +1,19 @@
 // src/pages/AdminPage.tsx
 import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
+import Papa from 'papaparse';
+import { parse } from 'date-fns';
+
+type Lesson = {
+    id: number;
+    group_id: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    subject: string;
+    teacher_id: string;
+    classroom: string;
+};
 
 export function AdminPage() {
     const { profile } = useAuth();
@@ -22,13 +35,40 @@ export function AdminPage() {
         setMessage(null);
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            const text = await file.text();
 
+            // Парсим CSV
+            const parsed = Papa.parse(text, { header: true, skipEmptyLines: true }).data as any[];
+
+            const lessons: Lesson[] = [];
+            let idCounter = 1;
+
+            parsed.forEach(row => {
+                // Преобразуем дату из формата dd.MM.yyyy в yyyy-MM-dd
+                const dateParts = row['date'].split('.');
+                const dateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+                const startTime = parse(`${dateStr} ${row['start_time']}`, 'yyyy-MM-dd HH:mm', new Date());
+                const endTime = parse(`${dateStr} ${row['end_time']}`, 'yyyy-MM-dd HH:mm', new Date());
+
+                lessons.push({
+                    id: idCounter++,
+                    group_id: row['group'],
+                    date: dateStr,
+                    start_time: startTime.toISOString(),
+                    end_time: endTime.toISOString(),
+                    subject: row['subject'],
+                    teacher_id: row['teacher_id'],
+                    classroom: row['classroom'],
+                });
+            });
+
+            // Отправляем JSON на бэк
             const res = await fetch('/api/v1/admin/schedule/import', {
                 method: 'POST',
                 credentials: 'include',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lessons),
             });
 
             if (res.status === 201) {
@@ -37,9 +77,10 @@ export function AdminPage() {
                 const data = await res.json();
                 setMessage(data.error || 'Ошибка импорта');
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
         } catch (err) {
-            setMessage('Ошибка сервера');
+            console.error(err);
+            setMessage('Ошибка сервера или формата CSV');
         } finally {
             setLoading(false);
         }
