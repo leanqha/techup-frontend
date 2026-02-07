@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import Papa from 'papaparse';
-import { parse } from 'date-fns';
+import { addDays, format, parse } from 'date-fns';
 
 type Lesson = {
     id: number;
@@ -18,6 +18,7 @@ type Lesson = {
 export function AdminPage() {
     const { profile } = useAuth();
     const [file, setFile] = useState<File | null>(null);
+    const [semesterEnd, setSemesterEnd] = useState<string>('2026-05-31'); // по умолчанию
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
@@ -31,36 +32,55 @@ export function AdminPage() {
             return;
         }
 
+        if (!semesterEnd) {
+            setMessage('Выберите дату окончания семестра');
+            return;
+        }
+
         setLoading(true);
         setMessage(null);
 
         try {
             const text = await file.text();
-
-            // Парсим CSV
             const parsed = Papa.parse(text, { header: true, skipEmptyLines: true }).data as any[];
 
             const lessons: Lesson[] = [];
             let idCounter = 1;
 
+            const endDate = new Date(semesterEnd);
+
             parsed.forEach(row => {
-                // Преобразуем дату из формата dd.MM.yyyy в yyyy-MM-dd
+                // Преобразуем дату из CSV
                 const dateParts = row['date'].split('.');
-                const dateStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                let currentDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
 
-                const startTime = parse(`${dateStr} ${row['start_time']}`, 'yyyy-MM-dd HH:mm', new Date());
-                const endTime = parse(`${dateStr} ${row['end_time']}`, 'yyyy-MM-dd HH:mm', new Date());
+                // Размножаем урок на все даты до конца семестра
+                while (currentDate <= endDate) {
+                    const startTime = parse(
+                        `${format(currentDate, 'yyyy-MM-dd')} ${row['start_time']}`,
+                        'yyyy-MM-dd HH:mm',
+                        new Date()
+                    );
+                    const endTime = parse(
+                        `${format(currentDate, 'yyyy-MM-dd')} ${row['end_time']}`,
+                        'yyyy-MM-dd HH:mm',
+                        new Date()
+                    );
 
-                lessons.push({
-                    id: idCounter++,
-                    group_id: row['group'],
-                    date: dateStr,
-                    start_time: startTime.toISOString(),
-                    end_time: endTime.toISOString(),
-                    subject: row['subject'],
-                    teacher_id: row['teacher_id'],
-                    classroom: row['classroom'],
-                });
+                    lessons.push({
+                        id: idCounter++,
+                        group_id: row['group'],
+                        date: format(currentDate, 'yyyy-MM-dd'),
+                        start_time: startTime.toISOString(),
+                        end_time: endTime.toISOString(),
+                        subject: row['subject'],
+                        teacher_id: row['teacher_id'],
+                        classroom: row['classroom'],
+                    });
+
+                    // Следующая неделя (повторяем расписание по недельному циклу)
+                    currentDate = addDays(currentDate, 7);
+                }
             });
 
             // Отправляем JSON на бэк
@@ -96,6 +116,17 @@ export function AdminPage() {
                     accept=".csv"
                     onChange={e => setFile(e.target.files?.[0] ?? null)}
                 />
+            </div>
+
+            <div style={{ marginBottom: 12 }}>
+                <label>
+                    Дата окончания семестра:{' '}
+                    <input
+                        type="date"
+                        value={semesterEnd}
+                        onChange={e => setSemesterEnd(e.target.value)}
+                    />
+                </label>
             </div>
 
             <button onClick={handleUpload} disabled={loading}>
