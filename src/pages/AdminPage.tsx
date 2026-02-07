@@ -54,7 +54,13 @@ export function AdminPage() {
                 skipEmptyLines: true,
             });
 
-            const rows = parsed.data as any[];
+            const rows = (parsed.data as any[]).map(r => {
+                const clean: any = {};
+                Object.keys(r).forEach(k => {
+                    clean[k.trim()] = typeof r[k] === 'string' ? r[k].trim() : r[k];
+                });
+                return clean;
+            });
 
             const lessons: Lesson[] = [];
             let idCounter = 1;
