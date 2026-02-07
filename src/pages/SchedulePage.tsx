@@ -127,7 +127,7 @@ export function SchedulePage() {
     Object.keys(lessonsByDate);
     return (
         <div style={{ padding: 16 }}>
-            <h1>Расписание</h1>
+            <h1>Расписание!</h1>
 
             <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
