@@ -11,20 +11,20 @@ export async function fetchLessons(groupId: number, from: string, to: string): P
 
 export type SearchLessonsParams = {
     date?: string;
-    teacherId?: number;
+    teacherFullName?: string;
     groupId?: number;
     classroom?: string;
 };
 
 export async function searchLessons(params: {
     date?: string;
-    teacherId?: number;
+    teacherFullName?: number;
     groupId?: number;
     classroom?: string;
 }): Promise<Lesson[]> {
     const query = new URLSearchParams();
     if (params.date) query.append('date', params.date);
-    if (params.teacherId) query.append('teacher_id', String(params.teacherId));
+    if (params.teacherFullName) query.append('teacher_full_name', String(params.teacherFullName));
     if (params.groupId) query.append('group_id', String(params.groupId));
     if (params.classroom) query.append('classroom', params.classroom);
 
