@@ -22,3 +22,13 @@ export function toDMY(date: Date): string {
     const dd = String(date.getDate()).padStart(2, '0');
     return `${dd}.${mm}.${yyyy}`;
 }
+
+export function toStringDate(date: Date): string {
+    const result = date.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    });
+
+    return result.charAt(0).toUpperCase() + result.slice(1);
+}
