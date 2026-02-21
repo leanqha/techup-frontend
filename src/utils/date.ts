@@ -1,8 +1,13 @@
 // src/utils/date.ts
 
-export function formatTime(iso?: string): string {
-    if (!iso) return '--:--';
-    return iso.slice(11, 16);
+// src/utils/date.ts
+
+export function formatTime(time?: string): string {
+    if (!time) return '--:--';
+    // если строка содержит ":", значит уже HH:MM
+    if (time.includes(':')) return time.slice(0,5);
+    // иначе предполагаем ISO и берём символы с 11 по 16
+    return time.slice(11,16);
 }
 
 export function formatDate(iso?: string): string {
