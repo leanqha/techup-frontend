@@ -55,8 +55,7 @@ export function TodaySchedule() {
                         <div>
                             {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                         </div>
-                        <div>Преподаватель: {lesson.teacher}</div>
-                        {lesson.note?.text && <div><strong>Заметка:</strong> {lesson.note.text}</div>}
+                        <div>Преподаватель: {lesson.teacher.full_name}</div>
                     </li>
                 ))}
             </ul>

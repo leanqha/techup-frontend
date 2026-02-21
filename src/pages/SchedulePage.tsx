@@ -7,13 +7,19 @@ import type { Dispatch, SetStateAction } from 'react';
 
 export type Lesson = {
     id: number;
-    group_id: number;
     date: string;
     start_time: string;
     end_time: string;
     subject: string;
-    teacher: string;
     classroom: string;
+    teacher: {
+        id: number;
+        full_name: string;
+    };
+    group: {
+        id: number;
+        name: string;
+    };
 };
 
 /* ================= helpers ================= */
@@ -167,14 +173,14 @@ export function SchedulePage() {
                                 }}
                             >
                                 <strong>
-                                    {lesson.subject} ({lesson.classroom})
+                                    {lesson.subject} ({lesson.classroom}) — Группа: {lesson.group.name}
                                 </strong>
 
                                 <div>
                                     {formatTime(lesson.start_time)} – {formatTime(lesson.end_time)}
                                 </div>
 
-                                <div>Преподаватель: {lesson.teacher}</div>
+                                <div>Преподаватель: {lesson.teacher.full_name}</div>
                             </div>
                         ))
                     ) : (

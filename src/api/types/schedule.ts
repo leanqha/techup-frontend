@@ -1,4 +1,3 @@
-// src/types/schedule.ts
 export type Faculty = {
     id: number;
     name: string;
@@ -15,23 +14,21 @@ export type Group = {
     is_active: boolean;
 };
 
-export type Lesson = {
+export type Teacher = {
     id: number;
-    group_id: number;
-    date: string; // ISO string
-    start_time: string; // ISO string
-    end_time: string;   // ISO string
-    subject: string;
-    teacher: string;
-    classroom: string;
-    created_at: string;
-    note?: LessonNote;
+    first_name: string;
+    last_name: string;
+    middle_name: string;
+    full_name: string;
 };
 
-export type LessonNote = {
+export type Lesson = {
     id: number;
-    lessonId: number;
-    text: string;
-    createdAt: string;
-    updatedAt: string;
+    date: string; // YYYY-MM-DD
+    start_time: string; // HH:MM
+    end_time: string;   // HH:MM
+    subject: string;
+    classroom: string;
+    group: Group;
+    teacher: Teacher;
 };

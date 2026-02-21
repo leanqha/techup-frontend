@@ -1,6 +1,4 @@
-// src/components/Schedule/LessonCard.tsx
-// src/components/Schedule/LessonCard.tsx
-import type {Lesson} from '../../api/types/schedule';
+import type { Lesson } from '../../api/types/schedule';
 import { formatTime } from '../../utils/date';
 
 export function LessonCard({ lesson }: { lesson: Lesson }) {
@@ -21,7 +19,7 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
             </div>
 
             <div>
-                {lesson.teacher} · {lesson.classroom}
+                {lesson.teacher.full_name} · {lesson.classroom} · {lesson.group.name}
             </div>
         </div>
     );
