@@ -10,9 +10,9 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
             marginBottom: 8,
             background: '#fff'
         }}>
-            <div style={{ fontWeight: 600 }}>{lesson.subject}</div>
+            <div style={{ fontWeight: 600 }}>{lesson.subject} {lesson.classroom}</div>
             <div>{formatTime(lesson.start_time)} – {formatTime(lesson.end_time)}</div>
-            <div>{lesson.teacher.full_name} · {lesson.classroom}</div>
+            <div>{lesson.teacher.full_name}</div>
         </div>
     );
 }
