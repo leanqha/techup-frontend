@@ -12,7 +12,7 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
         }}>
             <div style={{ fontWeight: 600 }}>{lesson.subject}</div>
             <div>{formatTime(lesson.start_time)} – {formatTime(lesson.end_time)}</div>
-            <div>{lesson.teacher.full_name} · {lesson.classroom} · {lesson.group.name}</div>
+            <div>{lesson.teacher.full_name} · {lesson.classroom}</div>
         </div>
     );
 }
