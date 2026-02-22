@@ -5,7 +5,7 @@ import { addDays, format } from 'date-fns';
 
 type Lesson = {
     id: number;
-    group_id: number;
+    group: number;
     date: string;
     start_time: string;
     end_time: string;
@@ -97,7 +97,7 @@ export function AdminPage() {
                 while (currentDate <= endDate) {
                     lessons.push({
                         id: idCounter++,
-                        group_id: Number(row.group),
+                        group: Number(row.group),
                         date: format(currentDate, 'yyyy-MM-dd'),
                         start_time: normalizeTime(row.start_time),
                         end_time: normalizeTime(row.end_time),
