@@ -6,7 +6,7 @@ import { addDays, format } from 'date-fns';
 export type LessonType = 'lecture' | 'practise' | 'laboratory' | 'other';
 
 export type LessonRequest = {
-    group: string;
+    group: number;
     teacher_id: number;
     date: string;       // YYYY-MM-DD
     start_time: string; // HH:MM
@@ -77,8 +77,8 @@ export function AdminPage() {
             rows.forEach((row, i) => {
                 if (!row.date) return;
 
-                const group = row.group?.toString() || '0';
-                const teacher_id = Number(row.teacher_id || 0);
+                const group = Number(row.group || 0);          // <--- преобразуем в число
+                const teacher_id = Number(row.teacher_id || 0); // оставляем 0, если нет
 
                 const [d, m, y] = row.date.split('.');
                 let currentDate = new Date(`${y}-${m}-${d}`);
@@ -95,7 +95,7 @@ export function AdminPage() {
                         classroom: row.classroom || '—',
                     };
 
-                    console.log(`Row ${i + 1}:`, lesson);
+                    console.log(`Row ${i + 1}:`, lesson); // проверка
                     lessons.push(lesson);
                     currentDate = addDays(currentDate, 14);
                 }
