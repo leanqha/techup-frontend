@@ -3,36 +3,38 @@ import { useAuth } from '../context/useAuth';
 import Papa from 'papaparse';
 import { addDays, format } from 'date-fns';
 
-export type LessonType = 'lecture' | 'practise' | 'laboratory' | 'other';
-
-export type LessonRequest = {
-    group: number;
-    teacher_id: number;
-    date: string;       // YYYY-MM-DD
-    start_time: string; // HH:MM
-    end_time: string;   // HH:MM
+type Lesson = {
+    id: number;
+    group_id: number;
+    date: string;
+    start_time: string;
+    end_time: string;
     subject: string;
-    type: LessonType;
+    teacher_id: number;
     classroom: string;
+    type: string;
 };
 
 export function AdminPage() {
     const { profile } = useAuth();
+
     const [file, setFile] = useState<File | null>(null);
     const [semesterEnd, setSemesterEnd] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
-    if (profile?.role !== 'admin') return <p>У вас нет доступа к админке</p>;
+    if (profile?.role !== 'admin') {
+        return <p>У вас нет доступа к админке</p>;
+    }
 
     const normalizeTime = (t: string) => {
-        if (!t) return '00:00';
         const [h, m] = t.trim().split(':');
         return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
     };
 
     const readFileText = async (file: File) => {
         const buffer = await file.arrayBuffer();
+
         try {
             return new TextDecoder('utf-8').decode(buffer);
         } catch {
@@ -41,8 +43,15 @@ export function AdminPage() {
     };
 
     const handleUpload = async () => {
-        if (!file) return setMessage('Выберите CSV файл');
-        if (!semesterEnd) return setMessage('Выберите дату окончания семестра');
+        if (!file) {
+            setMessage('Выберите CSV файл');
+            return;
+        }
+
+        if (!semesterEnd) {
+            setMessage('Выберите дату окончания семестра');
+            return;
+        }
 
         setLoading(true);
         setMessage(null);
@@ -69,39 +78,44 @@ export function AdminPage() {
                 return clean;
             });
 
-            if (!rows.length) return setMessage('CSV пустой или не распознан');
+            if (!rows.length) {
+                setMessage('CSV пустой или не распознан');
+                setLoading(false);
+                return;
+            }
 
-            const lessons: LessonRequest[] = [];
+            const lessons: Lesson[] = [];
+            let idCounter = 1;
             const endDate = new Date(semesterEnd);
 
-            rows.forEach((row, i) => {
+            rows.forEach(row => {
                 if (!row.date) return;
-
-                const group = Number(row.group || 0);          // <--- преобразуем в число
-                const teacher_id = Number(row.teacher_id || 0); // оставляем 0, если нет
 
                 const [d, m, y] = row.date.split('.');
                 let currentDate = new Date(`${y}-${m}-${d}`);
 
                 while (currentDate <= endDate) {
-                    const lesson: LessonRequest = {
-                        group,
-                        teacher_id,
+                    lessons.push({
+                        id: idCounter++,
+                        group_id: Number(row.group),
                         date: format(currentDate, 'yyyy-MM-dd'),
                         start_time: normalizeTime(row.start_time),
                         end_time: normalizeTime(row.end_time),
-                        subject: row.subject || '—',
-                        type: (row.type as LessonType) || 'other',
-                        classroom: row.classroom || '—',
-                    };
+                        subject: row.subject || '',
+                        teacher_id: Number(row.teacher_id || 0),
+                        classroom: row.classroom || '',
+                        type: row.type?.trim() || 'other',
+                    });
 
-                    console.log(`Row ${i + 1}:`, lesson); // проверка
-                    lessons.push(lesson);
                     currentDate = addDays(currentDate, 14);
                 }
             });
 
-            if (!lessons.length) return setMessage('Не удалось сформировать занятия');
+            if (!lessons.length) {
+                setMessage('Не удалось сформировать занятия');
+                setLoading(false);
+                return;
+            }
 
             const res = await fetch('/api/v1/admin/schedule/import', {
                 method: 'POST',
@@ -127,18 +141,30 @@ export function AdminPage() {
     return (
         <div style={{ padding: 24 }}>
             <h1>Админка</h1>
+
             <div style={{ marginBottom: 12 }}>
-                <input type="file" accept=".csv" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+                <input
+                    type="file"
+                    accept=".csv"
+                    onChange={e => setFile(e.target.files?.[0] ?? null)}
+                />
             </div>
+
             <div style={{ marginBottom: 12 }}>
                 <label>
                     Дата окончания семестра:{' '}
-                    <input type="date" value={semesterEnd} onChange={e => setSemesterEnd(e.target.value)} />
+                    <input
+                        type="date"
+                        value={semesterEnd}
+                        onChange={e => setSemesterEnd(e.target.value)}
+                    />
                 </label>
             </div>
+
             <button onClick={handleUpload} disabled={loading}>
                 {loading ? 'Загрузка...' : 'Импортировать расписание'}
             </button>
+
             {message && <p style={{ marginTop: 12 }}>{message}</p>}
         </div>
     );
