@@ -4,14 +4,14 @@ import Papa from 'papaparse';
 import { addDays, format } from 'date-fns';
 
 type LessonRequest = {
-    Group: number;
-    TeacherID: number;
-    Date: string;       // YYYY-MM-DD
-    StartTime: string;  // HH:MM:SS
-    EndTime: string;    // HH:MM:SS
-    Subject: string;
-    Type: string;
-    Classroom: string;
+    group: number;
+    teacher_id: number;
+    date: string;       // YYYY-MM-DD
+    start_time: string; // HH:MM
+    end_time: string;   // HH:MM
+    subject: string;
+    type: string;
+    classroom: string;
 };
 
 export function AdminPage() {
@@ -27,8 +27,9 @@ export function AdminPage() {
     }
 
     const normalizeTime = (t: string) => {
+        if (!t) return '00:00';
         const [h, m] = t.trim().split(':');
-        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
+        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
     };
 
     const readFileText = async (file: File) => {
@@ -86,24 +87,24 @@ export function AdminPage() {
             const endDate = new Date(semesterEnd);
 
             rows.forEach(row => {
-                if (!row.date) return;
+                if (!row.date || !row.group) return;
 
                 const [d, m, y] = row.date.split('.');
                 let currentDate = new Date(`${y}-${m}-${d}`);
 
                 while (currentDate <= endDate) {
                     lessons.push({
-                        Group: Number(row.group),
-                        TeacherID: Number(row.teacher_id || 0),
-                        Date: format(currentDate, 'yyyy-MM-dd'),
-                        StartTime: normalizeTime(row.start_time),
-                        EndTime: normalizeTime(row.end_time),
-                        Subject: row.subject || '—',
-                        Type: row.type || '—',
-                        Classroom: row.classroom || '—',
+                        group: Number(row.group),
+                        teacher_id: Number(row.teacher_id || 0),
+                        date: format(currentDate, 'yyyy-MM-dd'),
+                        start_time: normalizeTime(row.start_time),
+                        end_time: normalizeTime(row.end_time),
+                        subject: row.subject || '—',
+                        type: row.type || 'lecture',
+                        classroom: row.classroom || '—',
                     });
 
-                    currentDate = addDays(currentDate, 14);
+                    currentDate = addDays(currentDate, 14); // повторяем каждую 2ю неделю
                 }
             });
 
