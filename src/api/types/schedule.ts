@@ -22,12 +22,15 @@ export type Teacher = {
     full_name: string;
 };
 
+export type LessonType = 'lecture' | 'practice' | 'laboratory' | 'other';
+
 export type Lesson = {
     id: number;
     date: string; // YYYY-MM-DD
     start_time: string; // HH:MM
     end_time: string;   // HH:MM
     subject: string;
+    type: LessonType;
     classroom: string;
     group: Group;
     teacher: Teacher;
