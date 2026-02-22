@@ -6,7 +6,7 @@ import { addDays, format } from 'date-fns';
 export type LessonType = 'lecture' | 'practise' | 'laboratory' | 'other';
 
 export type LessonRequest = {
-    group: number;
+    group: string;
     teacher_id: number;
     date: string;       // YYYY-MM-DD
     start_time: string; // HH:MM
@@ -18,15 +18,12 @@ export type LessonRequest = {
 
 export function AdminPage() {
     const { profile } = useAuth();
-
     const [file, setFile] = useState<File | null>(null);
     const [semesterEnd, setSemesterEnd] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
 
-    if (profile?.role !== 'admin') {
-        return <p>У вас нет доступа к админке</p>;
-    }
+    if (profile?.role !== 'admin') return <p>У вас нет доступа к админке</p>;
 
     const normalizeTime = (t: string) => {
         if (!t) return '00:00';
@@ -44,15 +41,8 @@ export function AdminPage() {
     };
 
     const handleUpload = async () => {
-        if (!file) {
-            setMessage('Выберите CSV файл');
-            return;
-        }
-
-        if (!semesterEnd) {
-            setMessage('Выберите дату окончания семестра');
-            return;
-        }
+        if (!file) return setMessage('Выберите CSV файл');
+        if (!semesterEnd) return setMessage('Выберите дату окончания семестра');
 
         setLoading(true);
         setMessage(null);
@@ -79,20 +69,16 @@ export function AdminPage() {
                 return clean;
             });
 
-            if (!rows.length) {
-                setMessage('CSV пустой или не распознан');
-                setLoading(false);
-                return;
-            }
+            if (!rows.length) return setMessage('CSV пустой или не распознан');
 
             const lessons: LessonRequest[] = [];
             const endDate = new Date(semesterEnd);
 
-            rows.forEach(row => {
+            rows.forEach((row, i) => {
                 if (!row.date) return;
 
-                const group = Number(row.group || 0);
-                const teacher_id = Number(row.teacher_id || 0); // обязательно число
+                const group = row.group?.toString() || '0';
+                const teacher_id = Number(row.teacher_id || 0);
 
                 const [d, m, y] = row.date.split('.');
                 let currentDate = new Date(`${y}-${m}-${d}`);
@@ -109,19 +95,13 @@ export function AdminPage() {
                         classroom: row.classroom || '—',
                     };
 
-                    // Проверочный вывод в консоль
-                    console.log('Отправляем урок:', lesson);
-
+                    console.log(`Row ${i + 1}:`, lesson);
                     lessons.push(lesson);
                     currentDate = addDays(currentDate, 14);
                 }
             });
 
-            if (!lessons.length) {
-                setMessage('Не удалось сформировать занятия');
-                setLoading(false);
-                return;
-            }
+            if (!lessons.length) return setMessage('Не удалось сформировать занятия');
 
             const res = await fetch('/api/v1/admin/schedule/import', {
                 method: 'POST',
@@ -147,30 +127,18 @@ export function AdminPage() {
     return (
         <div style={{ padding: 24 }}>
             <h1>Админка</h1>
-
             <div style={{ marginBottom: 12 }}>
-                <input
-                    type="file"
-                    accept=".csv"
-                    onChange={e => setFile(e.target.files?.[0] ?? null)}
-                />
+                <input type="file" accept=".csv" onChange={e => setFile(e.target.files?.[0] ?? null)} />
             </div>
-
             <div style={{ marginBottom: 12 }}>
                 <label>
                     Дата окончания семестра:{' '}
-                    <input
-                        type="date"
-                        value={semesterEnd}
-                        onChange={e => setSemesterEnd(e.target.value)}
-                    />
+                    <input type="date" value={semesterEnd} onChange={e => setSemesterEnd(e.target.value)} />
                 </label>
             </div>
-
             <button onClick={handleUpload} disabled={loading}>
                 {loading ? 'Загрузка...' : 'Импортировать расписание'}
             </button>
-
             {message && <p style={{ marginTop: 12 }}>{message}</p>}
         </div>
     );
