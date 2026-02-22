@@ -91,23 +91,28 @@ export function AdminPage() {
             rows.forEach(row => {
                 if (!row.date) return;
 
-                const teacherId = Number(row.teacher_id || 0); // оставляем 0, если нет
+                const group = Number(row.group || 0);
+                const teacher_id = Number(row.teacher_id || 0); // обязательно число
 
                 const [d, m, y] = row.date.split('.');
                 let currentDate = new Date(`${y}-${m}-${d}`);
 
                 while (currentDate <= endDate) {
-                    lessons.push({
-                        group: Number(row.group),
-                        teacher_id: teacherId,
+                    const lesson: LessonRequest = {
+                        group,
+                        teacher_id,
                         date: format(currentDate, 'yyyy-MM-dd'),
                         start_time: normalizeTime(row.start_time),
                         end_time: normalizeTime(row.end_time),
                         subject: row.subject || '—',
                         type: (row.type as LessonType) || 'other',
                         classroom: row.classroom || '—',
-                    });
+                    };
 
+                    // Проверочный вывод в консоль
+                    console.log('Отправляем урок:', lesson);
+
+                    lessons.push(lesson);
                     currentDate = addDays(currentDate, 14);
                 }
             });
