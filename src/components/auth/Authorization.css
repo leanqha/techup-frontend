@@ -1,0 +1,151 @@
+/* Overlay с блюром */
+.auth-overlay {
+    position: fixed;
+    inset: 0;
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.25s ease;
+    z-index: 1000;
+}
+
+/* Центрированное окно */
+.auth-slider {
+    width: 420px;
+    max-width: 95%;
+    background: #ffffff;
+    padding: 40px 35px;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: modalIn 0.25s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.auth-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.auth-header h2 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Кнопка закрытия */
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.2s;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    margin-bottom: 25px;
+    background: #f4f4f4;
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.tabs button.active {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Form */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form input {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.form input:focus {
+    border-color: #111;
+    outline: none;
+}
+
+.form input.error {
+    border-color: #e74c3c;
+}
+
+/* Submit button */
+.submit-btn {
+    margin-top: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #111;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #333;
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Ошибка сервера */
+.server-error {
+    color: #e74c3c;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Анимации */
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

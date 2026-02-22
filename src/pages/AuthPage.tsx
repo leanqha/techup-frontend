@@ -1,72 +1,36 @@
 import { useState } from 'react';
+import { Authorization } from '../components/auth/Authorization';
 
 type Props = {
     onAuthSuccess: () => void;
 };
 
 export function AuthPage({ onAuthSuccess }: Props) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [message, setMessage] = useState('');
-
-    const login = async () => {
-        setMessage('');
-        const res = await fetch('/api/v1/account/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ email, password }),
-        });
-
-        if (res.ok) {
-            onAuthSuccess();
-        } else {
-            const data = await res.json();
-            setMessage(data.error || 'Login failed');
-        }
-    };
-
-    const register = async () => {
-        setMessage('');
-        const res = await fetch('/api/v1/account/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-                email,
-                password,
-                first_name: firstName,
-                last_name: lastName,
-            }),
-        });
-
-        if (res.ok) {
-            onAuthSuccess();
-        } else {
-            const data = await res.json();
-            setMessage(data.error || 'Registration failed');
-        }
-    };
+    const [open, setOpen] = useState(false);
 
     return (
-        <div style={{ maxWidth: 400, margin: '50px auto' }}>
-            <h2>Login</h2>
-            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-            <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-            <button onClick={login}>Login</button>
+        <div style={{ textAlign: 'center', marginTop: 120 }}>
+            <button
+                style={{
+                    padding: '14px 28px',
+                    fontSize: 16,
+                    borderRadius: 8,
+                    border: 'none',
+                    background: '#111',
+                    color: '#fff',
+                    cursor: 'pointer',
+                }}
+                onClick={() => setOpen(true)}
+            >
+                Открыть авторизацию
+            </button>
 
-            <hr />
-
-            <h2>Register</h2>
-            <input placeholder="First name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-            <input placeholder="Last name" value={lastName} onChange={e => setLastName(e.target.value)} />
-            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-            <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-            <button onClick={register}>Register</button>
-
-            {message && <p>{message}</p>}
+            {open && (
+                <Authorization
+                    onClose={() => setOpen(false)}
+                    onAuthSuccess={onAuthSuccess}
+                />
+            )}
         </div>
     );
 }
