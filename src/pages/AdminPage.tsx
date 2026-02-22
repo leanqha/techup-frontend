@@ -6,9 +6,9 @@ import { addDays, format } from 'date-fns';
 type LessonRequest = {
     Group: number;
     TeacherID: number;
-    Date: string;
-    StartTime: string;
-    EndTime: string;
+    Date: string;       // YYYY-MM-DD
+    StartTime: string;  // HH:MM:SS
+    EndTime: string;    // HH:MM:SS
     Subject: string;
     Type: string;
     Classroom: string;
@@ -28,7 +28,7 @@ export function AdminPage() {
 
     const normalizeTime = (t: string) => {
         const [h, m] = t.trim().split(':');
-        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
     };
 
     const readFileText = async (file: File) => {
@@ -86,7 +86,7 @@ export function AdminPage() {
             const endDate = new Date(semesterEnd);
 
             rows.forEach(row => {
-                if (!row.date || !row.type || !row.teacher_id) return;
+                if (!row.date) return;
 
                 const [d, m, y] = row.date.split('.');
                 let currentDate = new Date(`${y}-${m}-${d}`);
@@ -94,16 +94,16 @@ export function AdminPage() {
                 while (currentDate <= endDate) {
                     lessons.push({
                         Group: Number(row.group),
-                        TeacherID: Number(row.teacher_id),
+                        TeacherID: Number(row.teacher_id || 0),
                         Date: format(currentDate, 'yyyy-MM-dd'),
                         StartTime: normalizeTime(row.start_time),
                         EndTime: normalizeTime(row.end_time),
                         Subject: row.subject || '—',
-                        Type: row.type,
+                        Type: row.type || '—',
                         Classroom: row.classroom || '—',
                     });
 
-                    currentDate = addDays(currentDate, 14); // повтор каждые 2 недели
+                    currentDate = addDays(currentDate, 14);
                 }
             });
 
