@@ -3,36 +3,14 @@ import { useAuth } from '../context/useAuth';
 import Papa from 'papaparse';
 import { addDays, format } from 'date-fns';
 
-export type LessonType = 'lecture' | 'practice' | 'laboratory' | 'other';
+export type LessonType = 'lecture' | 'practise' | 'laboratory' | 'other';
 
-export type Teacher = {
-    id: number;
-    name: string;
-};
-
-export type Group = {
-    id: number;
-    name: string;
-};
-
-export type Lesson = {
-    id: number;
-    date: string; // YYYY-MM-DD
-    start_time: string; // HH:MM
-    end_time: string;   // HH:MM
-    subject: string;
-    type: LessonType;
-    classroom: string;
-    group: Group;
-    teacher: Teacher;
-};
-
-type LessonRequest = {
+export type LessonRequest = {
     group: number;
     teacher_id: number;
-    date: string;
-    start_time: string;
-    end_time: string;
+    date: string;       // YYYY-MM-DD
+    start_time: string; // HH:MM
+    end_time: string;   // HH:MM
     subject: string;
     type: LessonType;
     classroom: string;
@@ -40,6 +18,7 @@ type LessonRequest = {
 
 export function AdminPage() {
     const { profile } = useAuth();
+
     const [file, setFile] = useState<File | null>(null);
     const [semesterEnd, setSemesterEnd] = useState('');
     const [loading, setLoading] = useState(false);
@@ -80,6 +59,7 @@ export function AdminPage() {
 
         try {
             const text = await readFileText(file);
+
             const parsed = Papa.parse(text, {
                 header: true,
                 delimiter: ',',
@@ -105,47 +85,31 @@ export function AdminPage() {
                 return;
             }
 
-            let idCounter = 1;
+            const lessons: LessonRequest[] = [];
             const endDate = new Date(semesterEnd);
 
-            const lessons: Lesson[] = rows.flatMap(row => {
-                if (!row.date || !row.group) return [];
+            rows.forEach(row => {
+                if (!row.date) return;
+
+                const teacherId = Number(row.teacher_id || 0); // оставляем 0, если нет
 
                 const [d, m, y] = row.date.split('.');
                 let currentDate = new Date(`${y}-${m}-${d}`);
-                const lessonType: LessonType =
-                    ['lecture', 'practice', 'laboratory'].includes(row.type)
-                        ? (row.type as LessonType)
-                        : 'other';
 
-                const teacher: Teacher = {
-                    id: Number(row.teacher_id || 0),
-                    name: row.teacher_name || '—',
-                };
-
-                const group: Group = {
-                    id: Number(row.group),
-                    name: row.group_name || '—',
-                };
-
-                const lessonInstances: Lesson[] = [];
                 while (currentDate <= endDate) {
-                    lessonInstances.push({
-                        id: idCounter++,
+                    lessons.push({
+                        group: Number(row.group),
+                        teacher_id: teacherId,
                         date: format(currentDate, 'yyyy-MM-dd'),
                         start_time: normalizeTime(row.start_time),
                         end_time: normalizeTime(row.end_time),
                         subject: row.subject || '—',
-                        type: lessonType,
+                        type: (row.type as LessonType) || 'other',
                         classroom: row.classroom || '—',
-                        teacher,
-                        group,
                     });
 
                     currentDate = addDays(currentDate, 14);
                 }
-
-                return lessonInstances;
             });
 
             if (!lessons.length) {
@@ -154,27 +118,15 @@ export function AdminPage() {
                 return;
             }
 
-            // Преобразуем в LessonRequest для API
-            const lessonRequests: LessonRequest[] = lessons.map(l => ({
-                group: l.group.id,
-                teacher_id: l.teacher.id,
-                date: l.date,
-                start_time: l.start_time,
-                end_time: l.end_time,
-                subject: l.subject,
-                type: l.type,
-                classroom: l.classroom,
-            }));
-
             const res = await fetch('/api/v1/admin/schedule/import', {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(lessonRequests),
+                body: JSON.stringify(lessons),
             });
 
             if (res.status === 201) {
-                setMessage(`Импортировано занятий: ${lessonRequests.length}`);
+                setMessage(`Импортировано занятий: ${lessons.length}`);
             } else {
                 const data = await res.json();
                 setMessage(data.error || 'Ошибка импорта');
