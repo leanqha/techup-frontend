@@ -12,17 +12,18 @@ export function Layout({ children }: { children: ReactNode }) {
 
     return (
         <div className="layout">
-            {/* Sidebar overlay for mobile */}
+            {/* Sidebar wrapper */}
             <div className={`sidebar-wrapper ${sidebarOpen ? 'open' : ''}`}>
                 <Sidebar closeSidebar={() => setSidebarOpen(false)} />
             </div>
 
+            {/* Main content */}
             <div className="content">
                 <Header toggleSidebar={toggleSidebar} />
                 <main className="page">{children}</main>
             </div>
 
-            {/* Clickable overlay to close sidebar */}
+            {/* Overlay for mobile */}
             {sidebarOpen && (
                 <div
                     className="sidebar-overlay"
