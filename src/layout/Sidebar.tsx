@@ -19,32 +19,35 @@ export function Sidebar({ closeSidebar }: Props) {
     const handleNavClick = () => closeSidebar?.();
 
     return (
-        <aside className="sidebar">
-            {/* Logo */}
-            <div style={{ marginBottom: 32, flexShrink: 0 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 600 }}>TechUp</h2>
+        <aside className="sidebar" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+            {/* Top part with logo and nav */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Logo */}
+                <div style={{ marginBottom: 16, flexShrink: 0 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 600 }}>TechUp</h2>
+                </div>
+
+                {/* Nav links scrollable if content too long */}
+                <nav style={{ display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
+                    <NavLink to="/" style={navStyle} onClick={handleNavClick} end>
+                        Главная
+                    </NavLink>
+                    <NavLink to="/profile" style={navStyle} onClick={handleNavClick}>
+                        Профиль
+                    </NavLink>
+                    <NavLink to="/schedule" style={navStyle} onClick={handleNavClick}>
+                        Расписание
+                    </NavLink>
+                    {profile?.role === 'admin' && (
+                        <NavLink to="/admin" style={navStyle} onClick={handleNavClick}>
+                            Админка
+                        </NavLink>
+                    )}
+                </nav>
             </div>
 
-            {/* Nav links scrollable if content too long */}
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, overflowY: 'auto' }}>
-                <NavLink to="/" style={navStyle} onClick={handleNavClick} end>
-                    🏠 Главная
-                </NavLink>
-                <NavLink to="/profile" style={navStyle} onClick={handleNavClick}>
-                    👤 Профиль
-                </NavLink>
-                <NavLink to="/schedule" style={navStyle} onClick={handleNavClick}>
-                    📅 Расписание
-                </NavLink>
-                {profile?.role === 'admin' && (
-                    <NavLink to="/admin" style={navStyle} onClick={handleNavClick}>
-                        ⚙ Админка
-                    </NavLink>
-                )}
-            </nav>
-
-            {/* Logout fixed at bottom */}
-            <button className="logout" onClick={onLogout} style={{ flexShrink: 0, marginTop: 16 }}>
+            {/* Logout pinned at bottom */}
+            <button className="logout" onClick={onLogout} style={{ marginTop: 16 }}>
                 Logout
             </button>
         </aside>
