@@ -1,12 +1,13 @@
+// src/layout/Sidebar.tsx
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
-    closeSidebar?: () => void;
+    closeSidebar?: () => void; // controlled by Header hamburger
 };
 
 export function Sidebar({ closeSidebar }: Props) {
-    const { profile, logout } = useAuth();
+    const { logout, profile } = useAuth();
     const navigate = useNavigate();
 
     const onLogout = async () => {
@@ -18,14 +19,24 @@ export function Sidebar({ closeSidebar }: Props) {
     const handleNavClick = () => closeSidebar?.();
 
     return (
-        <aside className="sidebar">
+        <aside
+            className="sidebar"
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '100vh',
+                padding: '16px',
+            }}
+        >
+            {/* Top part with logo and nav */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {/* Логотип */}
+                {/* Logo */}
                 <div style={{ marginBottom: 16, flexShrink: 0 }}>
                     <h2 style={{ fontSize: 18, fontWeight: 600 }}>TechUp</h2>
                 </div>
 
-                {/* Навигация */}
+                {/* Nav links */}
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <NavLink to="/" style={navStyle} onClick={handleNavClick} end>
                         Главная
@@ -41,21 +52,13 @@ export function Sidebar({ closeSidebar }: Props) {
                             Админка
                         </NavLink>
                     )}
-                    {/* Logout как пункт меню */}
-                    <button onClick={onLogout} style={{
-                        marginTop: 16,
-                        padding: '8px 12px',
-                        borderRadius: 8,
-                        background: '#ef4444',
-                        color: '#fff',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left'
-                    }}>
-                        Logout
-                    </button>
                 </nav>
             </div>
+
+            {/* Logout pinned at bottom */}
+            <button className="logout" onClick={onLogout} style={{ flexShrink: 0 }}>
+                Logout
+            </button>
         </aside>
     );
 }

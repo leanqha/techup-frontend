@@ -1,44 +1,10 @@
 .layout {
     display: flex;
+    height: 100vh;
+    background: #f9fafb;
 }
 
-/* Header на всю ширину */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background-color: #f3f4f6;
-    border-bottom: 1px solid #e5e7eb;
-    position: sticky;
-    top: 0;
-    z-index: 40; /* ниже sidebar */
-    width: 100%;
-    min-height: 56px;
-}
-
-.header .greeting {
-    font-size: 16px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.header .avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #111827;
-    color: #fff;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* Sidebar поверх всего */
+/* Sidebar wrapper */
 .sidebar-wrapper {
     position: fixed;
     top: 0;
@@ -48,60 +14,99 @@
     max-width: 320px;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-    z-index: 50;
+    z-index: 30;
 }
 
 .sidebar-wrapper.open {
     transform: translateX(0);
 }
 
+/* Sidebar */
 .sidebar {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    justify-content: space-between;
+    height: 100%;
     padding: 16px;
     background: #111827;
     color: #fff;
-    overflow-y: auto;
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
-/* Overlay для закрытия sidebar */
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .sidebar-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.4);
-    z-index: 45;
+    z-index: 20;
 }
 
-/* Пункт меню logout */
-.sidebar button {
-    margin-top: 16px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: #ef4444;
-    color: #fff;
+/* Content */
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    height: 60px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.greeting {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     border: none;
+    background: #2563eb;
+    color: #fff;
+    font-weight: bold;
     cursor: pointer;
-    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-@media (min-width: 769px) {
+.page {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.logout {
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
     .sidebar-wrapper {
-        position: fixed; /* теперь всегда поверх контента */
-        transform: translateX(0);
-        width: 240px;
+        width: 80%;
+        max-width: 320px;
+        transform: translateX(-100%);
     }
 
-    .sidebar-overlay {
-        display: none; /* overlay не нужен на ПК */
+    .sidebar-wrapper.open {
+        transform: translateX(0);
     }
 
     .hamburgerButton {
-        display: none;
-    }
-
-    .content {
-        margin-left: 0; /* убираем смещение */
+        display: inline-flex;
     }
 }

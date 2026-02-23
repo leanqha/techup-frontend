@@ -1,8 +1,9 @@
+// src/layout/Header.tsx
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
-    toggleSidebar?: () => void;
+    toggleSidebar?: () => void; // function to control sidebar overlay
 };
 
 export function Header({ toggleSidebar }: Props) {
@@ -20,15 +21,24 @@ export function Header({ toggleSidebar }: Props) {
     return (
         <header className="header">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {/* Hamburger button only for mobile */}
                 {toggleSidebar && (
                     <button
                         onClick={toggleSidebar}
                         className="hamburgerButton"
+                        style={{
+                            fontSize: 22,
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#111827',
+                            cursor: 'pointer',
+                        }}
                         aria-label="Toggle sidebar"
                     >
                         ☰
                     </button>
                 )}
+
                 <span className="greeting">
                     {greeting}, {profile.first_name} 👋
                 </span>
