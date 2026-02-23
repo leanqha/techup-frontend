@@ -81,12 +81,20 @@ export function HomePage() {
                 </div>
             )}
 
-            <div className="grid" style={{ marginTop: 32 }}>
+            <div
+                style={{
+                    marginTop: 32,
+                    display: 'grid',
+                    gap: 12,
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                }}
+            >
                 {tiles.map(tile => (
                     <button
                         key={tile.title}
                         className="tile"
                         onClick={tile.action}
+                        style={{ width: '100%' }}
                     >
                         {tile.title}
                     </button>
