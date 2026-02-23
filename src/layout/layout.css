@@ -7,6 +7,7 @@
 /* Sidebar */
 .sidebar {
     width: 220px;
+    min-width: 220px;
     background: #111827;
     color: #fff;
     padding: 16px;
@@ -15,16 +16,20 @@
     transition: width 0.3s ease, transform 0.3s ease;
     overflow: hidden;
     height: 100vh;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     z-index: 20;
 }
 
 .sidebar.collapsed {
-    width: 60px;
+    width: 220px; /* collapse removed; sidebar full width always */
 }
 
 .sidebar-wrapper {
     display: flex;
+    width: 100%;
+    height: 100vh;
 }
 
 .sidebar-overlay {
@@ -84,6 +89,8 @@
 /* Logout button */
 .logout {
     margin-top: auto;
+    width: 100%;
+    box-sizing: border-box;
     background: #dc2626;
     border: none;
     color: #fff;
@@ -104,6 +111,7 @@
         top: 0;
         left: 0;
         height: 100vh;
+        width: 100%;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
         z-index: 20;
@@ -114,12 +122,12 @@
     }
 
     .sidebar {
-        width: 220px;
+        width: 100%;
         height: 100%;
     }
 
     .sidebar.collapsed {
-        width: 220px;
+        width: 100%;
     }
 
     .content {
