@@ -52,7 +52,14 @@ export function HomePage() {
     ];
 
     return (
-        <div style={{ padding: 24 }}>
+        <div
+            style={{
+                padding: 16,
+                maxWidth: 1200,
+                margin: '0 auto',
+                overflowX: 'hidden',
+            }}
+        >
             <h2 style={{ marginTop: 16, fontSize: 20, fontWeight: 600 }}>Сегодня</h2>
 
             {loading ? (
