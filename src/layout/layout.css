@@ -86,16 +86,15 @@
     text-align: left;
 }
 
-/* Адаптивность для ПК */
 @media (min-width: 769px) {
     .sidebar-wrapper {
-        position: relative;
+        position: fixed; /* теперь всегда поверх контента */
         transform: translateX(0);
         width: 240px;
     }
 
     .sidebar-overlay {
-        display: none;
+        display: none; /* overlay не нужен на ПК */
     }
 
     .hamburgerButton {
@@ -103,6 +102,6 @@
     }
 
     .content {
-        margin-left: 240px;
+        margin-left: 0; /* убираем смещение */
     }
 }
