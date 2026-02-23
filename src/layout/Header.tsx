@@ -14,16 +14,20 @@ export function Header({ toggleSidebar }: Props) {
 
     const hour = new Date().getHours();
     const greeting =
-        hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
+        hour < 12 ? 'Доброе утро' :
+        hour < 18 ? 'Добрый день' :
+        'Добрый вечер';
 
     return (
         <header className="header">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {/* Hamburger for mobile only */}
                 {toggleSidebar && (
                     <button
                         onClick={toggleSidebar}
+                        className="hamburgerButton"
                         style={{
-                            fontSize: 20,
+                            fontSize: 22,
                             background: 'transparent',
                             border: 'none',
                             color: '#111827',
@@ -33,9 +37,10 @@ export function Header({ toggleSidebar }: Props) {
                         ☰
                     </button>
                 )}
+
                 <span className="greeting">
-          {greeting}, {profile.first_name} 👋
-        </span>
+                    {greeting}, {profile.first_name} 👋
+                </span>
             </div>
 
             <button

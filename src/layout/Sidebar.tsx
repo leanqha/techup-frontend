@@ -4,7 +4,7 @@ import { useAuth } from '../context/useAuth';
 import { useState } from 'react';
 
 type Props = {
-    closeSidebar?: () => void;
+    closeSidebar?: () => void; // for mobile overlay
 };
 
 export function Sidebar({ closeSidebar }: Props) {
@@ -24,11 +24,15 @@ export function Sidebar({ closeSidebar }: Props) {
         <aside
             className={`sidebar ${collapsed ? 'collapsed' : ''}`}
         >
+            {/* Logo + desktop collapse button */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 600 }}>
                     {!collapsed ? 'TechUp' : 'TU'}
                 </h2>
+
+                {/* Only show collapse button on desktop */}
                 <button
+                    className="desktopOnly"
                     onClick={() => setCollapsed(c => !c)}
                     style={{
                         background: 'transparent',
