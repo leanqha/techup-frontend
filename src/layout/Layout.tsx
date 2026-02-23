@@ -11,24 +11,24 @@ export function Layout({ children }: { children: ReactNode }) {
 
     return (
         <div className="layout">
-            {/* Sidebar wrapper */}
+            {/* Sidebar поверх всего */}
             <div className={`sidebar-wrapper ${sidebarOpen ? 'open' : ''}`}>
                 <Sidebar closeSidebar={() => setSidebarOpen(false)} />
             </div>
 
-            {/* Основной контент */}
-            <div className="content">
-                <Header toggleSidebar={toggleSidebar} />
-                <main className="page">{children}</main>
-            </div>
-
-            {/* Overlay — при клике закрывает sidebar */}
+            {/* Overlay для мобильного */}
             {sidebarOpen && (
                 <div
                     className="sidebar-overlay"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
+
+            {/* Контент и Header */}
+            <div className="content">
+                <Header toggleSidebar={toggleSidebar} />
+                <main className="page">{children}</main>
+            </div>
         </div>
     );
 }

@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
-    toggleSidebar?: () => void; // функция для управления sidebar
+    toggleSidebar?: () => void;
 };
 
 export function Header({ toggleSidebar }: Props) {
@@ -24,19 +24,11 @@ export function Header({ toggleSidebar }: Props) {
                     <button
                         onClick={toggleSidebar}
                         className="hamburgerButton"
-                        style={{
-                            fontSize: 22,
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#111827',
-                            cursor: 'pointer',
-                        }}
                         aria-label="Toggle sidebar"
                     >
                         ☰
                     </button>
                 )}
-
                 <span className="greeting">
                     {greeting}, {profile.first_name} 👋
                 </span>

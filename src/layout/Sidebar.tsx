@@ -6,7 +6,7 @@ type Props = {
 };
 
 export function Sidebar({ closeSidebar }: Props) {
-    const { logout, profile } = useAuth();
+    const { profile, logout } = useAuth();
     const navigate = useNavigate();
 
     const onLogout = async () => {
@@ -41,13 +41,21 @@ export function Sidebar({ closeSidebar }: Props) {
                             Админка
                         </NavLink>
                     )}
+                    {/* Logout как пункт меню */}
+                    <button onClick={onLogout} style={{
+                        marginTop: 16,
+                        padding: '8px 12px',
+                        borderRadius: 8,
+                        background: '#ef4444',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                    }}>
+                        Logout
+                    </button>
                 </nav>
             </div>
-
-            {/* Кнопка Logout фиксирована снизу */}
-            <button className="logout" onClick={onLogout}>
-                Logout
-            </button>
         </aside>
     );
 }
