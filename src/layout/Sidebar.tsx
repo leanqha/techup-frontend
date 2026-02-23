@@ -1,5 +1,5 @@
 // src/layout/Sidebar.tsx
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
@@ -7,14 +7,7 @@ type Props = {
 };
 
 export function Sidebar({ closeSidebar }: Props) {
-    const { logout, profile } = useAuth();
-    const navigate = useNavigate();
-
-    const onLogout = async () => {
-        await logout();
-        navigate('/auth');
-        closeSidebar?.();
-    };
+    const { profile } = useAuth();
 
     const handleNavClick = () => closeSidebar?.();
 
@@ -54,11 +47,6 @@ export function Sidebar({ closeSidebar }: Props) {
                     )}
                 </nav>
             </div>
-
-            {/* Logout pinned at bottom */}
-            <button className="logout" onClick={onLogout} style={{ flexShrink: 0 }}>
-                Logout
-            </button>
         </aside>
     );
 }
