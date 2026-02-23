@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import './HomePage.css';
@@ -10,7 +9,6 @@ import type { Lesson } from '../api/types/schedule';
 import { format } from 'date-fns';
 
 export function HomePage() {
-    const navigate = useNavigate();
     const { profile } = useAuth();
 
     const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -37,19 +35,6 @@ export function HomePage() {
 
         loadToday();
     }, [profile?.group_id]);
-
-    const tiles = [
-        { title: 'Профиль', action: () => navigate('/profile') },
-        { title: 'Расписание', action: () => navigate('/schedule') },
-        {
-            title: 'Обратная связь',
-            action: () =>
-                window.open(
-                    'https://docs.google.com/forms/d/e/1FAIpQLSd76B06oxBRQtjt_L-8EJ-8VZJRUNbXFxXctRZRInKcaqe5zQ/viewform?usp=dialog',
-                    '_blank'
-                ),
-        },
-    ];
 
     return (
         <div
@@ -89,16 +74,6 @@ export function HomePage() {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
                 }}
             >
-                {tiles.map(tile => (
-                    <button
-                        key={tile.title}
-                        className="tile"
-                        onClick={tile.action}
-                        style={{ width: '100%' }}
-                    >
-                        {tile.title}
-                    </button>
-                ))}
             </div>
         </div>
     );
