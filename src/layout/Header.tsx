@@ -1,8 +1,12 @@
 // src/layout/Header.tsx
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/useAuth.ts';
+import { useAuth } from '../context/useAuth';
 
-export function Header() {
+type Props = {
+    toggleSidebar?: () => void;
+};
+
+export function Header({ toggleSidebar }: Props) {
     const { profile } = useAuth();
     const navigate = useNavigate();
 
@@ -10,14 +14,28 @@ export function Header() {
 
     const hour = new Date().getHours();
     const greeting =
-        hour < 12 ? 'Доброе утро' :
-            hour < 18 ? 'Добрый день' :
-                'Добрый вечер';
+        hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
 
     return (
         <header className="header">
-            <div className="greeting">
-                {greeting}, {profile.first_name} 👋
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {toggleSidebar && (
+                    <button
+                        onClick={toggleSidebar}
+                        style={{
+                            fontSize: 20,
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#111827',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        ☰
+                    </button>
+                )}
+                <span className="greeting">
+          {greeting}, {profile.first_name} 👋
+        </span>
             </div>
 
             <button
