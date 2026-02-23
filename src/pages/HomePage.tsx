@@ -53,9 +53,7 @@ export function HomePage() {
 
     return (
         <div style={{ padding: 24 }}>
-            <h1>Dashboard</h1>
-
-            <h2 style={{ marginTop: 24 }}>Сегодня</h2>
+            <h1>Сегодня</h1>
 
             {loading ? (
                 <p>Загрузка...</p>
