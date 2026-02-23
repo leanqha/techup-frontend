@@ -21,11 +21,12 @@ export function Sidebar({ closeSidebar }: Props) {
     return (
         <aside className="sidebar">
             {/* Logo */}
-            <div style={{ marginBottom: 32 }}>
+            <div style={{ marginBottom: 32, flexShrink: 0 }}>
                 <h2 style={{ fontSize: 18, fontWeight: 600 }}>TechUp</h2>
             </div>
 
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+            {/* Nav links scrollable if content too long */}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, overflowY: 'auto' }}>
                 <NavLink to="/" style={navStyle} onClick={handleNavClick} end>
                     🏠 Главная
                 </NavLink>
@@ -42,7 +43,8 @@ export function Sidebar({ closeSidebar }: Props) {
                 )}
             </nav>
 
-            <button className="logout" onClick={onLogout}>
+            {/* Logout fixed at bottom */}
+            <button className="logout" onClick={onLogout} style={{ flexShrink: 0, marginTop: 16 }}>
                 Logout
             </button>
         </aside>

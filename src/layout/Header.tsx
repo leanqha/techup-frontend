@@ -33,6 +33,7 @@ export function Header({ toggleSidebar }: Props) {
                             color: '#111827',
                             cursor: 'pointer',
                         }}
+                        aria-label="Toggle sidebar"
                     >
                         ☰
                     </button>
@@ -46,6 +47,7 @@ export function Header({ toggleSidebar }: Props) {
             <button
                 className="avatar"
                 onClick={() => navigate('/profile')}
+                aria-label="Go to profile"
             >
                 {profile.first_name[0]}
             </button>

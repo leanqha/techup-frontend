@@ -106,15 +106,17 @@
         flex-direction: column;
     }
 
+    /* Sidebar wrapper for mobile overlay */
     .sidebar-wrapper {
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
-        width: 100%;
+        width: 80%;
+        max-width: 320px;
         transform: translateX(-100%);
         transition: transform 0.3s ease;
-        z-index: 20;
+        z-index: 30;
     }
 
     .sidebar-wrapper.open {
@@ -124,10 +126,15 @@
     .sidebar {
         width: 100%;
         height: 100%;
+        position: relative;
     }
 
-    .sidebar.collapsed {
-        width: 100%;
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 20;
     }
 
     .content {
