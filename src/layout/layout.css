@@ -1,11 +1,11 @@
-/* Sidebar wrapper for overlay */
+/* layout.css */
 .sidebar-wrapper {
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;      /* растягиваем на весь экран */
+    height: 100vh;
     width: 80%;
-    max-width: 320px;   /* не шире на больших телефонах */
+    max-width: 320px;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     z-index: 30;
@@ -18,28 +18,29 @@
 .sidebar {
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* top nav and bottom logout */
     height: 100vh;
     padding: 16px;
     background: #111827;
     color: #fff;
+    overflow-y: auto; /* чтобы прокручивалось если много элементов */
 }
 
-/* Top nav block */
 .sidebar nav {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/* Logout pinned at bottom */
 .logout {
-    flex-shrink: 0;
-}
-
-.sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 20;
+    position: fixed; /* теперь всегда снизу экрана */
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    z-index: 31; /* выше чем sidebar */
 }
