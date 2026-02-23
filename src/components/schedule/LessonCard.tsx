@@ -7,79 +7,107 @@ function getTypeMeta(type: LessonType) {
         case 'lecture':
             return {
                 label: 'Лекция',
-                bg: '#DBEAFE',      // мягкий фон
-                color: '#2563EB',   // синий
+                accent: '#2563EB',
+                bg: '#EFF6FF',
             };
         case 'practice':
             return {
                 label: 'Практика',
-                bg: '#FEE2E2',
-                color: '#DC2626',   // красный
+                accent: '#DC2626',
+                bg: '#FEF2F2',
             };
         case 'laboratory':
             return {
                 label: 'Лабораторная',
-                bg: '#EDE9FE',
-                color: '#7C3AED',   // фиолетовый
+                accent: '#7C3AED',
+                bg: '#F5F3FF',
             };
         default:
             return {
                 label: '',
-                bg: '#F3F4F6',
-                color: '#374151',
+                accent: '#6B7280',
+                bg: '#F9FAFB',
             };
     }
 }
 
 export function LessonCard({ lesson }: { lesson: Lesson }) {
     const showTeacher = lesson.teacher.id !== 0;
-    const showClassroom = lesson.classroom && lesson.classroom !== '0';
+    const showClassroom =
+        lesson.classroom &&
+        lesson.classroom !== '0' &&
+        lesson.classroom.trim() !== '';
 
     const typeMeta = getTypeMeta(lesson.type);
 
     return (
         <div
             style={{
-                border: '1px solid #e5e7eb',
+                position: 'relative',
                 borderRadius: 16,
-                padding: 14,
-                marginBottom: 10,
-                background: '#fff',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                padding: 16,
+                marginBottom: 12,
+                background: '#ffffff',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 6
+                gap: 8,
+                borderLeft: `6px solid ${typeMeta.accent}`,
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             }}
         >
-            {/* Первая строка: бейдж + предмет */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Тип */}
+            {typeMeta.label && (
                 <span
                     style={{
+                        alignSelf: 'flex-start',
                         background: typeMeta.bg,
-                        color: typeMeta.color,
+                        color: typeMeta.accent,
                         padding: '4px 10px',
                         borderRadius: 999,
                         fontSize: 12,
-                        fontWeight: 600
+                        fontWeight: 600,
+                        letterSpacing: 0.3,
                     }}
                 >
                     {typeMeta.label}
                 </span>
+            )}
 
-                <span style={{ fontWeight: 600 }}>
-                    {lesson.subject}
-                    {showClassroom ? ` · ${lesson.classroom}` : ''}
-                </span>
+            {/* Предмет + аудитория */}
+            <div
+                style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                    color: '#111827',
+                    wordBreak: 'break-word',
+                }}
+            >
+                {lesson.subject}
+                {showClassroom ? ` · ${lesson.classroom}` : ''}
             </div>
 
             {/* Время */}
-            <div style={{ fontSize: 14, color: '#374151' }}>
-                {formatTime(lesson.start_time)} – {formatTime(lesson.end_time)}
+            <div
+                style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: '#374151',
+                }}
+            >
+                {formatTime(lesson.start_time)} –{' '}
+                {formatTime(lesson.end_time)}
             </div>
 
             {/* Преподаватель */}
             {showTeacher && (
-                <div style={{ fontSize: 14, color: '#6B7280' }}>
+                <div
+                    style={{
+                        fontSize: 14,
+                        color: '#6B7280',
+                    }}
+                >
                     {lesson.teacher.full_name}
                 </div>
             )}

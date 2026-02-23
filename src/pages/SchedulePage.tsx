@@ -10,7 +10,6 @@ function getWeekRange(offset: number) {
     const now = new Date();
     const monday = new Date(now);
     monday.setDate(now.getDate() - now.getDay() + 1 + offset * 7);
-
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
@@ -74,10 +73,6 @@ export function SchedulePage() {
         }
     };
 
-    if (loading) return <p>Загрузка расписания…</p>;
-    if (error) return <p style={{ color: 'red' }}>{error}</p>;
-
-    // группируем уроки по дате
     const lessonsByDate: Record<string, Lesson[]> = lessons.reduce((acc, lesson) => {
         acc[lesson.date] ??= [];
         acc[lesson.date].push(lesson);
@@ -87,8 +82,8 @@ export function SchedulePage() {
     const sortedDates = Object.keys(lessonsByDate).sort();
 
     return (
-        <div style={{ padding: 16 }}>
-            <h1>Расписание</h1>
+        <div style={{ padding: 16, minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Расписание</h1>
 
             <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
@@ -104,23 +99,33 @@ export function SchedulePage() {
                 onSearch={handleSearch}
             />
 
-            {sortedDates.length === 0 ? (
-                <div style={{ padding: 16, fontStyle: 'italic', color: '#555' }}>Пар нет</div>
-            ) : (
-                sortedDates.map(date => (
-                    <ScheduleDay key={date} date={date} lessons={lessonsByDate[date]} />
-                ))
+            {loading && <p style={{ fontStyle: 'italic', color: '#6B7280' }}>Загрузка...</p>}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+
+            {sortedDates.length === 0 && !loading && !error && (
+                <div style={{ padding: 16, fontStyle: 'italic', color: '#6B7280' }}>
+                    Пар нет
+                </div>
             )}
+
+            {sortedDates.map(date => (
+                <ScheduleDay key={date} date={date} lessons={lessonsByDate[date]} />
+            ))}
         </div>
     );
 }
 
 function WeekControls({ setWeekOffset }: { weekOffset: number; setWeekOffset: Dispatch<SetStateAction<number>>; }) {
     return (
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-            <button onClick={() => setWeekOffset(v => v - 1)}>← Предыдущая</button>
-            <button onClick={() => setWeekOffset(0)}>Сегодня</button>
-            <button onClick={() => setWeekOffset(v => v + 1)}>Следующая →</button>
+        <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 12,
+            marginBottom: 16,
+        }}>
+            <button style={{ flex: '1 1 120px' }} onClick={() => setWeekOffset(v => v - 1)}>← Предыдущая</button>
+            <button style={{ flex: '1 1 120px' }} onClick={() => setWeekOffset(0)}>Сегодня</button>
+            <button style={{ flex: '1 1 120px' }} onClick={() => setWeekOffset(v => v + 1)}>Следующая →</button>
         </div>
     );
 }

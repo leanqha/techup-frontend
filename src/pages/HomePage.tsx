@@ -53,12 +53,25 @@ export function HomePage() {
 
     return (
         <div style={{ padding: 24 }}>
-            <h1>Сегодня</h1>
+            <h2 style={{ marginTop: 16, fontSize: 20, fontWeight: 600 }}>Сегодня</h2>
 
             {loading ? (
-                <p>Загрузка...</p>
-            ) : (
+                <p style={{ fontStyle: 'italic', color: '#6B7280' }}>Загрузка...</p>
+            ) : lessons.length > 0 ? (
                 <ScheduleDay date={todayISO} lessons={lessons} />
+            ) : (
+                <div
+                    style={{
+                        padding: 16,
+                        borderRadius: 12,
+                        background: '#F3F4F6',
+                        textAlign: 'center',
+                        fontSize: 14,
+                        color: '#6B7280',
+                    }}
+                >
+                    Пар сегодня нет 🎉
+                </div>
             )}
 
             <div className="grid" style={{ marginTop: 32 }}>
