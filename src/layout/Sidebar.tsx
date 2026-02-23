@@ -1,9 +1,8 @@
-// src/layout/Sidebar.tsx
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
-    closeSidebar?: () => void; // controlled by Header hamburger
+    closeSidebar?: () => void;
 };
 
 export function Sidebar({ closeSidebar }: Props) {
@@ -20,12 +19,13 @@ export function Sidebar({ closeSidebar }: Props) {
 
     return (
         <aside className="sidebar">
-            {/* Top part with logo and nav */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Логотип */}
                 <div style={{ marginBottom: 16, flexShrink: 0 }}>
                     <h2 style={{ fontSize: 18, fontWeight: 600 }}>TechUp</h2>
                 </div>
 
+                {/* Навигация */}
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <NavLink to="/" style={navStyle} onClick={handleNavClick} end>
                         Главная
@@ -44,7 +44,7 @@ export function Sidebar({ closeSidebar }: Props) {
                 </nav>
             </div>
 
-            {/* Logout button вынесен через CSS position: fixed */}
+            {/* Кнопка Logout фиксирована снизу */}
             <button className="logout" onClick={onLogout}>
                 Logout
             </button>

@@ -1,4 +1,8 @@
-/* layout.css */
+.layout {
+    display: flex;
+}
+
+/* Sidebar */
 .sidebar-wrapper {
     position: fixed;
     top: 0;
@@ -22,7 +26,8 @@
     padding: 16px;
     background: #111827;
     color: #fff;
-    overflow-y: auto; /* чтобы прокручивалось если много элементов */
+    overflow-y: auto;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
 .sidebar nav {
@@ -31,9 +36,18 @@
     gap: 12px;
 }
 
+/* Overlay для мобильного меню */
+.sidebar-overlay {
+    position: fixed;       /* поверх контента */
+    inset: 0;              /* занимает весь экран */
+    background: rgba(0,0,0,0.4); /* полупрозрачный фон */
+    z-index: 20;           /* ниже чем sidebar (z-index:30) */
+}
+
+/* Кнопка Logout фиксирована снизу с учетом safe-area */
 .logout {
-    position: fixed; /* теперь всегда снизу экрана */
-    bottom: 16px;
+    position: fixed;
+    bottom: env(safe-area-inset-bottom, 16px);
     left: 16px;
     right: 16px;
     background: #ef4444;
@@ -42,5 +56,40 @@
     border-radius: 8px;
     padding: 12px;
     cursor: pointer;
-    z-index: 31; /* выше чем sidebar */
+    z-index: 31;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    min-height: 56px;
+}
+
+.header .greeting {
+    font-size: 16px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111827;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
 }

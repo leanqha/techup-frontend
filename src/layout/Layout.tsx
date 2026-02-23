@@ -1,4 +1,3 @@
-// src/layout/Layout.tsx
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Header } from './Header';
@@ -17,13 +16,13 @@ export function Layout({ children }: { children: ReactNode }) {
                 <Sidebar closeSidebar={() => setSidebarOpen(false)} />
             </div>
 
-            {/* Main content */}
+            {/* Основной контент */}
             <div className="content">
                 <Header toggleSidebar={toggleSidebar} />
                 <main className="page">{children}</main>
             </div>
 
-            {/* Overlay for mobile */}
+            {/* Overlay — при клике закрывает sidebar */}
             {sidebarOpen && (
                 <div
                     className="sidebar-overlay"

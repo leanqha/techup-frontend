@@ -1,9 +1,8 @@
-// src/layout/Header.tsx
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
-    toggleSidebar?: () => void; // function to control sidebar overlay
+    toggleSidebar?: () => void; // функция для управления sidebar
 };
 
 export function Header({ toggleSidebar }: Props) {
@@ -15,13 +14,12 @@ export function Header({ toggleSidebar }: Props) {
     const hour = new Date().getHours();
     const greeting =
         hour < 12 ? 'Доброе утро' :
-        hour < 18 ? 'Добрый день' :
-        'Добрый вечер';
+            hour < 18 ? 'Добрый день' :
+                'Добрый вечер';
 
     return (
         <header className="header">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {/* Hamburger button only for mobile */}
                 {toggleSidebar && (
                     <button
                         onClick={toggleSidebar}
