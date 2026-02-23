@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Authorization.css';
+import { fetchWithRefresh } from '../../api/fetchWithRefresh';
 
 type Props = {
     onClose: () => void;
@@ -8,7 +9,6 @@ type Props = {
 
 export function Authorization({ onClose, onAuthSuccess }: Props) {
     const [mode, setMode] = useState<'login' | 'register'>('login');
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
@@ -19,9 +19,7 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
     const validateEmail = (value: string) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-    const isLoginValid =
-        validateEmail(email) && password.length >= 8;
-
+    const isLoginValid = validateEmail(email) && password.length >= 8;
     const isRegisterValid =
         validateEmail(email) &&
         password.length >= 8 &&
@@ -47,30 +45,45 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
                     last_name: lastName,
                 };
 
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(body),
-        });
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(body),
+            });
 
-        setLoading(false);
+            if (!res.ok) {
+                const data = await res.json();
+                setMessage(data.error || 'Ошибка авторизации');
+                return;
+            }
 
-        if (res.ok) {
             onAuthSuccess();
             onClose();
-        } else {
+        } catch (err) {
+            console.error(err);
+            setMessage('Сетевая ошибка');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Пример использования fetchWithRefresh внутри компонента
+    const testProtectedRequest = async () => {
+        try {
+            const res = await fetchWithRefresh('/api/v1/account/secure/profile');
+            if (!res.ok) throw new Error('Не удалось получить профиль');
             const data = await res.json();
-            setMessage(data.error || 'Ошибка авторизации');
+            console.log('User profile:', data);
+        } catch (err) {
+            console.error(err);
         }
     };
 
     return (
         <div className="auth-overlay" onClick={onClose}>
-            <div
-                className="auth-slider"
-                onClick={(e) => e.stopPropagation()}
-            >
+            <div className="auth-slider" onClick={(e) => e.stopPropagation()}>
                 <div className="auth-header">
                     <h2>Авторизация</h2>
                     <button className="close-btn" onClick={onClose}>
@@ -99,16 +112,12 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
                             <input
                                 placeholder="Имя"
                                 value={firstName}
-                                onChange={(e) =>
-                                    setFirstName(e.target.value)
-                                }
+                                onChange={(e) => setFirstName(e.target.value)}
                             />
                             <input
                                 placeholder="Фамилия"
                                 value={lastName}
-                                onChange={(e) =>
-                                    setLastName(e.target.value)
-                                }
+                                onChange={(e) => setLastName(e.target.value)}
                             />
                         </>
                     )}
@@ -117,35 +126,20 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className={
-                            email && !validateEmail(email)
-                                ? 'error'
-                                : ''
-                        }
+                        className={email && !validateEmail(email) ? 'error' : ''}
                     />
 
                     <input
                         type="password"
                         placeholder="Пароль (мин. 8 символов)"
                         value={password}
-                        onChange={(e) =>
-                            setPassword(e.target.value)
-                        }
-                        className={
-                            password && password.length < 8
-                                ? 'error'
-                                : ''
-                        }
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={password && password.length < 8 ? 'error' : ''}
                     />
 
                     <button
                         className="submit-btn"
-                        disabled={
-                            loading ||
-                            (mode === 'login'
-                                ? !isLoginValid
-                                : !isRegisterValid)
-                        }
+                        disabled={loading || (mode === 'login' ? !isLoginValid : !isRegisterValid)}
                         onClick={handleSubmit}
                     >
                         {loading
@@ -155,11 +149,15 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
                                 : 'Зарегистрироваться'}
                     </button>
 
-                    {message && (
-                        <div className="server-error">
-                            {message}
-                        </div>
-                    )}
+                    <button
+                        className="submit-btn"
+                        style={{ marginTop: '10px', backgroundColor: '#777' }}
+                        onClick={testProtectedRequest}
+                    >
+                        Проверить защищённый запрос
+                    </button>
+
+                    {message && <div className="server-error">{message}</div>}
                 </div>
             </div>
         </div>

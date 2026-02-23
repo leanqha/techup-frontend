@@ -1,6 +1,7 @@
 import {type ReactNode, useEffect, useState } from 'react';
 import { AuthContext, type AuthContextType } from './AuthContext';
 import type {Profile} from '../api/types/types.ts';
+import { fetchWithRefresh } from '../api/fetchWithRefresh';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -11,9 +12,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const loadProfile = async () => {
             try {
-                const res = await fetch('/api/v1/account/secure/profile', {
-                    credentials: 'include',
-                });
+                const res = await fetchWithRefresh(
+                    '/api/v1/account/secure/profile'
+                );
 
                 if (!cancelled) {
                     if (res.ok) {
@@ -38,9 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const refreshProfile = async () => {
-        const res = await fetch('/api/v1/account/secure/profile', {
-            credentials: 'include',
-        });
+        const res = await fetchWithRefresh(
+            '/api/v1/account/secure/profile'
+        );
+
         if (res.ok) {
             const data = await res.json();
             setProfile(data);
