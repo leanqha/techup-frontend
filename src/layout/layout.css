@@ -18,15 +18,23 @@
 .sidebar {
     display: flex;
     flex-direction: column;
-    height: 100%;       /* растягиваем sidebar на всю высоту wrapper */
+    justify-content: space-between; /* top nav and bottom logout */
+    height: 100vh;
     padding: 16px;
     background: #111827;
     color: #fff;
 }
 
+/* Top nav block */
 .sidebar nav {
-    flex: 1;
-    overflow-y: visible;   /* remove scroll, content fits naturally */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Logout pinned at bottom */
+.logout {
+    flex-shrink: 0;
 }
 
 .sidebar-overlay {

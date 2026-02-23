@@ -19,7 +19,16 @@ export function Sidebar({ closeSidebar }: Props) {
     const handleNavClick = () => closeSidebar?.();
 
     return (
-        <aside className="sidebar" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+        <aside
+            className="sidebar"
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                height: '100vh',
+                padding: '16px',
+            }}
+        >
             {/* Top part with logo and nav */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Logo */}
@@ -27,8 +36,8 @@ export function Sidebar({ closeSidebar }: Props) {
                     <h2 style={{ fontSize: 18, fontWeight: 600 }}>TechUp</h2>
                 </div>
 
-                {/* Nav links scrollable if content too long */}
-                <nav style={{ display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
+                {/* Nav links */}
+                <nav style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <NavLink to="/" style={navStyle} onClick={handleNavClick} end>
                         Главная
                     </NavLink>
@@ -47,7 +56,7 @@ export function Sidebar({ closeSidebar }: Props) {
             </div>
 
             {/* Logout pinned at bottom */}
-            <button className="logout" onClick={onLogout} style={{ marginTop: 16 }}>
+            <button className="logout" onClick={onLogout} style={{ flexShrink: 0 }}>
                 Logout
             </button>
         </aside>
