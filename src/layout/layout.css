@@ -96,11 +96,11 @@ html, body {
     justify-content: center;
 }
 
-/* Page content */
 .page {
     flex: 1;
     padding: 24px;
-    overflow-y: auto; /* только сам контент страницы может скроллиться */
+
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch; /* плавный скролл на iOS */
 }
 
