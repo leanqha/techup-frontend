@@ -1,7 +1,18 @@
+/* Ограничиваем скролл по всей странице */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* отключаем прокрутку по умолчанию */
+    margin: 0;
+    padding: 0;
+}
+
+/* Layout */
 .layout {
     display: flex;
-    height: 100vh;
-    background: #f9fafb;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* фиксируем область, чтобы не скроллилось */
 }
 
 /* Sidebar wrapper */
@@ -51,7 +62,8 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-    overflow: hidden;
+    height: 100%;
+    overflow: hidden; /* отключаем вертикальный скролл на iPhone */
 }
 
 /* Header */
@@ -84,10 +96,12 @@
     justify-content: center;
 }
 
+/* Page content */
 .page {
-    padding: 24px;
     flex: 1;
-    overflow-y: auto;
+    padding: 24px;
+    overflow-y: auto; /* только сам контент страницы может скроллиться */
+    -webkit-overflow-scrolling: touch; /* плавный скролл на iOS */
 }
 
 .logout {
