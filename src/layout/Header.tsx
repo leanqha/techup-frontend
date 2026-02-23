@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
-    toggleSidebar?: () => void;
+    toggleSidebar?: () => void; // function to control sidebar overlay
 };
 
 export function Header({ toggleSidebar }: Props) {
@@ -21,7 +21,7 @@ export function Header({ toggleSidebar }: Props) {
     return (
         <header className="header">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {/* Hamburger for mobile only */}
+                {/* Hamburger button only for mobile */}
                 {toggleSidebar && (
                     <button
                         onClick={toggleSidebar}

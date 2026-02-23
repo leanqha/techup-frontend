@@ -1,16 +1,14 @@
 // src/layout/Sidebar.tsx
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { useState } from 'react';
 
 type Props = {
-    closeSidebar?: () => void; // for mobile overlay
+    closeSidebar?: () => void; // controlled by Header hamburger
 };
 
 export function Sidebar({ closeSidebar }: Props) {
     const { logout, profile } = useAuth();
     const navigate = useNavigate();
-    const [collapsed, setCollapsed] = useState(false);
 
     const onLogout = async () => {
         await logout();
@@ -21,50 +19,31 @@ export function Sidebar({ closeSidebar }: Props) {
     const handleNavClick = () => closeSidebar?.();
 
     return (
-        <aside
-            className={`sidebar ${collapsed ? 'collapsed' : ''}`}
-        >
-            {/* Logo + desktop collapse button */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 600 }}>
-                    {!collapsed ? 'TechUp' : 'TU'}
-                </h2>
-
-                {/* Only show collapse button on desktop */}
-                <button
-                    className="desktopOnly"
-                    onClick={() => setCollapsed(c => !c)}
-                    style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        fontSize: 18,
-                    }}
-                >
-                    {collapsed ? '➡' : '⬅'}
-                </button>
+        <aside className="sidebar">
+            {/* Logo */}
+            <div style={{ marginBottom: 32 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 600 }}>TechUp</h2>
             </div>
 
             <nav style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
                 <NavLink to="/" style={navStyle} onClick={handleNavClick} end>
-                    {collapsed ? '🏠' : 'Главная'}
+                    🏠 Главная
                 </NavLink>
                 <NavLink to="/profile" style={navStyle} onClick={handleNavClick}>
-                    {collapsed ? '👤' : 'Профиль'}
+                    👤 Профиль
                 </NavLink>
                 <NavLink to="/schedule" style={navStyle} onClick={handleNavClick}>
-                    {collapsed ? '📅' : 'Расписание'}
+                    📅 Расписание
                 </NavLink>
                 {profile?.role === 'admin' && (
                     <NavLink to="/admin" style={navStyle} onClick={handleNavClick}>
-                        {collapsed ? '⚙' : 'Админка'}
+                        ⚙ Админка
                     </NavLink>
                 )}
             </nav>
 
             <button className="logout" onClick={onLogout}>
-                {!collapsed ? 'Logout' : '⏻'}
+                Logout
             </button>
         </aside>
     );
