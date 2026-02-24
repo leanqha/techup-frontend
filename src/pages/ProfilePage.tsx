@@ -16,6 +16,26 @@ export function ProfilePage() {
                 <p><strong>Email:</strong> {profile.email}</p>
                 <p><strong>Role:</strong> {profile.role}</p>
             </div>
+
+            <button
+                onClick={() =>
+                    window.open(
+                        'https://docs.google.com/forms/d/e/1FAIpQLSd76B06oxBRQtjt_L-8EJ-8VZJRUNbXFxXctRZRInKcaqe5zQ/viewform?usp=dialog',
+                        '_blank'
+                    )
+                }
+                style={{
+                    padding: '10px 14px',
+                    borderRadius: 8,
+                    border: 'none',
+                    backgroundColor: '#2563eb',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                }}
+            >
+                Обратная связь
+            </button>
         </div>
     );
 }
