@@ -2,12 +2,13 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth.ts';
 import type {JSX} from "react";
+import {Loader} from "../Loader.tsx";
 
 export function ProtectedRoute({ children }: { children: JSX.Element }) {
     const { profile, loading } = useAuth();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <Loader />;
     }
 
     if (!profile) {
