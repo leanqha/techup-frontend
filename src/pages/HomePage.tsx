@@ -7,6 +7,7 @@ import { fetchLessons } from '../api/schedule';
 import { ScheduleDay } from '../components/schedule/ScheduleDay';
 import type { Lesson } from '../api/types/schedule';
 import { format } from 'date-fns';
+import {Loader} from "../components/Loader.tsx";
 
 export function HomePage() {
     const { profile } = useAuth();
@@ -48,7 +49,7 @@ export function HomePage() {
             <h2 style={{ marginTop: 16, fontSize: 20, fontWeight: 600 }}>Сегодня</h2>
 
             {loading ? (
-                <p style={{ fontStyle: 'italic', color: '#6B7280' }}>Загрузка...</p>
+                <Loader />
             ) : lessons.length > 0 ? (
                 <ScheduleDay date={todayISO} lessons={lessons} />
             ) : (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Select, {type SingleValue } from 'react-select';
-import { fetchTeachers, fetchClassrooms } from '../api/schedule';
-import type {Profile} from '../api/types/types.ts';
+import { fetchTeachers, fetchClassrooms } from '../../api/schedule.ts';
+import type {Profile} from '../../api/types/types.ts';
 
 type Props = {
     date: string;
