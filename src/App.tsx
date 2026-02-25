@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute } from './components/auth/ProtectedRoute.tsx';
 import { Layout } from './layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';

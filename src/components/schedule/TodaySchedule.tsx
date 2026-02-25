@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
-import {useAuth} from '../context/useAuth.ts';
-import type {Lesson} from '../api/types/schedule.ts';
-import {fetchLessons} from '../api/schedule.ts';
-import {formatTime} from "../utils/date.ts";
+import {useAuth} from '../../context/useAuth.ts';
+import type {Lesson} from '../../api/types/schedule.ts';
+import {fetchLessons} from '../../api/schedule.ts';
+import {formatTime} from "../../utils/date.ts";
 
 export function TodaySchedule() {
     const { profile } = useAuth();

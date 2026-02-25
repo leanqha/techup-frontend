@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { fetchLessons, searchLessons } from '../api/schedule';
-import { ScheduleFilters } from '../components/ScheduleFilters';
+import { ScheduleFilters } from '../components/schedule/ScheduleFilters.tsx';
 import { ScheduleDay } from '../components/schedule/ScheduleDay';
 import type { Lesson } from '../api/types/schedule';
 import type { Dispatch, SetStateAction } from 'react';
+import {Loader} from "../components/Loader.tsx";
 
 function getWeekRange(offset: number) {
     const now = new Date();
@@ -99,7 +100,7 @@ export function SchedulePage() {
                 onSearch={handleSearch}
             />
 
-            {loading && <p style={{ fontStyle: 'italic', color: '#6B7280' }}>Загрузка...</p>}
+            {loading && <Loader />}
             {error && <p style={{ color: 'red' }}>{error}</p>}
 
             {sortedDates.length === 0 && !loading && !error && (
