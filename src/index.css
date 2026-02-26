@@ -98,10 +98,12 @@ button:hover {
     height: 64px;
     background: #ffffff;
     border-top: 1px solid #e5e7eb;
-    display: none;
+    display: flex;
     justify-content: space-around;
     align-items: center;
-    z-index: 10;
+    z-index: 1000;
+
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .bottomNavItem {
@@ -109,9 +111,6 @@ button:hover {
     text-decoration: none;
     color: #9ca3af;
     transition: 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .bottomNavItem.active {
@@ -119,14 +118,6 @@ button:hover {
     transform: scale(1.1);
 }
 
-/* Показываем только на мобильных */
-@media (pointer: coarse) {
-    .bottomNav {
-        display: flex;
-    }
-
-    /* Чтобы контент не перекрывался */
-    .page {
-        padding-bottom: 80px;
-    }
+.page {
+    padding-bottom: 80px;
 }
