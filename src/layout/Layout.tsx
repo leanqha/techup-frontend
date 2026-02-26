@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
+import { BottomNav } from './BottomNav';
 import './layout.css';
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -30,6 +31,7 @@ export function Layout({ children }: { children: ReactNode }) {
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
+            <BottomNav />
         </div>
     );
 }

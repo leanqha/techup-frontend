@@ -87,3 +87,46 @@ button:hover {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* ===== Bottom Navigation ===== */
+
+.bottomNav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    display: none;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+}
+
+.bottomNavItem {
+    font-size: 24px;
+    text-decoration: none;
+    color: #9ca3af;
+    transition: 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottomNavItem.active {
+    color: #2563eb;
+    transform: scale(1.1);
+}
+
+/* Показываем только на мобильных */
+@media (max-width: 768px) {
+    .bottomNav {
+        display: flex;
+    }
+
+    /* Чтобы контент не перекрывался */
+    .page {
+        padding-bottom: 80px;
+    }
+}
