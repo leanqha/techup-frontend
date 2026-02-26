@@ -1,5 +1,4 @@
 // src/layout/Header.tsx
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 type Props = {
@@ -8,7 +7,6 @@ type Props = {
 
 export function Header({ toggleSidebar }: Props) {
     const { profile } = useAuth();
-    const navigate = useNavigate();
 
     if (!profile) return null;
 
@@ -43,14 +41,6 @@ export function Header({ toggleSidebar }: Props) {
                     {greeting}, {profile.first_name} 👋
                 </span>
             </div>
-
-            <button
-                className="avatar"
-                onClick={() => navigate('/profile')}
-                aria-label="Go to profile"
-            >
-                {profile.first_name[0]}
-            </button>
         </header>
     );
 }
