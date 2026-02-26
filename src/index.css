@@ -101,7 +101,7 @@ button:hover {
     display: none;
     justify-content: space-around;
     align-items: center;
-    z-index: 1000;
+    z-index: 10;
 }
 
 .bottomNavItem {
