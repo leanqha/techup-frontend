@@ -120,7 +120,7 @@ button:hover {
 }
 
 /* Показываем только на мобильных */
-@media (max-width: 768px) {
+@media (pointer: coarse) {
     .bottomNav {
         display: flex;
     }
