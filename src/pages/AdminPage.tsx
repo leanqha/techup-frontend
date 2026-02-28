@@ -5,6 +5,7 @@ import { addDays, format } from 'date-fns';
 import { AdminImportForm } from '../components/admin/AdminImportForm';
 import { AdminModal } from '../components/admin/AdminModal';
 import { AdminPageHeader } from '../components/admin/AdminPageHeader';
+import { AdminAccountsManager } from '../components/admin/AdminAccountsManager';
 import './AdminPage.css';
 
 type Lesson = {
@@ -71,14 +72,15 @@ export function AdminPage() {
                 skipEmptyLines: true,
             });
 
-            const rows = (parsed.data as any[]).map(r => {
-                const clean: any = {};
-                Object.keys(r).forEach(k => {
-                    const key = k.replace(/\ufeff/g, '').trim();
-                    clean[key] =
-                        typeof r[k] === 'string'
-                            ? r[k].replace(/\ufeff/g, '').trim()
-                            : r[k];
+            const rows = (parsed.data as Record<string, unknown>[]).map(row => {
+                const clean: Record<string, string> = {};
+                Object.keys(row).forEach(key => {
+                    const normalizedKey = key.replace(/\ufeff/g, '').trim();
+                    const value = row[key];
+                    clean[normalizedKey] =
+                        typeof value === 'string'
+                            ? value.replace(/\ufeff/g, '').trim()
+                            : String(value ?? '');
                 });
                 return clean;
             });
@@ -161,6 +163,8 @@ export function AdminPage() {
                     onSubmit={handleUpload}
                 />
             </AdminModal>
+
+            <AdminAccountsManager />
         </div>
     );
 }

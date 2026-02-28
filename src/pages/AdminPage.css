@@ -26,3 +26,17 @@
     cursor: not-allowed;
 }
 
+.admin-secondary-button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #111827;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.admin-secondary-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

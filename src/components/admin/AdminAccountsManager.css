@@ -1,0 +1,141 @@
+.admin-accounts {
+    margin-top: 24px;
+}
+
+.admin-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+}
+
+.admin-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.admin-section-subtitle {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.admin-section-status,
+.admin-section-error,
+.admin-section-message {
+    margin: 12px 0 0;
+    font-size: 14px;
+}
+
+.admin-section-error {
+    color: #b91c1c;
+}
+
+.admin-section-message {
+    color: #047857;
+}
+
+.admin-accounts-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.admin-field input,
+.admin-field select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.admin-field input:focus,
+.admin-field select:focus {
+    outline: none;
+    border-color: #111;
+}
+
+.admin-filters-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.admin-accounts-table {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.admin-accounts-header,
+.admin-accounts-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.5fr 1.2fr 0.7fr 0.9fr 0.6fr 1.2fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-accounts-header {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+}
+
+.admin-accounts-row {
+    padding: 12px;
+    border-radius: 12px;
+    background: #f9fafb;
+    font-size: 14px;
+}
+
+.admin-accounts-uid {
+    font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+}
+
+.admin-accounts-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.admin-edit-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.admin-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    grid-column: 1 / -1;
+}
+
+.admin-danger-button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #dc2626;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.admin-danger-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
