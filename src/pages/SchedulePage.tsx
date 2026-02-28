@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { fetchLessons, searchLessons } from '../api/schedule';
-import { ScheduleFilters } from '../components/schedule/ScheduleFilters.tsx';
+import { ScheduleFiltersPanel, type ScheduleFilterValues } from '../components/schedule/ScheduleFiltersPanel.tsx';
 import { ScheduleDay } from '../components/schedule/ScheduleDay';
 import type { Lesson } from '../api/types/schedule';
 import type { Dispatch, SetStateAction } from 'react';
@@ -25,10 +25,6 @@ export function SchedulePage() {
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    const [filterDate, setFilterDate] = useState('');
-    const [filterTeacherId, setFilterTeacherId] = useState<number | null>(null);
-    const [filterClassroom, setFilterClassroom] = useState('');
 
     useEffect(() => {
         if (!profile?.group_id) return;
@@ -55,15 +51,24 @@ export function SchedulePage() {
         return () => { cancelled = true; };
     }, [profile?.group_id, weekOffset]);
 
-    const handleSearch = async () => {
+    const handleSearch = async (filters: ScheduleFilterValues) => {
         setLoading(true);
         setError(null);
         try {
+            const isEmptyFilters = !filters.date && !filters.teacherId && !filters.classroom && !filters.subject;
+            if (isEmptyFilters && profile?.group_id) {
+                const { from, to } = getWeekRange(weekOffset);
+                const data = await fetchLessons(profile.group_id, from, to);
+                setLessons(Array.isArray(data) ? data : []);
+                return;
+            }
+
             const data = await searchLessons({
-                date: filterDate || undefined,
-                teacherId: filterTeacherId ?? undefined,
+                date: filters.date || undefined,
+                teacherId: filters.teacherId ?? undefined,
                 groupId: profile?.group_id,
-                classroom: filterClassroom || undefined,
+                classroom: filters.classroom || undefined,
+                subject: filters.subject || undefined,
             });
             setLessons(Array.isArray(data) ? data : []);
         } catch (e: unknown) {
@@ -88,17 +93,7 @@ export function SchedulePage() {
 
             <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
-            <ScheduleFilters
-                date={filterDate}
-                teacherId={filterTeacherId}
-                classroom={filterClassroom}
-                onChange={({ date, teacherId, classroom }) => {
-                    setFilterDate(date);
-                    setFilterTeacherId(teacherId);
-                    setFilterClassroom(classroom);
-                }}
-                onSearch={handleSearch}
-            />
+            <ScheduleFiltersPanel onSearch={handleSearch} />
 
             {loading && <Loader />}
             {error && <p style={{ color: 'red' }}>{error}</p>}

@@ -1,5 +1,4 @@
-import type {Lesson} from "./types/schedule.ts";
-import type {Profile} from "./types/types.ts";
+import type {Lesson, Teacher} from "./types/schedule.ts";
 
 export async function fetchLessons(groupId: number, from: string, to: string): Promise<Lesson[]> {
     const res = await fetch(`/api/v1/schedule/lessons?group_id=${groupId}&from=${from}&to=${to}`, {
@@ -14,6 +13,7 @@ export type SearchLessonsParams = {
     teacherId?: number;
     groupId?: number;
     classroom?: string;
+    subject?: string;
 };
 
 export async function searchLessons(params: {
@@ -21,12 +21,14 @@ export async function searchLessons(params: {
     teacherId?: number;
     groupId?: number;
     classroom?: string;
+    subject?: string;
 }): Promise<Lesson[]> {
     const query = new URLSearchParams();
     if (params.date) query.append('date', params.date);
     if (params.teacherId) query.append('teacher_id', String(params.teacherId));
     if (params.groupId) query.append('group_id', String(params.groupId));
     if (params.classroom) query.append('classroom', params.classroom);
+    if (params.subject) query.append('subject', params.subject);
 
     const res = await fetch(`/api/v1/schedule/search?${query.toString()}`, {
         credentials: 'include',
@@ -37,7 +39,7 @@ export async function searchLessons(params: {
     return res.json();
 }
 
-export async function fetchTeachers(): Promise<Profile[]> {
+export async function fetchTeachers(): Promise<Teacher[]> {
     const res = await fetch('/api/v1/schedule/teachers', { credentials: 'include' });
     if (!res.ok) throw new Error('Ошибка получения преподавателей');
     return res.json();
