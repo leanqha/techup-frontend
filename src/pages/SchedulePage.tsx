@@ -6,6 +6,7 @@ import { ScheduleDay } from '../components/schedule/ScheduleDay';
 import type { Lesson } from '../api/types/schedule';
 import type { Dispatch, SetStateAction } from 'react';
 import {Loader} from "../components/Loader.tsx";
+import './SchedulePage.css';
 
 function getWeekRange(offset: number) {
     const now = new Date();
@@ -113,15 +114,10 @@ export function SchedulePage() {
 
 function WeekControls({ setWeekOffset }: { weekOffset: number; setWeekOffset: Dispatch<SetStateAction<number>>; }) {
     return (
-        <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 12,
-            marginBottom: 16,
-        }}>
-            <button style={{ flex: '1 1 120px' }} onClick={() => setWeekOffset(v => v - 1)}>← Предыдущая</button>
-            <button style={{ flex: '1 1 120px' }} onClick={() => setWeekOffset(0)}>Сегодня</button>
-            <button style={{ flex: '1 1 120px' }} onClick={() => setWeekOffset(v => v + 1)}>Следующая →</button>
+        <div className="schedule-page__week-controls">
+            <button className="schedule-page__week-button" onClick={() => setWeekOffset(v => v - 1)}>← Предыдущая</button>
+            <button className="schedule-page__week-button" onClick={() => setWeekOffset(0)}>Сегодня</button>
+            <button className="schedule-page__week-button" onClick={() => setWeekOffset(v => v + 1)}>Следующая →</button>
         </div>
     );
 }

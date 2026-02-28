@@ -1,0 +1,38 @@
+.schedule-page__week-controls {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 16px;
+}
+
+.schedule-page__week-button {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #0f172a;
+    cursor: pointer;
+    display: inline-flex;
+    font-weight: 600;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 12px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    width: 100%;
+}
+
+.schedule-page__week-button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5f5;
+}
+
+.schedule-page__week-button:active {
+    transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+    .schedule-page__week-controls {
+        grid-template-columns: 1fr;
+    }
+}
+
