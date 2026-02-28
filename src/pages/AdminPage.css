@@ -1,0 +1,28 @@
+.admin-page {
+    padding: 24px;
+}
+
+.admin-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.admin-primary-button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.admin-primary-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+

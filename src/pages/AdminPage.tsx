@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import Papa from 'papaparse';
 import { addDays, format } from 'date-fns';
+import { AdminImportForm } from '../components/admin/AdminImportForm';
+import { AdminModal } from '../components/admin/AdminModal';
+import { AdminPageHeader } from '../components/admin/AdminPageHeader';
+import './AdminPage.css';
 
 type Lesson = {
     id: number;
@@ -22,6 +26,7 @@ export function AdminPage() {
     const [semesterEnd, setSemesterEnd] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     if (profile?.role !== 'admin') {
         return <p>У вас нет доступа к админке</p>;
@@ -139,33 +144,23 @@ export function AdminPage() {
     };
 
     return (
-        <div style={{ padding: 24 }}>
-            <h1>Админка</h1>
+        <div className="admin-page">
+            <AdminPageHeader onOpenImport={() => setIsModalOpen(true)} />
 
-            <div style={{ marginBottom: 12 }}>
-                <input
-                    type="file"
-                    accept=".csv"
-                    onChange={e => setFile(e.target.files?.[0] ?? null)}
+            <AdminModal
+                open={isModalOpen}
+                title="Импорт расписания"
+                onClose={() => setIsModalOpen(false)}
+            >
+                <AdminImportForm
+                    semesterEnd={semesterEnd}
+                    loading={loading}
+                    message={message}
+                    onFileChange={nextFile => setFile(nextFile)}
+                    onSemesterEndChange={setSemesterEnd}
+                    onSubmit={handleUpload}
                 />
-            </div>
-
-            <div style={{ marginBottom: 12 }}>
-                <label>
-                    Дата окончания семестра:{' '}
-                    <input
-                        type="date"
-                        value={semesterEnd}
-                        onChange={e => setSemesterEnd(e.target.value)}
-                    />
-                </label>
-            </div>
-
-            <button onClick={handleUpload} disabled={loading}>
-                {loading ? 'Загрузка...' : 'Импортировать расписание'}
-            </button>
-
-            {message && <p style={{ marginTop: 12 }}>{message}</p>}
+            </AdminModal>
         </div>
     );
 }
