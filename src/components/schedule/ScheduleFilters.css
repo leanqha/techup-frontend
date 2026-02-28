@@ -55,7 +55,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     min-height: 44px;
-    font-size: 14px;
+    font-size: 16px;
     max-width: 100%;
     box-sizing: border-box;
 }
@@ -88,8 +88,10 @@
     box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
 }
 
+.schedule-filter-select__input,
+.schedule-filter-select__single-value,
 .schedule-filter-select__placeholder {
-    color: #94a3b8;
+    font-size: 16px;
 }
 
 .schedule-filter-select__menu {
