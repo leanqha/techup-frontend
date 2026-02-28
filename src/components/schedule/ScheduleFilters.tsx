@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Select, {type SingleValue } from 'react-select';
 import { fetchTeachers, fetchClassrooms } from '../../api/schedule.ts';
 import type {Profile} from '../../api/types/types.ts';
+import './ScheduleFilters.css';
 
 type Props = {
     date: string;
@@ -38,15 +39,20 @@ export function ScheduleFilters({ date, teacherId, classroom, subject, onChange,
     }, []);
 
     return (
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
-            <input
-                type="date"
-                value={date}
-                onChange={e => onChange({ date: e.target.value, teacherId, classroom, subject })}
-            />
+        <div className="schedule-filters">
+            <div className="schedule-filters__field">
+                <input
+                    className="schedule-filters__input"
+                    type="date"
+                    value={date}
+                    onChange={e => onChange({ date: e.target.value, teacherId, classroom, subject })}
+                />
+            </div>
 
-            <div style={{ minWidth: 200 }}>
+            <div className="schedule-filters__field schedule-filters__field--wide">
                 <Select<TeacherOption, false>
+                    className="schedule-filter-select"
+                    classNamePrefix="schedule-filter-select"
                     placeholder="Преподаватель"
                     options={teacherOptions}
                     value={selectedTeacher}
@@ -62,8 +68,10 @@ export function ScheduleFilters({ date, teacherId, classroom, subject, onChange,
                 />
             </div>
 
-            <div style={{ minWidth: 150 }}>
+            <div className="schedule-filters__field">
                 <Select<ClassroomOption, false>
+                    className="schedule-filter-select"
+                    classNamePrefix="schedule-filter-select"
                     placeholder="Аудитория"
                     options={classroomOptions}
                     value={selectedClassroom}
@@ -79,14 +87,19 @@ export function ScheduleFilters({ date, teacherId, classroom, subject, onChange,
                 />
             </div>
 
-            <input
-                type="text"
-                placeholder="Предмет"
-                value={subject}
-                onChange={e => onChange({ date, teacherId, classroom, subject: e.target.value })}
-            />
+            <div className="schedule-filters__field">
+                <input
+                    className="schedule-filters__input"
+                    type="text"
+                    placeholder="Предмет"
+                    value={subject}
+                    onChange={e => onChange({ date, teacherId, classroom, subject: e.target.value })}
+                />
+            </div>
 
-            <button onClick={onSearch}>Найти</button>
+            <div className="schedule-filters__action">
+                <button className="schedule-filters__submit" onClick={onSearch}>Найти</button>
+            </div>
         </div>
     );
 }

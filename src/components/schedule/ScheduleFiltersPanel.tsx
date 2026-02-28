@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScheduleFilters } from './ScheduleFilters.tsx';
+import './ScheduleFilters.css';
 
 export type ScheduleFilterValues = {
     date: string;
@@ -35,13 +36,13 @@ export function ScheduleFiltersPanel({ onSearch }: Props) {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <button onClick={() => setIsOpen(value => !value)}>
+        <div className="schedule-filters-panel">
+            <button className="schedule-filters-panel__toggle" onClick={() => setIsOpen(value => !value)}>
                 {isOpen ? 'Скрыть фильтры' : 'Фильтры'}
             </button>
 
             {isOpen && (
-                <div style={{ padding: 12, border: '1px solid #E5E7EB', borderRadius: 8 }}>
+                <div className="schedule-filters-panel__panel">
                     <ScheduleFilters
                         date={filters.date}
                         teacherId={filters.teacherId}
@@ -50,8 +51,8 @@ export function ScheduleFiltersPanel({ onSearch }: Props) {
                         onChange={setFilters}
                         onSearch={handleSearch}
                     />
-                    <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                        <button onClick={handleReset}>Сбросить фильтры</button>
+                    <div className="schedule-filters-panel__actions">
+                        <button className="schedule-filters-panel__reset" onClick={handleReset}>Сбросить фильтры</button>
                     </div>
                 </div>
             )}
