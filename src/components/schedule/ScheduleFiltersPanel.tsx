@@ -23,6 +23,17 @@ export function ScheduleFiltersPanel({ onSearch }: Props) {
 
     const handleSearch = () => onSearch(filters);
 
+    const handleReset = () => {
+        const cleared = {
+            date: '',
+            teacherId: null,
+            classroom: '',
+            subject: '',
+        };
+        setFilters(cleared);
+        onSearch(cleared);
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <button onClick={() => setIsOpen(value => !value)}>
@@ -39,9 +50,11 @@ export function ScheduleFiltersPanel({ onSearch }: Props) {
                         onChange={setFilters}
                         onSearch={handleSearch}
                     />
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                        <button onClick={handleReset}>Сбросить фильтры</button>
+                    </div>
                 </div>
             )}
         </div>
     );
 }
-
