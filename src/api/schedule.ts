@@ -1,4 +1,5 @@
-import type {Lesson, Teacher} from "./types/schedule.ts";
+import type {Lesson} from "./types/schedule.ts";
+import type {Profile} from "./types/types.ts";
 
 export async function fetchLessons(groupId: number, from: string, to: string): Promise<Lesson[]> {
     const res = await fetch(`/api/v1/schedule/lessons?group_id=${groupId}&from=${from}&to=${to}`, {
@@ -39,7 +40,7 @@ export async function searchLessons(params: {
     return res.json();
 }
 
-export async function fetchTeachers(): Promise<Teacher[]> {
+export async function fetchTeachers(): Promise<Profile[]> {
     const res = await fetch('/api/v1/schedule/teachers', { credentials: 'include' });
     if (!res.ok) throw new Error('Ошибка получения преподавателей');
     return res.json();
