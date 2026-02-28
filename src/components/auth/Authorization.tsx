@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import './Authorization.css';
-import { fetchWithRefresh } from '../../api/fetchWithRefresh';
 
 type Props = {
     onClose: () => void;
@@ -66,18 +65,6 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
             setMessage('Сетевая ошибка');
         } finally {
             setLoading(false);
-        }
-    };
-
-    // Пример использования fetchWithRefresh внутри компонента
-    const testProtectedRequest = async () => {
-        try {
-            const res = await fetchWithRefresh('/api/v1/account/secure/profile');
-            if (!res.ok) throw new Error('Не удалось получить профиль');
-            const data = await res.json();
-            console.log('User profile:', data);
-        } catch (err) {
-            console.error(err);
         }
     };
 
@@ -147,14 +134,6 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
                             : mode === 'login'
                                 ? 'Войти'
                                 : 'Зарегистрироваться'}
-                    </button>
-
-                    <button
-                        className="submit-btn"
-                        style={{ marginTop: '10px', backgroundColor: '#777' }}
-                        onClick={testProtectedRequest}
-                    >
-                        Проверить защищённый запрос
                     </button>
 
                     {message && <div className="server-error">{message}</div>}
