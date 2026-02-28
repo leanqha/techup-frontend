@@ -63,12 +63,20 @@
 .schedule-filters__input {
     padding: 8px 12px;
     width: 100%;
+    display: block;
+    min-width: 0;
 }
 
 .schedule-filters__input:focus {
     outline: none;
     border-color: #94a3b8;
     box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
+}
+
+.schedule-filters__input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
 }
 
 .schedule-filter-select__control {
