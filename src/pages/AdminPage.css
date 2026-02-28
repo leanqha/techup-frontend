@@ -11,6 +11,12 @@
     margin-bottom: 16px;
 }
 
+.admin-page-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
 .admin-primary-button {
     padding: 10px 14px;
     border-radius: 8px;
@@ -39,4 +45,8 @@
 .admin-secondary-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.admin-accounts-modal .admin-accounts {
+    margin-top: 0;
 }

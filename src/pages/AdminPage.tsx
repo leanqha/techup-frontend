@@ -28,6 +28,7 @@ export function AdminPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAccountsOpen, setIsAccountsOpen] = useState(false);
 
     if (profile?.role !== 'admin') {
         return <p>У вас нет доступа к админке</p>;
@@ -147,7 +148,10 @@ export function AdminPage() {
 
     return (
         <div className="admin-page">
-            <AdminPageHeader onOpenImport={() => setIsModalOpen(true)} />
+            <AdminPageHeader
+                onOpenImport={() => setIsModalOpen(true)}
+                onOpenAccounts={() => setIsAccountsOpen(true)}
+            />
 
             <AdminModal
                 open={isModalOpen}
@@ -164,7 +168,16 @@ export function AdminPage() {
                 />
             </AdminModal>
 
-            <AdminAccountsManager />
+            <AdminModal
+                open={isAccountsOpen}
+                title="Аккаунты"
+                size="wide"
+                onClose={() => setIsAccountsOpen(false)}
+            >
+                <div className="admin-accounts-modal">
+                    <AdminAccountsManager />
+                </div>
+            </AdminModal>
         </div>
     );
 }

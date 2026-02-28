@@ -4,17 +4,20 @@ import './AdminModal.css';
 type AdminModalProps = {
     open: boolean;
     title: string;
+    size?: 'default' | 'wide';
     onClose: () => void;
     children: ReactNode;
 };
 
-export function AdminModal({ open, title, onClose, children }: AdminModalProps) {
+export function AdminModal({ open, title, size = 'default', onClose, children }: AdminModalProps) {
     if (!open) return null;
+
+    const modalClassName = size === 'wide' ? 'admin-modal admin-modal--wide' : 'admin-modal';
 
     return (
         <div className="admin-modal-overlay" onClick={onClose}>
             <div
-                className="admin-modal"
+                className={modalClassName}
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
@@ -36,4 +39,3 @@ export function AdminModal({ open, title, onClose, children }: AdminModalProps) 
         </div>
     );
 }
-

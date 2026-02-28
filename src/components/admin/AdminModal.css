@@ -23,6 +23,11 @@
     gap: 16px;
 }
 
+.admin-modal--wide {
+    width: 980px;
+    max-width: 96%;
+}
+
 .admin-modal-header {
     display: flex;
     justify-content: space-between;
@@ -53,6 +58,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: 72vh;
+    overflow: auto;
 }
 
 @keyframes adminModalIn {
@@ -74,4 +81,3 @@
         opacity: 1;
     }
 }
-
