@@ -115,9 +115,17 @@ export function SchedulePage() {
 function WeekControls({ setWeekOffset }: { weekOffset: number; setWeekOffset: Dispatch<SetStateAction<number>>; }) {
     return (
         <div className="schedule-page__week-controls">
-            <button className="schedule-page__week-button" onClick={() => setWeekOffset(v => v - 1)}>← Предыдущая</button>
-            <button className="schedule-page__week-button" onClick={() => setWeekOffset(0)}>Сегодня</button>
-            <button className="schedule-page__week-button" onClick={() => setWeekOffset(v => v + 1)}>Следующая →</button>
+            <button className="schedule-page__week-button schedule-page__week-button--prev" onClick={() => setWeekOffset(v => v - 1)}>
+                <span className="schedule-page__week-arrow" aria-hidden>←</span>
+                <span className="schedule-page__week-label">Предыдущая</span>
+            </button>
+            <button className="schedule-page__week-button schedule-page__week-button--today" onClick={() => setWeekOffset(0)}>
+                Сегодня
+            </button>
+            <button className="schedule-page__week-button schedule-page__week-button--next" onClick={() => setWeekOffset(v => v + 1)}>
+                <span className="schedule-page__week-label">Следующая</span>
+                <span className="schedule-page__week-arrow" aria-hidden>→</span>
+            </button>
         </div>
     );
 }
