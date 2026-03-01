@@ -26,6 +26,7 @@ type AccountFilters = {
 };
 
 type EditFormState = {
+    uid: string;
     email: string;
     first_name: string;
     middle_name: string;
@@ -118,6 +119,7 @@ export function AdminAccountsManager() {
     const handleEditOpen = (account: AdminAccount) => {
         setEditing(account);
         setEditForm({
+            uid: account.uid ?? '',
             email: account.email ?? '',
             first_name: account.first_name ?? '',
             middle_name: account.middle_name ?? '',
@@ -138,6 +140,7 @@ export function AdminAccountsManager() {
         if (!editing || !editForm) return;
 
         const updates: Record<string, unknown> = {};
+        if (editForm.uid !== editing.uid) updates.uid = editForm.uid;
         if (editForm.email !== editing.email) updates.email = editForm.email;
         if (editForm.first_name !== editing.first_name) updates.first_name = editForm.first_name;
         if (editForm.middle_name !== (editing.middle_name ?? '')) {
@@ -372,6 +375,14 @@ export function AdminAccountsManager() {
             <AdminModal open={Boolean(editing)} title={editTitle} onClose={handleEditClose}>
                 {editForm && (
                     <div className="admin-edit-form">
+                        <label className="admin-field">
+                            Табельный номер
+                            <input
+                                type="text"
+                                value={editForm.uid}
+                                onChange={event => setEditForm({ ...editForm, uid: event.target.value })}
+                            />
+                        </label>
                         <label className="admin-field">
                             Email
                             <input
