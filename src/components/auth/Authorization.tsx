@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Authorization.css';
+import { forgotPassword, resetPassword } from '../../api/account.ts';
 
 type Props = {
     onClose: () => void;
@@ -7,11 +8,13 @@ type Props = {
 };
 
 export function Authorization({ onClose, onAuthSuccess }: Props) {
-    const [mode, setMode] = useState<'login' | 'register'>('login');
+    const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [resetToken, setResetToken] = useState('');
+    const [newPassword, setNewPassword] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -24,27 +27,60 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
         password.length >= 8 &&
         firstName.trim().length > 0 &&
         lastName.trim().length > 0;
+    const isForgotValid = validateEmail(email);
+    const isResetValid = resetToken.trim().length > 0 && newPassword.length >= 8;
+    const isAuthMode = mode === 'login' || mode === 'register';
+
+    const switchMode = (nextMode: 'login' | 'register' | 'forgot' | 'reset') => {
+        setMode(nextMode);
+        setMessage('');
+        setLoading(false);
+        if (nextMode !== 'reset') {
+            setResetToken('');
+            setNewPassword('');
+        }
+        if (nextMode === 'forgot') {
+            setPassword('');
+        }
+    };
 
     const handleSubmit = async () => {
         setMessage('');
         setLoading(true);
 
-        const url =
-            mode === 'login'
-                ? '/api/v1/account/login'
-                : '/api/v1/account/register';
-
-        const body =
-            mode === 'login'
-                ? { email, password }
-                : {
-                    email,
-                    password,
-                    first_name: firstName,
-                    last_name: lastName,
-                };
-
         try {
+            if (mode === 'forgot') {
+                const data = await forgotPassword({ email });
+                setMessage(data.message);
+                return;
+            }
+
+            if (mode === 'reset') {
+                const data = await resetPassword({
+                    token: resetToken.trim(),
+                    new_password: newPassword,
+                });
+                setMessage(data.message);
+                setMode('login');
+                setPassword('');
+                return;
+            }
+
+            const url =
+                mode === 'login'
+                    ? '/api/v1/account/login'
+                    : '/api/v1/account/register';
+
+            const body =
+                mode === 'login'
+                    ? { email, password }
+                    : {
+                        email,
+                        password,
+                        first_name: firstName,
+                        last_name: lastName,
+                    };
+
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -68,30 +104,39 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
         }
     };
 
+    const title =
+        mode === 'forgot'
+            ? 'Сброс пароля'
+            : mode === 'reset'
+                ? 'Новый пароль'
+                : 'Авторизация';
+
     return (
         <div className="auth-overlay" onClick={onClose}>
             <div className="auth-slider" onClick={(e) => e.stopPropagation()}>
                 <div className="auth-header">
-                    <h2>Авторизация</h2>
+                    <h2>{title}</h2>
                     <button className="close-btn" onClick={onClose}>
                         ✕
                     </button>
                 </div>
 
-                <div className="tabs">
-                    <button
-                        className={mode === 'login' ? 'active' : ''}
-                        onClick={() => setMode('login')}
-                    >
-                        Вход
-                    </button>
-                    <button
-                        className={mode === 'register' ? 'active' : ''}
-                        onClick={() => setMode('register')}
-                    >
-                        Регистрация
-                    </button>
-                </div>
+                {isAuthMode && (
+                    <div className="tabs">
+                        <button
+                            className={mode === 'login' ? 'active' : ''}
+                            onClick={() => switchMode('login')}
+                        >
+                            Вход
+                        </button>
+                        <button
+                            className={mode === 'register' ? 'active' : ''}
+                            onClick={() => switchMode('register')}
+                        >
+                            Регистрация
+                        </button>
+                    </div>
+                )}
 
                 <div className="form">
                     {mode === 'register' && (
@@ -109,32 +154,105 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
                         </>
                     )}
 
-                    <input
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={email && !validateEmail(email) ? 'error' : ''}
-                    />
+                    {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
+                        <input
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className={email && !validateEmail(email) ? 'error' : ''}
+                        />
+                    )}
 
-                    <input
-                        type="password"
-                        placeholder="Пароль (мин. 8 символов)"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={password && password.length < 8 ? 'error' : ''}
-                    />
+                    {(mode === 'login' || mode === 'register') && (
+                        <input
+                            type="password"
+                            placeholder="Пароль (мин. 8 символов)"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className={password && password.length < 8 ? 'error' : ''}
+                        />
+                    )}
+
+                    {mode === 'reset' && (
+                        <>
+                            <input
+                                placeholder="Токен из письма"
+                                value={resetToken}
+                                onChange={(e) => setResetToken(e.target.value)}
+                            />
+                            <input
+                                type="password"
+                                placeholder="Новый пароль (мин. 8 символов)"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className={newPassword && newPassword.length < 8 ? 'error' : ''}
+                            />
+                        </>
+                    )}
 
                     <button
                         className="submit-btn"
-                        disabled={loading || (mode === 'login' ? !isLoginValid : !isRegisterValid)}
+                        disabled={
+                            loading ||
+                            (mode === 'login'
+                                ? !isLoginValid
+                                : mode === 'register'
+                                    ? !isRegisterValid
+                                    : mode === 'forgot'
+                                        ? !isForgotValid
+                                        : !isResetValid)
+                        }
                         onClick={handleSubmit}
                     >
                         {loading
                             ? 'Загрузка...'
                             : mode === 'login'
                                 ? 'Войти'
-                                : 'Зарегистрироваться'}
+                                : mode === 'register'
+                                    ? 'Зарегистрироваться'
+                                    : mode === 'forgot'
+                                        ? 'Отправить ссылку'
+                                        : 'Сбросить пароль'}
                     </button>
+
+                    {mode === 'login' && (
+                        <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => switchMode('forgot')}
+                        >
+                            Забыли пароль?
+                        </button>
+                    )}
+
+                    {mode === 'forgot' && (
+                        <div className="link-row">
+                            <button
+                                type="button"
+                                className="link-btn"
+                                onClick={() => switchMode('reset')}
+                            >
+                                У меня есть токен
+                            </button>
+                            <button
+                                type="button"
+                                className="link-btn"
+                                onClick={() => switchMode('login')}
+                            >
+                                Назад ко входу
+                            </button>
+                        </div>
+                    )}
+
+                    {mode === 'reset' && (
+                        <button
+                            type="button"
+                            className="link-btn"
+                            onClick={() => switchMode('login')}
+                        >
+                            Назад ко входу
+                        </button>
+                    )}
 
                     {message && <div className="server-error">{message}</div>}
                 </div>

@@ -14,3 +14,20 @@ export type Profile = {
     group_name: string;
     role: string;
 };
+
+export type ForgotPasswordRequest = {
+    email: string;
+};
+
+export type ForgotPasswordResponse = {
+    message: string;
+};
+
+export type ResetPasswordRequest = {
+    token: string;
+    new_password: string;
+};
+
+export type ResetPasswordResponse = {
+    message: string;
+};
