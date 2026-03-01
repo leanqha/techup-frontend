@@ -23,10 +23,10 @@ export function ProfilePage() {
     const roleLabel = roleLabels[profile.role] ?? profile.role;
 
     const detailRows = [
-        { label: 'Табельный номер', value: profile.uid },
         { label: 'Фамилия', value: profile.last_name },
         { label: 'Имя', value: profile.first_name },
         { label: 'Отчество', value: profile.middle_name },
+        { label: 'Табельный номер', value: profile.uid },
         { label: 'Группа', value: profile.group_name },
     ];
 
