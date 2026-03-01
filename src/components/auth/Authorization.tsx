@@ -151,6 +151,11 @@ export function Authorization({
         }
     };
 
+    const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        void handleSubmit();
+    };
+
     const title =
         mode === 'forgot'
             ? 'Сброс пароля'
@@ -185,15 +190,17 @@ export function Authorization({
                     </div>
                 )}
 
-                <div className="form">
+                <form className="form" onSubmit={handleFormSubmit}>
                     {mode === 'register' && (
                         <>
                             <input
+                                name="first_name"
                                 placeholder="Имя"
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
                             />
                             <input
+                                name="last_name"
                                 placeholder="Фамилия"
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
@@ -204,6 +211,9 @@ export function Authorization({
                     {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
                         <input
                             ref={emailRef}
+                            name="email"
+                            type="email"
+                            autoComplete={mode === 'forgot' ? 'username' : 'email'}
                             placeholder="Email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -214,6 +224,8 @@ export function Authorization({
                     {(mode === 'login' || mode === 'register') && (
                         <input
                             type="password"
+                            name={mode === 'login' ? 'current-password' : 'new-password'}
+                            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                             placeholder="Пароль (мин. 8 символов)"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -225,6 +237,7 @@ export function Authorization({
                         <>
                             {!hideResetTokenField && (
                                 <input
+                                    name="reset_token"
                                     placeholder="Токен из письма"
                                     value={resetToken}
                                     onChange={(e) => setResetToken(e.target.value)}
@@ -233,6 +246,8 @@ export function Authorization({
                             <input
                                 ref={newPasswordRef}
                                 type="password"
+                                name="new-password"
+                                autoComplete="new-password"
                                 placeholder="Новый пароль (мин. 8 символов)"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
@@ -240,6 +255,8 @@ export function Authorization({
                             />
                             <input
                                 type="password"
+                                name="confirm-password"
+                                autoComplete="new-password"
                                 placeholder="Подтвердите пароль"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -252,6 +269,7 @@ export function Authorization({
 
                     <button
                         className="submit-btn"
+                        type="submit"
                         disabled={
                             loading ||
                             (mode === 'login'
@@ -262,7 +280,6 @@ export function Authorization({
                                         ? !isForgotValid
                                         : !isResetValid)
                         }
-                        onClick={handleSubmit}
                     >
                         {loading
                             ? 'Загрузка...'
@@ -315,7 +332,7 @@ export function Authorization({
                     )}
 
                     {message && <div className="server-error">{message}</div>}
-                </div>
+                </form>
             </div>
         </div>
     );
