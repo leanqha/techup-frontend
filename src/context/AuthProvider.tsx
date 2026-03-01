@@ -7,6 +7,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const clearCookie = (name: string) => {
+        document.cookie = `${name}=; Max-Age=0; path=/`;
+        document.cookie = `${name}=; Max-Age=0; path=/; domain=${window.location.hostname}`;
+    };
+
     useEffect(() => {
         let cancelled = false;
 
@@ -56,6 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             method: 'POST',
             credentials: 'include',
         });
+        clearCookie('access');
+        clearCookie('refresh');
         setProfile(null);
     };
 
