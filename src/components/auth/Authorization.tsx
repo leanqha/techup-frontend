@@ -98,7 +98,7 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
             onClose();
         } catch (err) {
             console.error(err);
-            setMessage('Сетевая ошибка');
+            setMessage(err instanceof Error ? err.message : 'Сетевая ошибка');
         } finally {
             setLoading(false);
         }

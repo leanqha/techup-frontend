@@ -17,7 +17,9 @@ export async function forgotPassword(
     });
 
     if (!res.ok) {
-        throw new Error('Failed to request password reset');
+        const errorText = await res.text();
+        const errorMessage = errorText ? errorText : `Request failed: ${res.status}`;
+        throw new Error(errorMessage);
     }
 
     return res.json();
@@ -35,9 +37,10 @@ export async function resetPassword(
     });
 
     if (!res.ok) {
-        throw new Error('Failed to reset password');
+        const errorText = await res.text();
+        const errorMessage = errorText ? errorText : `Request failed: ${res.status}`;
+        throw new Error(errorMessage);
     }
 
     return res.json();
 }
-
