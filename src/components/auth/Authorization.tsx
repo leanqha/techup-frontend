@@ -307,13 +307,6 @@ export function Authorization({
                             <button
                                 type="button"
                                 className="link-btn"
-                                onClick={() => switchMode('reset')}
-                            >
-                                У меня есть токен
-                            </button>
-                            <button
-                                type="button"
-                                className="link-btn"
                                 onClick={() => switchMode('login')}
                             >
                                 Назад ко входу
