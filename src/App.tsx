@@ -24,6 +24,15 @@ function App() {
             />
 
             <Route
+                path="/reset-password"
+                element={
+                    profile
+                        ? <Navigate to="/" replace />
+                        : <AuthPage onAuthSuccess={refreshProfile} />
+                }
+            />
+
+            <Route
                 path="/"
                 element={
                     <ProtectedRoute>

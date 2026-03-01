@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Authorization } from '../components/auth/Authorization';
 
 type Props = {
@@ -6,7 +7,31 @@ type Props = {
 };
 
 export function AuthPage({ onAuthSuccess }: Props) {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [open, setOpen] = useState(false);
+    const [initialMode, setInitialMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
+    const [resetToken, setResetToken] = useState('');
+    const [hideResetTokenField, setHideResetTokenField] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const token = params.get('token') || '';
+        if (location.pathname === '/reset-password') {
+            setInitialMode('reset');
+            setResetToken(token);
+            setHideResetTokenField(true);
+            setOpen(true);
+        }
+    }, [location.pathname, location.search]);
+
+    const handleResetComplete = () => {
+        setInitialMode('login');
+        setHideResetTokenField(false);
+        setResetToken('');
+        setOpen(true);
+        navigate('/auth', { replace: true });
+    };
 
     return (
         <div style={{ textAlign: 'center', marginTop: 120 }}>
@@ -20,7 +45,12 @@ export function AuthPage({ onAuthSuccess }: Props) {
                     color: '#fff',
                     cursor: 'pointer',
                 }}
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                    setInitialMode('login');
+                    setHideResetTokenField(false);
+                    setResetToken('');
+                    setOpen(true);
+                }}
             >
                 Открыть авторизацию
             </button>
@@ -29,6 +59,10 @@ export function AuthPage({ onAuthSuccess }: Props) {
                 <Authorization
                     onClose={() => setOpen(false)}
                     onAuthSuccess={onAuthSuccess}
+                    onResetComplete={handleResetComplete}
+                    initialMode={initialMode}
+                    initialResetToken={resetToken}
+                    hideResetTokenField={hideResetTokenField}
                 />
             )}
         </div>

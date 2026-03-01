@@ -1,22 +1,44 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Authorization.css';
 import { forgotPassword, resetPassword } from '../../api/account.ts';
 
 type Props = {
     onClose: () => void;
     onAuthSuccess: () => void;
+    onResetComplete?: () => void;
+    initialMode?: 'login' | 'register' | 'forgot' | 'reset';
+    initialResetToken?: string;
+    hideResetTokenField?: boolean;
 };
 
-export function Authorization({ onClose, onAuthSuccess }: Props) {
-    const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
+export function Authorization({
+    onClose,
+    onAuthSuccess,
+    onResetComplete,
+    initialMode = 'login',
+    initialResetToken = '',
+    hideResetTokenField = false,
+}: Props) {
+    const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(initialMode);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [resetToken, setResetToken] = useState('');
+    const [resetToken, setResetToken] = useState(initialResetToken);
     const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const newPasswordRef = useRef<HTMLInputElement | null>(null);
+    const emailRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        setMode(initialMode);
+    }, [initialMode]);
+
+    useEffect(() => {
+        setResetToken(initialResetToken);
+    }, [initialResetToken]);
 
     const validateEmail = (value: string) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -28,7 +50,10 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
         firstName.trim().length > 0 &&
         lastName.trim().length > 0;
     const isForgotValid = validateEmail(email);
-    const isResetValid = resetToken.trim().length > 0 && newPassword.length >= 8;
+    const isResetValid =
+        resetToken.trim().length > 0 &&
+        newPassword.length >= 8 &&
+        newPassword === confirmPassword;
     const isAuthMode = mode === 'login' || mode === 'register';
 
     const switchMode = (nextMode: 'login' | 'register' | 'forgot' | 'reset') => {
@@ -36,13 +61,32 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
         setMessage('');
         setLoading(false);
         if (nextMode !== 'reset') {
-            setResetToken('');
+            setResetToken(initialResetToken);
             setNewPassword('');
+            setConfirmPassword('');
         }
         if (nextMode === 'forgot') {
             setPassword('');
         }
     };
+
+    useEffect(() => {
+        if (mode === 'reset') {
+            newPasswordRef.current?.focus();
+        }
+    }, [mode]);
+
+    useEffect(() => {
+        if (mode === 'forgot') {
+            emailRef.current?.focus();
+        }
+    }, [mode]);
+
+    useEffect(() => {
+        if (mode === 'reset' && hideResetTokenField && !resetToken.trim()) {
+            setMessage('Токен сброса не найден');
+        }
+    }, [hideResetTokenField, mode, resetToken]);
 
     const handleSubmit = async () => {
         setMessage('');
@@ -63,6 +107,9 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
                 setMessage(data.message);
                 setMode('login');
                 setPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                onResetComplete?.();
                 return;
             }
 
@@ -156,6 +203,7 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
 
                     {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
                         <input
+                            ref={emailRef}
                             placeholder="Email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -175,17 +223,29 @@ export function Authorization({ onClose, onAuthSuccess }: Props) {
 
                     {mode === 'reset' && (
                         <>
+                            {!hideResetTokenField && (
+                                <input
+                                    placeholder="Токен из письма"
+                                    value={resetToken}
+                                    onChange={(e) => setResetToken(e.target.value)}
+                                />
+                            )}
                             <input
-                                placeholder="Токен из письма"
-                                value={resetToken}
-                                onChange={(e) => setResetToken(e.target.value)}
-                            />
-                            <input
+                                ref={newPasswordRef}
                                 type="password"
                                 placeholder="Новый пароль (мин. 8 символов)"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 className={newPassword && newPassword.length < 8 ? 'error' : ''}
+                            />
+                            <input
+                                type="password"
+                                placeholder="Подтвердите пароль"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className={
+                                    confirmPassword && confirmPassword !== newPassword ? 'error' : ''
+                                }
                             />
                         </>
                     )}
