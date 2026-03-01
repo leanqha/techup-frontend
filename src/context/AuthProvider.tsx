@@ -61,8 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             method: 'POST',
             credentials: 'include',
         });
-        clearCookie('access');
-        clearCookie('refresh');
+        clearCookie('access_token');
+        clearCookie('refresh_token');
         setProfile(null);
     };
 
