@@ -15,14 +15,18 @@ export function ProfilePage() {
         .charAt(0)
         .toUpperCase();
 
+    const roleLabels: Record<string, string> = {
+        student: 'Студент',
+        teacher: 'Преподаватель',
+        admin: 'Администратор',
+    };
+    const roleLabel = roleLabels[profile.role] ?? profile.role;
+
     const detailRows = [
-        { label: 'ID', value: String(profile.id) },
-        { label: 'Email', value: profile.email },
         { label: 'Имя', value: profile.first_name },
         { label: 'Отчество', value: profile.middle_name },
         { label: 'Фамилия', value: profile.last_name },
         { label: 'Группа', value: profile.group_name },
-        { label: 'Роль', value: profile.role },
     ];
 
     return (
@@ -33,7 +37,10 @@ export function ProfilePage() {
                 </div>
                 <div className="profile-header-text">
                     <h1>Профиль</h1>
-                    <p className="profile-name">{displayName || profile.email}</p>
+                    <p className="profile-name">
+                        {displayName || profile.email}
+                        <span className="profile-role">{roleLabel}</span>
+                    </p>
                     <p className="profile-meta">{profile.email}</p>
                 </div>
             </header>
