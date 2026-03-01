@@ -1,54 +1,68 @@
 // src/pages/ProfilePage.tsx
 import { useAuth } from '../context/useAuth.ts';
+import './ProfilePage.css';
 
 export function ProfilePage() {
     const { profile, logout } = useAuth();
 
     if (!profile) return null;
 
+    const displayName = [profile.last_name, profile.first_name, profile.middle_name]
+        .filter((value) => value && value.trim().length > 0)
+        .join(' ');
+    const avatarLetter = (profile.first_name || profile.email || '?')
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+
+    const detailRows = [
+        { label: 'ID', value: String(profile.id) },
+        { label: 'Email', value: profile.email },
+        { label: 'Имя', value: profile.first_name },
+        { label: 'Отчество', value: profile.middle_name },
+        { label: 'Фамилия', value: profile.last_name },
+        { label: 'Группа', value: profile.group_name },
+        { label: 'Роль', value: profile.role },
+    ];
+
     return (
-        <div style={{ padding: 24, maxWidth: 600 }}>
-            <h1>Профиль</h1>
+        <div className="profile-page">
+            <header className="profile-header">
+                <div className="profile-avatar" aria-hidden="true">
+                    {avatarLetter}
+                </div>
+                <div className="profile-header-text">
+                    <h1>Профиль</h1>
+                    <p className="profile-name">{displayName || profile.email}</p>
+                    <p className="profile-meta">{profile.email}</p>
+                </div>
+            </header>
 
-            <div style={{ marginTop: 24 }}>
-                <p><strong>ФИО:</strong> {profile.first_name} {profile.last_name}</p>
-                {profile.group_name && <p><strong>Группа:</strong> {profile.group_name}</p>}
-                <p><strong>Email:</strong> {profile.email}</p>
-                <p><strong>Роль:</strong> {profile.role}</p>
-            </div>
+            <section className="profile-card">
+                <h2 className="profile-card-title">Данные профиля</h2>
+                <div className="profile-details">
+                    {detailRows.map((row) => (
+                        <div key={row.label} className="profile-detail-row">
+                            <span className="profile-detail-label">{row.label}</span>
+                            <span className="profile-detail-value">{row.value || '—'}</span>
+                        </div>
+                    ))}
+                </div>
+            </section>
 
-            <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
-                <button
-                    onClick={() => void logout()}
-                    style={{
-                        padding: '10px 14px',
-                        borderRadius: 8,
-                        border: 'none',
-                        backgroundColor: '#111827',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                    }}
-                >
+            <div className="profile-actions">
+                <button className="profile-button profile-button--primary" onClick={() => void logout()}>
                     Выйти
                 </button>
 
                 <button
+                    className="profile-button profile-button--secondary"
                     onClick={() =>
                         window.open(
                             'https://docs.google.com/forms/d/e/1FAIpQLSd76B06oxBRQtjt_L-8EJ-8VZJRUNbXFxXctRZRInKcaqe5zQ/viewform?usp=dialog',
                             '_blank'
                         )
                     }
-                    style={{
-                        padding: '10px 14px',
-                        borderRadius: 8,
-                        border: 'none',
-                        backgroundColor: '#2563eb',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        fontWeight: 500,
-                    }}
                 >
                     Обратная связь
                 </button>
