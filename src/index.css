@@ -117,6 +117,8 @@ button:hover {
     flex: 1;
     height: 100%;
     padding: 8px 0;
+    background: transparent;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .bottomNavIcon {
@@ -127,6 +129,11 @@ button:hover {
 .bottomNavItem.active {
     color: #2563eb;
     transform: scale(1.1);
+}
+
+.bottomNavItem:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.35);
+    outline-offset: -2px;
 }
 
 .page {
