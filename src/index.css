@@ -92,18 +92,18 @@ button:hover {
 
 .bottomNav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: calc(env(safe-area-inset-bottom) + 12px);
+    left: 12px;
+    right: 12px;
     height: 64px;
     background: #ffffff;
-    border-top: 1px solid #e5e7eb;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: 10;
-
-    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
 .bottomNavItem {
@@ -111,6 +111,14 @@ button:hover {
     text-decoration: none;
     color: #9ca3af;
     transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottomNavIcon {
+    width: 24px;
+    height: 24px;
 }
 
 .bottomNavItem.active {
@@ -119,5 +127,5 @@ button:hover {
 }
 
 .page {
-    padding-bottom: 80px;
+    padding-bottom: 96px;
 }
