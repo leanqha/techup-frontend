@@ -114,6 +114,9 @@ button:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 1;
+    height: 100%;
+    padding: 8px 0;
 }
 
 .bottomNavIcon {
