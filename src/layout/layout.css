@@ -165,6 +165,25 @@ html, body {
 }
 
 /* Responsive */
+.hamburgerButton {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .sidebar-wrapper {
+        position: relative;
+        transform: none;
+        width: 280px;
+        max-width: 280px;
+        height: 100%;
+        flex: 0 0 280px;
+    }
+
+    .content {
+        height: 100%;
+    }
+}
+
 @media (max-width: 768px) {
     .sidebar-wrapper {
         width: 80%;
