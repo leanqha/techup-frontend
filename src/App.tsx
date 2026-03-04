@@ -5,8 +5,9 @@ import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AuthPage } from './pages/AuthPage';
 import { useAuth } from './context/useAuth.ts';
-import {SchedulePage} from "./pages/SchedulePage.tsx";
-import {AdminPage} from "./pages/AdminPage.tsx";
+import { SchedulePage } from './pages/SchedulePage.tsx';
+import { AdminPage } from './pages/AdminPage.tsx';
+import { AdminMapPage } from './pages/AdminMapPage.tsx';
 
 function App() {
     const { profile, refreshProfile } = useAuth();
@@ -71,6 +72,17 @@ function App() {
                     <ProtectedRoute>
                         <Layout>
                             <AdminPage />
+                        </Layout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin/map"
+                element={
+                    <ProtectedRoute>
+                        <Layout>
+                            <AdminMapPage />
                         </Layout>
                     </ProtectedRoute>
                 }

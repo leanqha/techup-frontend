@@ -83,6 +83,27 @@ const ShieldIcon = () => (
     </svg>
 );
 
+const MapIcon = () => (
+    <svg className="sidebarLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+            d="M9 5 3 7v12l6-2 6 2 6-2V5l-6 2-6-2Z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        <path
+            d="M9 5v12M15 7v12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+
 export function Sidebar({ closeSidebar }: Props) {
     const { profile } = useAuth();
 
@@ -129,16 +150,28 @@ export function Sidebar({ closeSidebar }: Props) {
                         <span>Расписание</span>
                     </NavLink>
                     {profile?.role === 'admin' && (
-                        <NavLink
-                            to="/admin"
-                            onClick={handleNavClick}
-                            className={({ isActive }) =>
-                                `sidebarLink${isActive ? ' active' : ''}`
-                            }
-                        >
-                            <ShieldIcon />
-                            <span>Админка</span>
-                        </NavLink>
+                        <>
+                            <NavLink
+                                to="/admin"
+                                onClick={handleNavClick}
+                                className={({ isActive }) =>
+                                    `sidebarLink${isActive ? ' active' : ''}`
+                                }
+                            >
+                                <ShieldIcon />
+                                <span>Админка</span>
+                            </NavLink>
+                            <NavLink
+                                to="/admin/map"
+                                onClick={handleNavClick}
+                                className={({ isActive }) =>
+                                    `sidebarLink${isActive ? ' active' : ''}`
+                                }
+                            >
+                                <MapIcon />
+                                <span>Карта</span>
+                            </NavLink>
+                        </>
                     )}
                 </nav>
             </div>

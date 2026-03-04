@@ -1,0 +1,99 @@
+.admin-map-page {
+    display: grid;
+    gap: 16px;
+}
+
+.admin-map-header h1 {
+    margin: 0;
+}
+
+.admin-map-header p {
+    margin: 6px 0 0;
+    color: #475569;
+}
+
+.admin-map-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+}
+
+.admin-map-card h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.admin-map-actions,
+.admin-map-inline-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+}
+
+.admin-map-inline-fields label {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+    color: #334155;
+}
+
+.admin-map-inline-fields input,
+.admin-map-textarea-label textarea {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+}
+
+.admin-map-textarea-label {
+    display: grid;
+    gap: 8px;
+    font-size: 14px;
+    color: #334155;
+}
+
+.admin-map-results {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-map-routes {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+}
+
+.admin-map-page button {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.admin-map-page button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.admin-map-page pre {
+    margin: 0;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    overflow-x: auto;
+    min-height: 40px;
+}
+
+.admin-map-error {
+    color: #b91c1c;
+    margin: 0;
+}
+
