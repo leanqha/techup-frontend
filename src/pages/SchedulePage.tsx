@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { fetchLessons, searchLessons } from '../api/schedule';
 import { ScheduleFiltersPanel, type ScheduleFilterValues } from '../components/schedule/ScheduleFiltersPanel.tsx';
@@ -26,6 +26,15 @@ export function SchedulePage() {
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [hasAutoScrolledToToday, setHasAutoScrolledToToday] = useState(false);
+    const dayRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const todayIso = useMemo(() => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }, []);
 
     useEffect(() => {
         if (!profile?.group_id) return;
@@ -88,6 +97,16 @@ export function SchedulePage() {
 
     const sortedDates = Object.keys(lessonsByDate).sort();
 
+    useEffect(() => {
+        if (loading || hasAutoScrolledToToday || weekOffset !== 0 || sortedDates.length === 0) return;
+
+        const todayNode = dayRefs.current[todayIso];
+        if (!todayNode) return;
+
+        todayNode.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setHasAutoScrolledToToday(true);
+    }, [hasAutoScrolledToToday, loading, sortedDates, todayIso, weekOffset]);
+
     return (
         <div style={{ padding: 16, minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 24 }}>
             <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Расписание</h1>
@@ -106,7 +125,14 @@ export function SchedulePage() {
             )}
 
             {sortedDates.map(date => (
-                <ScheduleDay key={date} date={date} lessons={lessonsByDate[date]} />
+                <div
+                    key={date}
+                    ref={node => {
+                        dayRefs.current[date] = node;
+                    }}
+                >
+                    <ScheduleDay date={date} lessons={lessonsByDate[date]} />
+                </div>
             ))}
         </div>
     );
