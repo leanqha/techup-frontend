@@ -56,23 +56,44 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
                 transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             }}
         >
-            {/* Тип */}
-            {typeMeta.label && (
-                <span
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 10,
+                }}
+            >
+                {/* Тип */}
+                {typeMeta.label && (
+                    <span
+                        style={{
+                            alignSelf: 'flex-start',
+                            background: typeMeta.bg,
+                            color: typeMeta.accent,
+                            padding: '4px 10px',
+                            borderRadius: 999,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            letterSpacing: 0.3,
+                        }}
+                    >
+                        {typeMeta.label}
+                    </span>
+                )}
+
+                {/* Время */}
+                <div
                     style={{
-                        alignSelf: 'flex-start',
-                        background: typeMeta.bg,
-                        color: typeMeta.accent,
-                        padding: '4px 10px',
-                        borderRadius: 999,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        letterSpacing: 0.3,
+                        marginLeft: 'auto',
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: '#374151',
+                        whiteSpace: 'nowrap',
                     }}
                 >
-                    {typeMeta.label}
-                </span>
-            )}
+                    {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
+                </div>
+            </div>
 
             {/* Предмет + аудитория */}
             <div
@@ -86,18 +107,6 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
             >
                 {lesson.subject}
                 {showClassroom ? ` · ${lesson.classroom}` : ''}
-            </div>
-
-            {/* Время */}
-            <div
-                style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: '#374151',
-                }}
-            >
-                {formatTime(lesson.start_time)} –{' '}
-                {formatTime(lesson.end_time)}
             </div>
 
             {/* Преподаватель */}
