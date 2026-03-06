@@ -7,7 +7,7 @@
     justify-content: center;
     align-items: center;
     animation: adminFadeIn 0.25s ease;
-    z-index: 1000;
+    z-index: var(--z-modal);
 }
 
 .admin-modal {

@@ -8,7 +8,7 @@
     justify-content: center;
     align-items: center;
     animation: fadeIn 0.25s ease;
-    z-index: 1000;
+    z-index: var(--z-overlay);
 }
 
 /* Центрированное окно */

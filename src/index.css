@@ -8,6 +8,14 @@
     color: #213547;
     background-color: #ffffff;
 
+    /* Layer scale: nav/sidebar < overlays < modals < loader */
+    --z-bottom-nav: 10;
+    --z-sidebar-overlay: 20;
+    --z-sidebar: 30;
+    --z-overlay: 1000;
+    --z-modal: 1100;
+    --z-loader: 9999;
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -60,7 +68,7 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: var(--z-loader);
 }
 
 .LoaderBox {
@@ -102,7 +110,7 @@ button:hover {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    z-index: 10;
+    z-index: var(--z-bottom-nav);
     box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 
