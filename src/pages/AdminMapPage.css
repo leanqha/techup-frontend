@@ -128,7 +128,7 @@
 
 .admin-map-table-header--connections,
 .admin-map-table-row--connections {
-    grid-template-columns: 70px 90px 1.1fr 90px 1.1fr 100px 1fr 200px;
+    grid-template-columns: 70px 1.2fr 1.2fr 100px 1fr 200px;
 }
 
 .admin-map-row-actions {

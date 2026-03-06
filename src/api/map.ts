@@ -34,8 +34,8 @@ export type RoomPayload = {
 };
 
 export type ConnectionPayload = {
-    room_from: number;
-    room_to: number;
+    room_from: string;
+    room_to: string;
     distance: number;
     type?: string;
 };
