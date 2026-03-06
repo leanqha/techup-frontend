@@ -123,7 +123,7 @@
 
 .admin-map-table-header--rooms,
 .admin-map-table-row--rooms {
-    grid-template-columns: 70px 1.2fr 1fr 70px 200px;
+    grid-template-columns: 70px 1fr 1.3fr 1fr 70px 200px;
 }
 
 .admin-map-table-header--connections,

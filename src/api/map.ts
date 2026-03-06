@@ -15,6 +15,7 @@ export type MapRoom = {
     name: string;
     building_id: number;
     floor: number;
+    description: string;
 };
 
 export type MapConnection = {
@@ -31,6 +32,7 @@ export type RoomPayload = {
     name: string;
     building_id: number;
     floor: number;
+    description: string;
 };
 
 export type ConnectionPayload = {
