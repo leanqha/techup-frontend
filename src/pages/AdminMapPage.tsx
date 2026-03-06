@@ -275,8 +275,8 @@ export function AdminMapPage() {
     };
 
     const toConnectionPayload = (): ConnectionPayload => ({
-        from_room_id: Number(connectionForm.from_room_id),
-        to_room_id: Number(connectionForm.to_room_id),
+        room_from: Number(connectionForm.from_room_id),
+        room_to: Number(connectionForm.to_room_id),
         distance: Number(connectionForm.distance),
         type: connectionForm.type.trim() || undefined,
     });
