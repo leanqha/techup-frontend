@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import {
     createConnection,
@@ -7,77 +7,129 @@ import {
     deleteRoom,
     findMapPath,
     getMapBuildings,
-    searchMapRooms,
+    listMapConnections,
+    listMapRooms,
     updateConnection,
     updateRoom,
+    type ConnectionPayload,
+    type MapBuilding,
+    type MapConnection,
+    type MapRoom,
+    type RoomPayload,
 } from '../api/map';
+import { AdminModal } from '../components/admin/AdminModal';
 import './AdminMapPage.css';
 
-function formatResult(value: unknown) {
-    return JSON.stringify(value, null, 2);
-}
+type TabKey = 'rooms' | 'connections';
 
-function parseJsonPayload(raw: string, entityName: string) {
-    try {
-        return JSON.parse(raw) as Record<string, unknown>;
-    } catch {
-        throw new Error(`Некорректный JSON для ${entityName}`);
-    }
-}
+type RoomFormState = {
+    name: string;
+    building_id: string;
+    floor: string;
+};
 
-const defaultRoomPayload = '{\n  "name": "A-101",\n  "building_id": 1,\n  "floor": 1\n}';
-const defaultConnectionPayload = '{\n  "from_room_id": 1,\n  "to_room_id": 2,\n  "distance": 5\n}';
+type ConnectionFormState = {
+    from_room_id: string;
+    to_room_id: string;
+    distance: string;
+    type: string;
+};
+
+const emptyRoomForm: RoomFormState = {
+    name: '',
+    building_id: '',
+    floor: '1',
+};
+
+const emptyConnectionForm: ConnectionFormState = {
+    from_room_id: '',
+    to_room_id: '',
+    distance: '1',
+    type: 'corridor',
+};
 
 export function AdminMapPage() {
     const { profile } = useAuth();
 
+    const [tab, setTab] = useState<TabKey>('rooms');
     const [busy, setBusy] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [message, setMessage] = useState<string | null>(null);
 
-    const [buildingsResult, setBuildingsResult] = useState<string>('');
-    const [searchResult, setSearchResult] = useState<string>('');
-    const [pathResult, setPathResult] = useState<string>('');
-    const [roomResult, setRoomResult] = useState<string>('');
-    const [connectionResult, setConnectionResult] = useState<string>('');
+    const [buildings, setBuildings] = useState<MapBuilding[]>([]);
+    const [rooms, setRooms] = useState<MapRoom[]>([]);
+    const [connections, setConnections] = useState<MapConnection[]>([]);
 
-    const [searchBuildingId, setSearchBuildingId] = useState('1');
-    const [searchFloor, setSearchFloor] = useState('1');
+    const [roomSearch, setRoomSearch] = useState('');
+    const [roomBuildingFilter, setRoomBuildingFilter] = useState('');
+    const [roomFloorFilter, setRoomFloorFilter] = useState('');
+
+    const [connectionSearch, setConnectionSearch] = useState('');
 
     const [pathStart, setPathStart] = useState('');
     const [pathEnd, setPathEnd] = useState('');
+    const [pathResult, setPathResult] = useState('');
 
-    const [roomId, setRoomId] = useState('');
-    const [roomPayload, setRoomPayload] = useState(defaultRoomPayload);
+    const [roomModalOpen, setRoomModalOpen] = useState(false);
+    const [connectionModalOpen, setConnectionModalOpen] = useState(false);
 
-    const [connectionId, setConnectionId] = useState('');
-    const [connectionPayload, setConnectionPayload] = useState(defaultConnectionPayload);
+    const [editingRoom, setEditingRoom] = useState<MapRoom | null>(null);
+    const [editingConnection, setEditingConnection] = useState<MapConnection | null>(null);
 
-    const endpointList = useMemo(
-        () => [
-            'GET /api/v1/map/buildings',
-            'GET /api/v1/map/search?building_id=1&floor=2',
-            'GET /api/v1/map/path/:start/:end',
-            'POST /api/v1/admin/room',
-            'PUT /api/v1/admin/room/:id',
-            'DELETE /api/v1/admin/room/:id',
-            'POST /api/v1/admin/connection',
-            'PUT /api/v1/admin/connection/:id',
-            'DELETE /api/v1/admin/connection/:id',
-        ],
-        []
-    );
+    const [roomForm, setRoomForm] = useState<RoomFormState>(emptyRoomForm);
+    const [connectionForm, setConnectionForm] = useState<ConnectionFormState>(emptyConnectionForm);
+
+    const roomsById = useMemo(() => {
+        return new Map(rooms.map(item => [item.id, item]));
+    }, [rooms]);
+
+    const buildingsById = useMemo(() => {
+        return new Map(buildings.map(item => [item.id, item]));
+    }, [buildings]);
+
+    const visibleRooms = useMemo(() => {
+        const query = roomSearch.trim().toLowerCase();
+
+        return rooms.filter(item => {
+            const matchesName = !query || item.name.toLowerCase().includes(query);
+            const matchesBuilding = !roomBuildingFilter || String(item.building_id) === roomBuildingFilter;
+            const matchesFloor = !roomFloorFilter || String(item.floor) === roomFloorFilter;
+            return matchesName && matchesBuilding && matchesFloor;
+        });
+    }, [roomBuildingFilter, roomFloorFilter, roomSearch, rooms]);
+
+    const visibleConnections = useMemo(() => {
+        const query = connectionSearch.trim().toLowerCase();
+        if (!query) return connections;
+
+        return connections.filter(item => {
+            const haystack = [
+                String(item.id),
+                item.room_from ?? '',
+                item.room_to ?? '',
+                item.type ?? '',
+                String(item.from_room_id ?? ''),
+                String(item.to_room_id ?? ''),
+            ]
+                .join(' ')
+                .toLowerCase();
+            return haystack.includes(query);
+        });
+    }, [connectionSearch, connections]);
 
     if (profile?.role !== 'admin') {
         return <p>У вас нет доступа к карте админа</p>;
     }
 
-    const runAction = async (action: () => Promise<unknown>, onSuccess: (data: unknown) => void) => {
+    const runAction = async (action: () => Promise<void>) => {
         setBusy(true);
         setError(null);
+        setMessage(null);
 
         try {
-            const data = await action();
-            onSuccess(data);
+            await action();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Ошибка запроса');
         } finally {
@@ -85,224 +137,543 @@ export function AdminMapPage() {
         }
     };
 
+    const loadBuildings = async () => {
+        const data = await getMapBuildings();
+        setBuildings(Array.isArray(data) ? data : []);
+    };
+
+    const loadRooms = async () => {
+        const data = await listMapRooms();
+        setRooms(Array.isArray(data) ? data : []);
+    };
+
+    const loadConnections = async () => {
+        const data = await listMapConnections();
+        setConnections(Array.isArray(data) ? data : []);
+    };
+
+    useEffect(() => {
+        void runAction(async () => {
+            await Promise.all([loadBuildings(), loadRooms(), loadConnections()]);
+        });
+    }, []);
+
+    const openCreateRoom = () => {
+        setEditingRoom(null);
+        setRoomForm(emptyRoomForm);
+        setRoomModalOpen(true);
+    };
+
+    const openEditRoom = (room: MapRoom) => {
+        setEditingRoom(room);
+        setRoomForm({
+            name: room.name,
+            building_id: String(room.building_id),
+            floor: String(room.floor),
+        });
+        setRoomModalOpen(true);
+    };
+
+    const closeRoomModal = () => {
+        setRoomModalOpen(false);
+        setEditingRoom(null);
+        setRoomForm(emptyRoomForm);
+    };
+
+    const toRoomPayload = (): RoomPayload => ({
+        name: roomForm.name.trim(),
+        building_id: Number(roomForm.building_id),
+        floor: Number(roomForm.floor),
+    });
+
+    const handleSaveRoom = async () => {
+        if (!roomForm.name.trim()) {
+            setError('Введите название комнаты');
+            return;
+        }
+
+        if (!roomForm.building_id) {
+            setError('Выберите корпус');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            const payload = toRoomPayload();
+            if (editingRoom) {
+                await updateRoom(editingRoom.id, payload);
+                setMessage('Комната обновлена');
+            } else {
+                await createRoom(payload);
+                setMessage('Комната создана');
+            }
+
+            await loadRooms();
+            closeRoomModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteRoom = async (room: MapRoom) => {
+        if (!window.confirm(`Удалить комнату ${room.name}?`)) return;
+
+        setDeletingId(room.id);
+        setError(null);
+        setMessage(null);
+
+        try {
+            await deleteRoom(room.id);
+            await Promise.all([loadRooms(), loadConnections()]);
+            setMessage('Комната удалена');
+            if (editingRoom?.id === room.id) closeRoomModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const resolveRoomId = (connection: MapConnection, side: 'from' | 'to') => {
+        const directId = side === 'from' ? connection.from_room_id : connection.to_room_id;
+        if (typeof directId === 'number' && !Number.isNaN(directId)) {
+            return directId;
+        }
+
+        const roomName = side === 'from' ? connection.room_from : connection.room_to;
+        if (!roomName) return null;
+
+        const found = rooms.find(item => item.name === roomName);
+        return found?.id ?? null;
+    };
+
+    const openCreateConnection = () => {
+        setEditingConnection(null);
+        setConnectionForm(emptyConnectionForm);
+        setConnectionModalOpen(true);
+    };
+
+    const openEditConnection = (connection: MapConnection) => {
+        const fromId = resolveRoomId(connection, 'from');
+        const toId = resolveRoomId(connection, 'to');
+
+        if (!fromId || !toId) {
+            setError('Невозможно определить комнаты связи для редактирования');
+            return;
+        }
+
+        setEditingConnection(connection);
+        setConnectionForm({
+            from_room_id: String(fromId),
+            to_room_id: String(toId),
+            distance: String(connection.distance),
+            type: connection.type || 'corridor',
+        });
+        setConnectionModalOpen(true);
+    };
+
+    const closeConnectionModal = () => {
+        setConnectionModalOpen(false);
+        setEditingConnection(null);
+        setConnectionForm(emptyConnectionForm);
+    };
+
+    const toConnectionPayload = (): ConnectionPayload => ({
+        from_room_id: Number(connectionForm.from_room_id),
+        to_room_id: Number(connectionForm.to_room_id),
+        distance: Number(connectionForm.distance),
+        type: connectionForm.type.trim() || undefined,
+    });
+
+    const handleSaveConnection = async () => {
+        if (!connectionForm.from_room_id || !connectionForm.to_room_id) {
+            setError('Выберите обе комнаты связи');
+            return;
+        }
+
+        if (!connectionForm.distance) {
+            setError('Укажите расстояние');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            const payload = toConnectionPayload();
+            if (editingConnection) {
+                await updateConnection(editingConnection.id, payload);
+                setMessage('Связь обновлена');
+            } else {
+                await createConnection(payload);
+                setMessage('Связь создана');
+            }
+
+            await loadConnections();
+            closeConnectionModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteConnection = async (connection: MapConnection) => {
+        if (!window.confirm('Удалить связь?')) return;
+
+        setDeletingId(connection.id);
+        setError(null);
+        setMessage(null);
+
+        try {
+            await deleteConnection(connection.id);
+            await loadConnections();
+            setMessage('Связь удалена');
+            if (editingConnection?.id === connection.id) closeConnectionModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const handleFindPath = () => {
+        if (!pathStart.trim() || !pathEnd.trim()) {
+            setError('Укажите ID начальной и конечной комнаты');
+            return;
+        }
+
+        void runAction(async () => {
+            const result = await findMapPath(pathStart.trim(), pathEnd.trim());
+            setPathResult(JSON.stringify(result, null, 2));
+            setMessage('Путь рассчитан');
+        });
+    };
+
     return (
         <div className="admin-map-page">
             <header className="admin-map-header">
                 <h1>Карта</h1>
-                <p>Инструменты администратора для проверки map API и CRUD комнат/связей.</p>
+                <p>Удобный CRUD для комнат и связей между ними</p>
             </header>
 
             <section className="admin-map-card">
-                <h2>Доступные маршруты</h2>
-                <ul className="admin-map-routes">
-                    {endpointList.map(route => (
-                        <li key={route}>
-                            <code>{route}</code>
-                        </li>
-                    ))}
-                </ul>
-            </section>
-
-            <section className="admin-map-card">
-                <h2>Map API</h2>
-                <div className="admin-map-actions">
-                    <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => runAction(getMapBuildings, data => setBuildingsResult(formatResult(data)))}
-                    >
-                        Загрузить здания
-                    </button>
-
-                    <div className="admin-map-inline-fields">
-                        <label>
-                            Building ID
-                            <input
-                                value={searchBuildingId}
-                                onChange={event => setSearchBuildingId(event.target.value)}
-                            />
-                        </label>
-                        <label>
-                            Этаж
-                            <input
-                                value={searchFloor}
-                                onChange={event => setSearchFloor(event.target.value)}
-                            />
-                        </label>
-                        <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() =>
-                                runAction(
-                                    () => searchMapRooms(Number(searchBuildingId), Number(searchFloor)),
-                                    data => setSearchResult(formatResult(data))
-                                )
-                            }
-                        >
-                            Поиск комнат
-                        </button>
-                    </div>
-
-                    <div className="admin-map-inline-fields">
-                        <label>
-                            Стартовая комната
-                            <input value={pathStart} onChange={event => setPathStart(event.target.value)} />
-                        </label>
-                        <label>
-                            Конечная комната
-                            <input value={pathEnd} onChange={event => setPathEnd(event.target.value)} />
-                        </label>
-                        <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() =>
-                                runAction(
-                                    () => findMapPath(pathStart.trim(), pathEnd.trim()),
-                                    data => setPathResult(formatResult(data))
-                                )
-                            }
-                        >
-                            Найти путь
-                        </button>
-                    </div>
-                </div>
-
-                <div className="admin-map-results">
-                    <article>
-                        <h3>GET /map/buildings</h3>
-                        <pre>{buildingsResult || 'Нет данных'}</pre>
-                    </article>
-                    <article>
-                        <h3>GET /map/search</h3>
-                        <pre>{searchResult || 'Нет данных'}</pre>
-                    </article>
-                    <article>
-                        <h3>GET /map/path</h3>
-                        <pre>{pathResult || 'Нет данных'}</pre>
-                    </article>
-                </div>
-            </section>
-
-            <section className="admin-map-card">
-                <h2>CRUD: комнаты</h2>
+                <h2>Поиск маршрута</h2>
                 <div className="admin-map-inline-fields">
-                    <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() =>
-                            runAction(
-                                () => createRoom(parseJsonPayload(roomPayload, 'комнаты')),
-                                data => setRoomResult(formatResult(data))
-                            )
-                        }
-                    >
-                        POST /admin/room
-                    </button>
                     <label>
-                        Room ID
-                        <input value={roomId} onChange={event => setRoomId(event.target.value)} />
+                        Start room ID
+                        <input value={pathStart} onChange={event => setPathStart(event.target.value)} />
                     </label>
-                    <button
-                        type="button"
-                        disabled={busy || !roomId}
-                        onClick={() =>
-                            runAction(
-                                () => updateRoom(Number(roomId), parseJsonPayload(roomPayload, 'комнаты')),
-                                data => setRoomResult(formatResult(data))
-                            )
-                        }
-                    >
-                        PUT /admin/room/:id
-                    </button>
-                    <button
-                        type="button"
-                        disabled={busy || !roomId}
-                        onClick={() =>
-                            runAction(
-                                () => deleteRoom(Number(roomId)),
-                                data => setRoomResult(formatResult(data))
-                            )
-                        }
-                    >
-                        DELETE /admin/room/:id
+                    <label>
+                        End room ID
+                        <input value={pathEnd} onChange={event => setPathEnd(event.target.value)} />
+                    </label>
+                    <button type="button" disabled={busy} onClick={handleFindPath}>
+                        Найти путь
                     </button>
                 </div>
-
-                <label className="admin-map-textarea-label">
-                    JSON payload комнаты
-                    <textarea
-                        rows={8}
-                        value={roomPayload}
-                        onChange={event => setRoomPayload(event.target.value)}
-                    />
-                </label>
-                <pre>{roomResult || 'Нет данных'}</pre>
+                <pre>{pathResult || 'Нет данных'}</pre>
             </section>
 
             <section className="admin-map-card">
-                <h2>CRUD: связи</h2>
-                <div className="admin-map-inline-fields">
-                    <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() =>
-                            runAction(
-                                () => createConnection(parseJsonPayload(connectionPayload, 'связи')),
-                                data => setConnectionResult(formatResult(data))
-                            )
-                        }
-                    >
-                        POST /admin/connection
-                    </button>
+                <div className="admin-map-section-header">
+                    <h2>CRUD объектов карты</h2>
+                    <div className="admin-map-tabs" role="tablist" aria-label="Сущности карты">
+                        <button
+                            type="button"
+                            className={tab === 'rooms' ? 'active' : ''}
+                            onClick={() => setTab('rooms')}
+                        >
+                            Комнаты
+                        </button>
+                        <button
+                            type="button"
+                            className={tab === 'connections' ? 'active' : ''}
+                            onClick={() => setTab('connections')}
+                        >
+                            Связи
+                        </button>
+                    </div>
+                </div>
+
+                {busy && <p className="admin-map-status">Загрузка...</p>}
+                {error && <p className="admin-map-error">{error}</p>}
+                {message && <p className="admin-map-success">{message}</p>}
+
+                {tab === 'rooms' && (
+                    <div className="admin-map-entity">
+                        <div className="admin-map-filters">
+                            <label>
+                                Поиск комнаты
+                                <input
+                                    value={roomSearch}
+                                    onChange={event => setRoomSearch(event.target.value)}
+                                    placeholder="A-101"
+                                />
+                            </label>
+                            <label>
+                                Корпус
+                                <select
+                                    value={roomBuildingFilter}
+                                    onChange={event => setRoomBuildingFilter(event.target.value)}
+                                >
+                                    <option value="">Все</option>
+                                    {buildings.map(item => (
+                                        <option key={item.id} value={item.id}>
+                                            {item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label>
+                                Этаж
+                                <input
+                                    value={roomFloorFilter}
+                                    onChange={event => setRoomFloorFilter(event.target.value)}
+                                    placeholder="1"
+                                />
+                            </label>
+                            <div className="admin-map-actions-inline">
+                                <button type="button" disabled={busy} onClick={() => void runAction(loadRooms)}>
+                                    Обновить
+                                </button>
+                                <button type="button" disabled={busy} onClick={openCreateRoom}>
+                                    Добавить комнату
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="admin-map-table">
+                            <div className="admin-map-table-header admin-map-table-header--rooms">
+                                <span>ID</span>
+                                <span>Название</span>
+                                <span>Корпус</span>
+                                <span>Этаж</span>
+                                <span>Действия</span>
+                            </div>
+                            {visibleRooms.map(item => (
+                                <div key={item.id} className="admin-map-table-row admin-map-table-row--rooms">
+                                    <span>{item.id}</span>
+                                    <span>{item.name}</span>
+                                    <span>{buildingsById.get(item.building_id)?.name ?? `#${item.building_id}`}</span>
+                                    <span>{item.floor}</span>
+                                    <span className="admin-map-row-actions">
+                                        <button type="button" onClick={() => openEditRoom(item)}>
+                                            Изменить
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="danger"
+                                            onClick={() => void handleDeleteRoom(item)}
+                                            disabled={deletingId === item.id}
+                                        >
+                                            Удалить
+                                        </button>
+                                    </span>
+                                </div>
+                            ))}
+                            {!visibleRooms.length && !busy && <p className="admin-map-status">Комнаты не найдены</p>}
+                        </div>
+                    </div>
+                )}
+
+                {tab === 'connections' && (
+                    <div className="admin-map-entity">
+                        <div className="admin-map-filters">
+                            <label>
+                                Поиск связи
+                                <input
+                                    value={connectionSearch}
+                                    onChange={event => setConnectionSearch(event.target.value)}
+                                    placeholder="room / id / type"
+                                />
+                            </label>
+                            <div className="admin-map-actions-inline">
+                                <button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => void runAction(loadConnections)}
+                                >
+                                    Обновить
+                                </button>
+                                <button type="button" disabled={busy} onClick={openCreateConnection}>
+                                    Добавить связь
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="admin-map-table">
+                            <div className="admin-map-table-header admin-map-table-header--connections">
+                                <span>ID</span>
+                                <span>Откуда</span>
+                                <span>Куда</span>
+                                <span>Distance</span>
+                                <span>Тип</span>
+                                <span>Действия</span>
+                            </div>
+                            {visibleConnections.map(item => {
+                                const fromLabel = item.room_from ?? roomsById.get(item.from_room_id ?? -1)?.name;
+                                const toLabel = item.room_to ?? roomsById.get(item.to_room_id ?? -1)?.name;
+
+                                return (
+                                    <div key={item.id} className="admin-map-table-row admin-map-table-row--connections">
+                                        <span>{item.id}</span>
+                                        <span>{fromLabel ?? `#${item.from_room_id ?? '—'}`}</span>
+                                        <span>{toLabel ?? `#${item.to_room_id ?? '—'}`}</span>
+                                        <span>{item.distance}</span>
+                                        <span>{item.type ?? '—'}</span>
+                                        <span className="admin-map-row-actions">
+                                            <button type="button" onClick={() => openEditConnection(item)}>
+                                                Изменить
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="danger"
+                                                onClick={() => void handleDeleteConnection(item)}
+                                                disabled={deletingId === item.id}
+                                            >
+                                                Удалить
+                                            </button>
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                            {!visibleConnections.length && !busy && (
+                                <p className="admin-map-status">Связи не найдены</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </section>
+
+            <AdminModal
+                open={roomModalOpen}
+                title={editingRoom ? `Редактирование комнаты: ${editingRoom.name}` : 'Новая комната'}
+                onClose={closeRoomModal}
+            >
+                <div className="admin-map-modal-form">
                     <label>
-                        Connection ID
+                        Название
                         <input
-                            value={connectionId}
-                            onChange={event => setConnectionId(event.target.value)}
+                            value={roomForm.name}
+                            onChange={event => setRoomForm({ ...roomForm, name: event.target.value })}
                         />
                     </label>
-                    <button
-                        type="button"
-                        disabled={busy || !connectionId}
-                        onClick={() =>
-                            runAction(
-                                () =>
-                                    updateConnection(
-                                        Number(connectionId),
-                                        parseJsonPayload(connectionPayload, 'связи')
-                                    ),
-                                data => setConnectionResult(formatResult(data))
-                            )
-                        }
-                    >
-                        PUT /admin/connection/:id
-                    </button>
-                    <button
-                        type="button"
-                        disabled={busy || !connectionId}
-                        onClick={() =>
-                            runAction(
-                                () => deleteConnection(Number(connectionId)),
-                                data => setConnectionResult(formatResult(data))
-                            )
-                        }
-                    >
-                        DELETE /admin/connection/:id
-                    </button>
+                    <label>
+                        Корпус
+                        <select
+                            value={roomForm.building_id}
+                            onChange={event =>
+                                setRoomForm({ ...roomForm, building_id: event.target.value })
+                            }
+                        >
+                            <option value="">Выберите корпус</option>
+                            {buildings.map(item => (
+                                <option key={item.id} value={item.id}>
+                                    {item.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        Этаж
+                        <input
+                            type="number"
+                            value={roomForm.floor}
+                            onChange={event => setRoomForm({ ...roomForm, floor: event.target.value })}
+                        />
+                    </label>
+                    <div className="admin-map-modal-actions">
+                        <button type="button" className="secondary" onClick={closeRoomModal} disabled={saving}>
+                            Отмена
+                        </button>
+                        <button type="button" onClick={() => void handleSaveRoom()} disabled={saving}>
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
                 </div>
+            </AdminModal>
 
-                <label className="admin-map-textarea-label">
-                    JSON payload связи
-                    <textarea
-                        rows={8}
-                        value={connectionPayload}
-                        onChange={event => setConnectionPayload(event.target.value)}
-                    />
-                </label>
-                <pre>{connectionResult || 'Нет данных'}</pre>
-            </section>
-
-            {error && <p className="admin-map-error">{error}</p>}
+            <AdminModal
+                open={connectionModalOpen}
+                title={editingConnection ? 'Редактирование связи' : 'Новая связь'}
+                onClose={closeConnectionModal}
+            >
+                <div className="admin-map-modal-form">
+                    <label>
+                        Откуда
+                        <select
+                            value={connectionForm.from_room_id}
+                            onChange={event =>
+                                setConnectionForm({ ...connectionForm, from_room_id: event.target.value })
+                            }
+                        >
+                            <option value="">Выберите комнату</option>
+                            {rooms.map(item => (
+                                <option key={item.id} value={item.id}>
+                                    {item.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        Куда
+                        <select
+                            value={connectionForm.to_room_id}
+                            onChange={event =>
+                                setConnectionForm({ ...connectionForm, to_room_id: event.target.value })
+                            }
+                        >
+                            <option value="">Выберите комнату</option>
+                            {rooms.map(item => (
+                                <option key={item.id} value={item.id}>
+                                    {item.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        Distance
+                        <input
+                            type="number"
+                            min="0"
+                            value={connectionForm.distance}
+                            onChange={event =>
+                                setConnectionForm({ ...connectionForm, distance: event.target.value })
+                            }
+                        />
+                    </label>
+                    <label>
+                        Тип
+                        <input
+                            value={connectionForm.type}
+                            onChange={event =>
+                                setConnectionForm({ ...connectionForm, type: event.target.value })
+                            }
+                            placeholder="corridor / stairs"
+                        />
+                    </label>
+                    <div className="admin-map-modal-actions">
+                        <button
+                            type="button"
+                            className="secondary"
+                            onClick={closeConnectionModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button type="button" onClick={() => void handleSaveConnection()} disabled={saving}>
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
         </div>
     );
 }

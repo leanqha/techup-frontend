@@ -2,6 +2,44 @@ import { fetchWithRefresh } from './fetchWithRefresh';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
+type ApiError = Error & { status?: number };
+
+export type MapBuilding = {
+    id: number;
+    name: string;
+    address?: string;
+};
+
+export type MapRoom = {
+    id: number;
+    name: string;
+    building_id: number;
+    floor: number;
+};
+
+export type MapConnection = {
+    id: number;
+    room_from?: string;
+    room_to?: string;
+    from_room_id?: number;
+    to_room_id?: number;
+    distance: number;
+    type?: string;
+};
+
+export type RoomPayload = {
+    name: string;
+    building_id: number;
+    floor: number;
+};
+
+export type ConnectionPayload = {
+    from_room_id: number;
+    to_room_id: number;
+    distance: number;
+    type?: string;
+};
+
 async function parseResponse(res: Response): Promise<unknown> {
     if (res.status === 204) {
         return { success: true };
@@ -17,17 +55,16 @@ async function parseResponse(res: Response): Promise<unknown> {
     return text ? { message: text } : { success: true };
 }
 
-async function mapRequest(
-    path: string,
-    method: HttpMethod = 'GET',
-    body?: unknown
-): Promise<unknown> {
-    const res = await fetchWithRefresh(`/api/v1${path}`, {
+async function requestRaw(path: string, method: HttpMethod = 'GET', body?: unknown): Promise<Response> {
+    return fetchWithRefresh(`/api/v1${path}`, {
         method,
         headers: body ? { 'Content-Type': 'application/json' } : undefined,
         body: body ? JSON.stringify(body) : undefined,
     });
+}
 
+async function mapRequest<T>(path: string, method: HttpMethod = 'GET', body?: unknown): Promise<T> {
+    const res = await requestRaw(path, method, body);
     const parsed = await parseResponse(res);
 
     if (!res.ok) {
@@ -35,45 +72,84 @@ async function mapRequest(
             typeof parsed === 'object' && parsed !== null && 'error' in parsed
                 ? String((parsed as { error?: unknown }).error)
                 : `Request failed: ${res.status}`;
-        throw new Error(message);
+        const error = new Error(message) as ApiError;
+        error.status = res.status;
+        throw error;
     }
 
-    return parsed;
+    return parsed as T;
+}
+
+async function mapRequestWithFallback<T>(paths: string[]): Promise<T> {
+    let lastError: ApiError | null = null;
+
+    for (const path of paths) {
+        try {
+            return await mapRequest<T>(path);
+        } catch (err) {
+            const error = err as ApiError;
+            if (error.status && error.status !== 404) {
+                throw error;
+            }
+            lastError = error;
+        }
+    }
+
+    throw lastError ?? new Error('Request failed');
 }
 
 export function getMapBuildings() {
-    return mapRequest('/map/buildings');
+    return mapRequestWithFallback<MapBuilding[]>(['/map/buildings', '/buildings']);
 }
 
-export function searchMapRooms(buildingId: number, floor: number) {
-    return mapRequest(`/map/search?building_id=${buildingId}&floor=${floor}`);
+export function searchMapRooms(buildingId?: number, floor?: number) {
+    const query = new URLSearchParams();
+    if (typeof buildingId === 'number' && !Number.isNaN(buildingId)) {
+        query.append('building_id', String(buildingId));
+    }
+    if (typeof floor === 'number' && !Number.isNaN(floor)) {
+        query.append('floor', String(floor));
+    }
+
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return mapRequest<MapRoom[]>(`/map/search${suffix}`);
+}
+
+export function listMapRooms() {
+    return mapRequestWithFallback<MapRoom[]>(['/rooms', '/map/rooms']);
+}
+
+export function listMapConnections() {
+    return mapRequestWithFallback<MapConnection[]>(['/connections', '/map/connections']);
 }
 
 export function findMapPath(start: string, end: string) {
-    return mapRequest(`/map/path/${encodeURIComponent(start)}/${encodeURIComponent(end)}`);
+    return mapRequestWithFallback<unknown>([
+        `/map/path/${encodeURIComponent(start)}/${encodeURIComponent(end)}`,
+        `/shortest-path?start_room_id=${encodeURIComponent(start)}&end_room_id=${encodeURIComponent(end)}`,
+    ]);
 }
 
-export function createRoom(payload: Record<string, unknown>) {
-    return mapRequest('/admin/room', 'POST', payload);
+export function createRoom(payload: RoomPayload) {
+    return mapRequest<unknown>('/admin/room', 'POST', payload);
 }
 
-export function updateRoom(id: number, payload: Record<string, unknown>) {
-    return mapRequest(`/admin/room/${id}`, 'PUT', payload);
+export function updateRoom(id: number, payload: RoomPayload) {
+    return mapRequest<unknown>(`/admin/room/${id}`, 'PUT', payload);
 }
 
 export function deleteRoom(id: number) {
-    return mapRequest(`/admin/room/${id}`, 'DELETE');
+    return mapRequest<unknown>(`/admin/room/${id}`, 'DELETE');
 }
 
-export function createConnection(payload: Record<string, unknown>) {
-    return mapRequest('/admin/connection', 'POST', payload);
+export function createConnection(payload: ConnectionPayload) {
+    return mapRequest<unknown>('/admin/connection', 'POST', payload);
 }
 
-export function updateConnection(id: number, payload: Record<string, unknown>) {
-    return mapRequest(`/admin/connection/${id}`, 'PUT', payload);
+export function updateConnection(id: number, payload: ConnectionPayload) {
+    return mapRequest<unknown>(`/admin/connection/${id}`, 'PUT', payload);
 }
 
 export function deleteConnection(id: number) {
-    return mapRequest(`/admin/connection/${id}`, 'DELETE');
+    return mapRequest<unknown>(`/admin/connection/${id}`, 'DELETE');
 }
-
