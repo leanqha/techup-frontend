@@ -119,10 +119,6 @@ export function AdminMapPage() {
         });
     }, [connectionSearch, connections]);
 
-    if (profile?.role !== 'admin') {
-        return <p>У вас нет доступа к карте админа</p>;
-    }
-
     const runAction = async (action: () => Promise<void>) => {
         setBusy(true);
         setError(null);
@@ -262,15 +258,10 @@ export function AdminMapPage() {
         const fromId = resolveRoomId(connection, 'from');
         const toId = resolveRoomId(connection, 'to');
 
-        if (!fromId || !toId) {
-            setError('Невозможно определить комнаты связи для редактирования');
-            return;
-        }
-
         setEditingConnection(connection);
         setConnectionForm({
-            from_room_id: String(fromId),
-            to_room_id: String(toId),
+            from_room_id: fromId ? String(fromId) : '',
+            to_room_id: toId ? String(toId) : '',
             distance: String(connection.distance),
             type: connection.type || 'corridor',
         });
@@ -355,6 +346,10 @@ export function AdminMapPage() {
             setMessage('Путь рассчитан');
         });
     };
+
+    if (profile?.role !== 'admin') {
+        return <p>У вас нет доступа к карте админа</p>;
+    }
 
     return (
         <div className="admin-map-page">
@@ -511,7 +506,9 @@ export function AdminMapPage() {
                         <div className="admin-map-table">
                             <div className="admin-map-table-header admin-map-table-header--connections">
                                 <span>ID</span>
+                                <span>From ID</span>
                                 <span>Откуда</span>
+                                <span>To ID</span>
                                 <span>Куда</span>
                                 <span>Distance</span>
                                 <span>Тип</span>
@@ -524,8 +521,10 @@ export function AdminMapPage() {
                                 return (
                                     <div key={item.id} className="admin-map-table-row admin-map-table-row--connections">
                                         <span>{item.id}</span>
-                                        <span>{fromLabel ?? `#${item.from_room_id ?? '—'}`}</span>
-                                        <span>{toLabel ?? `#${item.to_room_id ?? '—'}`}</span>
+                                        <span>{item.from_room_id ?? resolveRoomId(item, 'from') ?? '—'}</span>
+                                        <span>{fromLabel ?? '—'}</span>
+                                        <span>{item.to_room_id ?? resolveRoomId(item, 'to') ?? '—'}</span>
+                                        <span>{toLabel ?? '—'}</span>
                                         <span>{item.distance}</span>
                                         <span>{item.type ?? '—'}</span>
                                         <span className="admin-map-row-actions">
@@ -607,37 +606,32 @@ export function AdminMapPage() {
             >
                 <div className="admin-map-modal-form">
                     <label>
-                        Откуда
-                        <select
+                        From room ID
+                        <input
+                            type="number"
+                            min="1"
                             value={connectionForm.from_room_id}
                             onChange={event =>
                                 setConnectionForm({ ...connectionForm, from_room_id: event.target.value })
                             }
-                        >
-                            <option value="">Выберите комнату</option>
-                            {rooms.map(item => (
-                                <option key={item.id} value={item.id}>
-                                    {item.name}
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="1"
+                        />
                     </label>
                     <label>
-                        Куда
-                        <select
+                        To room ID
+                        <input
+                            type="number"
+                            min="1"
                             value={connectionForm.to_room_id}
                             onChange={event =>
                                 setConnectionForm({ ...connectionForm, to_room_id: event.target.value })
                             }
-                        >
-                            <option value="">Выберите комнату</option>
-                            {rooms.map(item => (
-                                <option key={item.id} value={item.id}>
-                                    {item.name}
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="2"
+                        />
                     </label>
+                    <p className="admin-map-hint">
+                        Доступные комнаты: {rooms.map(item => `${item.id}:${item.name}`).join(', ') || 'нет данных'}
+                    </p>
                     <label>
                         Distance
                         <input
