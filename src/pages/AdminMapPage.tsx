@@ -88,6 +88,11 @@ export function AdminMapPage() {
         return [...rooms].sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
     }, [rooms]);
 
+    const formatRoomOptionLabel = (room: MapRoom) => {
+        const description = room.description.trim();
+        return description ? `${room.name} - ${description}` : room.name;
+    };
+
     const visibleRooms = useMemo(() => {
         const query = roomSearch.trim().toLowerCase();
 
@@ -355,7 +360,7 @@ export function AdminMapPage() {
                             <option value="">Выберите комнату</option>
                             {pathRoomOptions.map(room => (
                                 <option key={room.id} value={String(room.id)}>
-                                    {room.name}
+                                    {formatRoomOptionLabel(room)}
                                 </option>
                             ))}
                         </select>
@@ -366,7 +371,7 @@ export function AdminMapPage() {
                             <option value="">Выберите комнату</option>
                             {pathRoomOptions.map(room => (
                                 <option key={room.id} value={String(room.id)}>
-                                    {room.name}
+                                    {formatRoomOptionLabel(room)}
                                 </option>
                             ))}
                         </select>
@@ -530,8 +535,8 @@ export function AdminMapPage() {
                         Откуда
                         <select value={connectionForm.room_from} onChange={event => setConnectionForm({ ...connectionForm, room_from: event.target.value })}>
                             <option value="">Выберите комнату</option>
-                            {rooms.map(item => (
-                                <option key={item.id} value={item.name}>{item.name}</option>
+                            {pathRoomOptions.map(room => (
+                                <option key={room.id} value={room.name}>{formatRoomOptionLabel(room)}</option>
                             ))}
                         </select>
                     </label>
@@ -539,8 +544,8 @@ export function AdminMapPage() {
                         Куда
                         <select value={connectionForm.room_to} onChange={event => setConnectionForm({ ...connectionForm, room_to: event.target.value })}>
                             <option value="">Выберите комнату</option>
-                            {rooms.map(item => (
-                                <option key={item.id} value={item.name}>{item.name}</option>
+                            {pathRoomOptions.map(room => (
+                                <option key={room.id} value={room.name}>{formatRoomOptionLabel(room)}</option>
                             ))}
                         </select>
                     </label>
