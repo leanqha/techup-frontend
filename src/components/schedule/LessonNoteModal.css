@@ -1,0 +1,98 @@
+.lesson-note-modal__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    z-index: 1100;
+}
+
+.lesson-note-modal {
+    width: min(560px, 100%);
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+    padding: 16px;
+}
+
+.lesson-note-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.lesson-note-modal__header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.lesson-note-modal__close {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.lesson-note-modal__subtitle {
+    margin: 10px 0 12px;
+    color: #4b5563;
+    font-size: 14px;
+}
+
+.lesson-note-modal__textarea {
+    width: 100%;
+    resize: vertical;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.lesson-note-modal__textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.lesson-note-modal__actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.lesson-note-modal__button {
+    border-radius: 8px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.lesson-note-modal__button:disabled {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.lesson-note-modal__button--secondary {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.lesson-note-modal__button--primary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.lesson-note-modal__error {
+    margin: 10px 0 0;
+    color: #dc2626;
+    font-size: 13px;
+}
+

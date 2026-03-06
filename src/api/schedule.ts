@@ -1,5 +1,6 @@
-import type {Lesson} from "./types/schedule.ts";
+import type {Lesson, LessonNote} from "./types/schedule.ts";
 import type {Profile} from "./types/types.ts";
+import { fetchWithRefresh } from './fetchWithRefresh.ts';
 
 export async function fetchLessons(groupId: number, from: string, to: string): Promise<Lesson[]> {
     const res = await fetch(`/api/v1/schedule/lessons?group_id=${groupId}&from=${from}&to=${to}`, {
@@ -50,4 +51,36 @@ export async function fetchClassrooms(): Promise<string[]> {
     const res = await fetch('/api/v1/schedule/classrooms', { credentials: 'include' });
     if (!res.ok) throw new Error('Ошибка получения аудиторий');
     return res.json();
+}
+
+export async function fetchLessonNote(lessonId: number): Promise<LessonNote | null> {
+    const res = await fetchWithRefresh(`/api/v1/schedule/lessons/${lessonId}/note`);
+
+    if (res.status === 204) return null;
+    if (!res.ok) throw new Error('Ошибка загрузки заметки');
+
+    return res.json();
+}
+
+export async function saveLessonNote(lessonId: number, text: string): Promise<void> {
+    const res = await fetchWithRefresh(`/api/v1/schedule/lessons/${lessonId}/note`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+    });
+
+    if (!res.ok) {
+        throw new Error('Ошибка сохранения заметки');
+    }
+}
+
+export async function deleteLessonNote(lessonId: number): Promise<void> {
+    const res = await fetchWithRefresh(`/api/v1/schedule/lessons/${lessonId}/note`, {
+        method: 'DELETE',
+    });
+
+    if (res.status === 404 || res.status === 204) return;
+    if (!res.ok) throw new Error('Ошибка удаления заметки');
 }

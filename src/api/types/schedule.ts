@@ -35,3 +35,11 @@ export type Lesson = {
     group: Group;
     teacher: Teacher;
 };
+
+export type LessonNote = {
+    id: number;
+    lesson_id: number;
+    text: string;
+    created_at: string;
+    updated_at: string;
+};
