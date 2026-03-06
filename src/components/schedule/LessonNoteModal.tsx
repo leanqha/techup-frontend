@@ -1,3 +1,4 @@
+import { CloseIcon } from '../icons/CloseIcon';
 import './LessonNoteModal.css';
 
 type LessonNoteModalProps = {
@@ -42,7 +43,7 @@ export function LessonNoteModal({
                         onClick={onClose}
                         aria-label="Закрыть окно"
                     >
-                        X
+                        <CloseIcon />
                     </button>
                 </div>
 
@@ -81,4 +82,3 @@ export function LessonNoteModal({
         </div>
     );
 }
-

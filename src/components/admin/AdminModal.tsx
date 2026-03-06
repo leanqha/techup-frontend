@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { CloseIcon } from '../icons/CloseIcon';
 import './AdminModal.css';
 
 type AdminModalProps = {
@@ -31,7 +32,7 @@ export function AdminModal({ open, title, size = 'default', onClose, children }:
                         onClick={onClose}
                         aria-label="Закрыть окно"
                     >
-                        X
+                        <CloseIcon />
                     </button>
                 </div>
                 <div className="admin-modal-body">{children}</div>
