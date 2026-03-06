@@ -34,16 +34,14 @@ function getTypeMeta(type: LessonType) {
     }
 }
 
-function toNotePreview(text: string) {
-    const normalized = text.trim();
-    if (!normalized) return '';
-    return normalized.length > 12 ? `${normalized.slice(0, 12)}...` : normalized;
+function toNoteText(text: string) {
+    return text.trim();
 }
 
 export function LessonCard({ lesson }: { lesson: Lesson }) {
     const [isNoteOpen, setIsNoteOpen] = useState(false);
     const [noteText, setNoteText] = useState('');
-    const [notePreview, setNotePreview] = useState('');
+    const [savedNoteText, setSavedNoteText] = useState('');
     const [noteLoading, setNoteLoading] = useState(false);
     const [noteSaving, setNoteSaving] = useState(false);
     const [noteError, setNoteError] = useState<string | null>(null);
@@ -65,14 +63,14 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
                 const note = await fetchLessonNote(lesson.id);
                 if (cancelled) return;
 
-                const text = note?.text ?? '';
-                const hasNote = text.trim().length > 0;
+                const text = toNoteText(note?.text ?? '');
+                const hasNote = text.length > 0;
                 setHasExistingNote(hasNote);
-                setNotePreview(hasNote ? toNotePreview(text) : '');
+                setSavedNoteText(hasNote ? text : '');
             } catch {
                 if (cancelled) return;
                 setHasExistingNote(false);
-                setNotePreview('');
+                setSavedNoteText('');
             }
         };
 
@@ -90,23 +88,23 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
 
         try {
             const note = await fetchLessonNote(lesson.id);
-            const text = note?.text ?? '';
-            const hasNote = text.trim().length > 0;
+            const text = toNoteText(note?.text ?? '');
+            const hasNote = text.length > 0;
             setNoteText(text);
             setHasExistingNote(hasNote);
-            setNotePreview(hasNote ? toNotePreview(text) : '');
+            setSavedNoteText(hasNote ? text : '');
         } catch (error: unknown) {
             setNoteError(error instanceof Error ? error.message : 'Ошибка загрузки заметки');
             setNoteText('');
             setHasExistingNote(false);
-            setNotePreview('');
+            setSavedNoteText('');
         } finally {
             setNoteLoading(false);
         }
     };
 
     const handleSaveNote = async () => {
-        const normalizedText = noteText.trim();
+        const normalizedText = toNoteText(noteText.trim());
         setNoteSaving(true);
         setNoteError(null);
 
@@ -115,7 +113,7 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
                 if (hasExistingNote) {
                     await deleteLessonNote(lesson.id);
                     setHasExistingNote(false);
-                    setNotePreview('');
+                    setSavedNoteText('');
                 }
                 setIsNoteOpen(false);
                 return;
@@ -123,7 +121,7 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
 
             await saveLessonNote(lesson.id, normalizedText);
             setHasExistingNote(true);
-            setNotePreview(toNotePreview(normalizedText));
+            setSavedNoteText(normalizedText);
             setIsNoteOpen(false);
         } catch (error: unknown) {
             setNoteError(error instanceof Error ? error.message : 'Ошибка сохранения заметки');
@@ -139,7 +137,7 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
                     position: 'relative',
                     borderRadius: 16,
                     padding: 16,
-                    paddingBottom: 48,
+                    paddingBottom: 44,
                     marginBottom: 12,
                     background: '#ffffff',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
@@ -223,76 +221,30 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
                     </div>
                 )}
 
-                <div
+                <button
+                    type="button"
+                    onClick={handleOpenNote}
+                    aria-label="Открыть заметку"
+                    title={hasExistingNote ? savedNoteText : 'Добавить заметку'}
                     style={{
                         position: 'absolute',
-                        left: 16,
+                        right: 16,
                         bottom: 12,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
                         maxWidth: 'calc(100% - 32px)',
+                        border: 'none',
+                        background: 'transparent',
+                        padding: 0,
+                        color: hasExistingNote ? '#374151' : '#2563EB',
+                        fontSize: 12,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        textAlign: 'right',
                     }}
                 >
-                    <button
-                        type="button"
-                        onClick={handleOpenNote}
-                        aria-label="Открыть заметку"
-                        title="Заметка"
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 30,
-                            height: 30,
-                            borderRadius: 8,
-                            border: `1px solid ${hasExistingNote ? '#2563EB' : '#D1D5DB'}`,
-                            background: hasExistingNote ? '#EFF6FF' : '#FFFFFF',
-                            color: '#2563EB',
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                        }}
-                    >
-                        <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                        >
-                            <path
-                                d="M4 20h4l10-10-4-4L4 16v4Z"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            <path
-                                d="m13 7 4 4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                    </button>
-
-                    {hasExistingNote && notePreview && (
-                        <span
-                            title={noteText || notePreview}
-                            style={{
-                                fontSize: 12,
-                                color: '#4B5563',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                            }}
-                        >
-                            {notePreview}
-                        </span>
-                    )}
-                </div>
+                    {hasExistingNote ? savedNoteText : 'Добавить заметку'}
+                </button>
             </div>
 
             <LessonNoteModal
