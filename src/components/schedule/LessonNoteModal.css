@@ -15,6 +15,7 @@
     border-radius: 14px;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
     padding: 16px;
+    box-sizing: border-box;
 }
 
 .lesson-note-modal__header {
@@ -50,14 +51,16 @@
     border: 1px solid #d1d5db;
     border-radius: 10px;
     padding: 10px 12px;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.45;
+    box-sizing: border-box;
+    transform: none;
 }
 
 .lesson-note-modal__textarea:focus {
     outline: none;
     border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: none;
 }
 
 .lesson-note-modal__actions {
@@ -95,4 +98,3 @@
     color: #dc2626;
     font-size: 13px;
 }
-

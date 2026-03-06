@@ -232,15 +232,20 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
                         bottom: 12,
                         maxWidth: 'calc(100% - 32px)',
                         border: 'none',
+                        borderRadius: 0,
                         background: 'transparent',
                         padding: 0,
+                        margin: 0,
                         color: hasExistingNote ? '#374151' : '#2563EB',
                         fontSize: 12,
+                        lineHeight: '16px',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        overflow: hasExistingNote ? 'hidden' : 'visible',
+                        textOverflow: hasExistingNote ? 'ellipsis' : 'clip',
                         textAlign: 'right',
+                        appearance: 'none',
+                        WebkitAppearance: 'none',
                     }}
                 >
                     {hasExistingNote ? savedNoteText : 'Добавить заметку'}
