@@ -87,15 +87,17 @@ export function AdminMapPage() {
     const visibleRooms = useMemo(() => {
         const query = roomSearch.trim().toLowerCase();
 
-        return rooms.filter(item => {
-            const matchesText =
-                !query ||
-                item.name.toLowerCase().includes(query) ||
-                item.description.toLowerCase().includes(query);
-            const matchesBuilding = !roomBuildingFilter || String(item.building_id) === roomBuildingFilter;
-            const matchesFloor = !roomFloorFilter || String(item.floor) === roomFloorFilter;
-            return matchesText && matchesBuilding && matchesFloor;
-        });
+        return rooms
+            .filter(item => {
+                const matchesText =
+                    !query ||
+                    item.name.toLowerCase().includes(query) ||
+                    item.description.toLowerCase().includes(query);
+                const matchesBuilding = !roomBuildingFilter || String(item.building_id) === roomBuildingFilter;
+                const matchesFloor = !roomFloorFilter || String(item.floor) === roomFloorFilter;
+                return matchesText && matchesBuilding && matchesFloor;
+            })
+            .sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
     }, [roomBuildingFilter, roomFloorFilter, roomSearch, rooms]);
 
     const visibleConnections = useMemo(() => {
