@@ -359,7 +359,7 @@ export function AdminMapPage() {
                         <select value={pathStart} onChange={event => setPathStart(event.target.value)}>
                             <option value="">Выберите комнату</option>
                             {pathRoomOptions.map(room => (
-                                <option key={room.id} value={String(room.id)}>
+                                <option key={room.id} value={room.name}>
                                     {formatRoomOptionLabel(room)}
                                 </option>
                             ))}
@@ -370,7 +370,7 @@ export function AdminMapPage() {
                         <select value={pathEnd} onChange={event => setPathEnd(event.target.value)}>
                             <option value="">Выберите комнату</option>
                             {pathRoomOptions.map(room => (
-                                <option key={room.id} value={String(room.id)}>
+                                <option key={room.id} value={room.name}>
                                     {formatRoomOptionLabel(room)}
                                 </option>
                             ))}

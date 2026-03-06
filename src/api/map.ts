@@ -126,10 +126,7 @@ export function listMapConnections() {
 }
 
 export function findMapPath(start: string, end: string) {
-    return mapRequestWithFallback<unknown>([
-        `/map/path/${encodeURIComponent(start)}/${encodeURIComponent(end)}`,
-        `/shortest-path?start_room_id=${encodeURIComponent(start)}&end_room_id=${encodeURIComponent(end)}`,
-    ]);
+    return mapRequest<unknown>(`/map/path/${encodeURIComponent(start)}/${encodeURIComponent(end)}`);
 }
 
 export function createRoom(payload: RoomPayload) {
