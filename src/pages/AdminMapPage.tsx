@@ -84,6 +84,10 @@ export function AdminMapPage() {
     const roomsById = useMemo(() => new Map(rooms.map(item => [item.id, item])), [rooms]);
     const buildingsById = useMemo(() => new Map(buildings.map(item => [item.id, item])), [buildings]);
 
+    const pathRoomOptions = useMemo(() => {
+        return [...rooms].sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
+    }, [rooms]);
+
     const visibleRooms = useMemo(() => {
         const query = roomSearch.trim().toLowerCase();
 
@@ -320,7 +324,7 @@ export function AdminMapPage() {
 
     const handleFindPath = () => {
         if (!pathStart.trim() || !pathEnd.trim()) {
-            setError('Укажите ID начальной и конечной комнаты');
+            setError('Выберите начальную и конечную комнату');
             return;
         }
 
@@ -346,12 +350,26 @@ export function AdminMapPage() {
                 <h2>Поиск маршрута</h2>
                 <div className="admin-map-inline-fields">
                     <label>
-                        Start room ID
-                        <input value={pathStart} onChange={event => setPathStart(event.target.value)} />
+                        Start room
+                        <select value={pathStart} onChange={event => setPathStart(event.target.value)}>
+                            <option value="">Выберите комнату</option>
+                            {pathRoomOptions.map(room => (
+                                <option key={room.id} value={String(room.id)}>
+                                    {room.name}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     <label>
-                        End room ID
-                        <input value={pathEnd} onChange={event => setPathEnd(event.target.value)} />
+                        End room
+                        <select value={pathEnd} onChange={event => setPathEnd(event.target.value)}>
+                            <option value="">Выберите комнату</option>
+                            {pathRoomOptions.map(room => (
+                                <option key={room.id} value={String(room.id)}>
+                                    {room.name}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     <button type="button" disabled={busy} onClick={handleFindPath}>
                         Найти путь
