@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { CloseIcon } from '../icons/CloseIcon';
 import './LessonNoteModal.css';
 
@@ -26,7 +27,7 @@ export function LessonNoteModal({
 }: LessonNoteModalProps) {
     if (!open) return null;
 
-    return (
+    return createPortal(
         <div className="lesson-note-modal__overlay" onClick={onClose}>
             <div
                 className="lesson-note-modal"
@@ -79,6 +80,7 @@ export function LessonNoteModal({
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

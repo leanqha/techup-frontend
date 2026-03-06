@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { CloseIcon } from '../icons/CloseIcon';
 import './AdminModal.css';
 
@@ -15,7 +16,7 @@ export function AdminModal({ open, title, size = 'default', onClose, children }:
 
     const modalClassName = size === 'wide' ? 'admin-modal admin-modal--wide' : 'admin-modal';
 
-    return (
+    return createPortal(
         <div className="admin-modal-overlay" onClick={onClose}>
             <div
                 className={modalClassName}
@@ -37,6 +38,7 @@ export function AdminModal({ open, title, size = 'default', onClose, children }:
                 </div>
                 <div className="admin-modal-body">{children}</div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
