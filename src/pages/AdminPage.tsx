@@ -6,6 +6,7 @@ import { AdminImportForm } from '../components/admin/AdminImportForm';
 import { AdminModal } from '../components/admin/AdminModal';
 import { AdminPageHeader } from '../components/admin/AdminPageHeader';
 import { AdminAccountsManager } from '../components/admin/AdminAccountsManager';
+import { AdminScheduleManager } from '../components/admin/AdminScheduleManager';
 import './AdminPage.css';
 
 type Lesson = {
@@ -29,6 +30,7 @@ export function AdminPage() {
     const [message, setMessage] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAccountsOpen, setIsAccountsOpen] = useState(false);
+    const [isScheduleCrudOpen, setIsScheduleCrudOpen] = useState(false);
 
     if (profile?.role !== 'admin') {
         return <p>У вас нет доступа к админке</p>;
@@ -151,6 +153,7 @@ export function AdminPage() {
             <AdminPageHeader
                 onOpenImport={() => setIsModalOpen(true)}
                 onOpenAccounts={() => setIsAccountsOpen(true)}
+                onOpenScheduleCrud={() => setIsScheduleCrudOpen(true)}
             />
 
             <AdminModal
@@ -166,6 +169,15 @@ export function AdminPage() {
                     onSemesterEndChange={setSemesterEnd}
                     onSubmit={handleUpload}
                 />
+            </AdminModal>
+
+            <AdminModal
+                open={isScheduleCrudOpen}
+                title="CRUD расписания"
+                size="wide"
+                onClose={() => setIsScheduleCrudOpen(false)}
+            >
+                <AdminScheduleManager />
             </AdminModal>
 
             <AdminModal

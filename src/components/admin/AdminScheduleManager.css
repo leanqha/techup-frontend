@@ -1,0 +1,80 @@
+.admin-schedule-manager {
+    margin-top: 0;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.admin-tab {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #111827;
+    font-weight: 600;
+}
+
+.admin-tab.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+.admin-crud-panel {
+    margin-top: 16px;
+    display: grid;
+    gap: 12px;
+}
+
+.admin-crud-form-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-crud-form-row input {
+    min-width: 240px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.admin-grid-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.admin-field-checkbox {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 22px;
+}
+
+.admin-simple-list {
+    display: grid;
+    gap: 8px;
+}
+
+.admin-simple-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #f9fafb;
+}
+
+.admin-lessons-filters {
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
