@@ -16,6 +16,7 @@
     background: #ffffff;
     color: #111827;
     font-weight: 600;
+    cursor: pointer;
 }
 
 .admin-tab.active {
@@ -30,24 +31,46 @@
     gap: 12px;
 }
 
-.admin-crud-form-row {
+.admin-schedule-table {
     display: flex;
+    flex-direction: column;
     gap: 8px;
-    flex-wrap: wrap;
 }
 
-.admin-crud-form-row input {
-    min-width: 240px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
+.admin-schedule-header,
+.admin-schedule-row {
+    display: grid;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-schedule-header {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+}
+
+.admin-schedule-row {
+    padding: 12px;
+    border-radius: 12px;
+    background: #f9fafb;
     font-size: 14px;
 }
 
-.admin-grid-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
+.admin-schedule-header--faculties,
+.admin-schedule-row--faculties {
+    grid-template-columns: 70px 1fr 220px;
+}
+
+.admin-schedule-header--groups,
+.admin-schedule-row--groups {
+    grid-template-columns: 1.4fr 1.2fr 0.7fr 1fr 0.8fr 0.7fr 220px;
+}
+
+.admin-schedule-header--lessons,
+.admin-schedule-row--lessons {
+    grid-template-columns: 0.9fr 1fr 1.4fr 0.9fr 0.9fr 1fr 0.9fr 220px;
 }
 
 .admin-field-checkbox {
@@ -56,25 +79,15 @@
     margin-top: 22px;
 }
 
-.admin-simple-list {
-    display: grid;
-    gap: 8px;
-}
+@media (max-width: 1200px) {
+    .admin-schedule-header {
+        display: none;
+    }
 
-.admin-simple-list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 10px 12px;
-    background: #f9fafb;
+    .admin-schedule-row--faculties,
+    .admin-schedule-row--groups,
+    .admin-schedule-row--lessons {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
 }
-
-.admin-lessons-filters {
-    margin-top: 8px;
-    margin-bottom: 0;
-}
-

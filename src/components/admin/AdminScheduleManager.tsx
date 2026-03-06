@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     createFaculty,
     createGroup,
@@ -19,6 +19,7 @@ import {
     type LessonRecord,
     type LessonSearchFilters,
 } from '../../api/adminSchedule';
+import { AdminModal } from './AdminModal';
 import './AdminScheduleManager.css';
 
 type TabKey = 'faculties' | 'groups' | 'lessons';
@@ -65,7 +66,7 @@ const emptyLessonForm: LessonFormState = {
     teacher_id: '',
 };
 
-const emptyFilters: LessonSearchFilters = {
+const emptyLessonFilters: LessonSearchFilters = {
     date: '',
     groupId: undefined,
     teacherId: undefined,
@@ -77,21 +78,50 @@ export function AdminScheduleManager() {
     const [tab, setTab] = useState<TabKey>('faculties');
 
     const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
 
     const [faculties, setFaculties] = useState<Faculty[]>([]);
-    const [facultyName, setFacultyName] = useState('');
-    const [editingFacultyId, setEditingFacultyId] = useState<number | null>(null);
+    const [facultySearch, setFacultySearch] = useState('');
+    const [facultyFormName, setFacultyFormName] = useState('');
+    const [editingFaculty, setEditingFaculty] = useState<Faculty | null>(null);
 
     const [groups, setGroups] = useState<GroupRecord[]>([]);
+    const [groupSearch, setGroupSearch] = useState('');
+    const [groupFacultyFilter, setGroupFacultyFilter] = useState('');
     const [groupForm, setGroupForm] = useState<GroupFormState>(emptyGroupForm);
-    const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+    const [editingGroup, setEditingGroup] = useState<GroupRecord | null>(null);
 
     const [lessons, setLessons] = useState<LessonRecord[]>([]);
     const [lessonForm, setLessonForm] = useState<LessonFormState>(emptyLessonForm);
-    const [editingLessonId, setEditingLessonId] = useState<number | null>(null);
-    const [lessonFilters, setLessonFilters] = useState<LessonSearchFilters>(emptyFilters);
+    const [editingLesson, setEditingLesson] = useState<LessonRecord | null>(null);
+    const [lessonFilters, setLessonFilters] = useState<LessonSearchFilters>(emptyLessonFilters);
+
+    const [facultyModalOpen, setFacultyModalOpen] = useState(false);
+    const [groupModalOpen, setGroupModalOpen] = useState(false);
+    const [lessonModalOpen, setLessonModalOpen] = useState(false);
+
+    const facultyNames = useMemo(() => {
+        return new Map(faculties.map(item => [item.id, item.name]));
+    }, [faculties]);
+
+    const visibleFaculties = useMemo(() => {
+        const q = facultySearch.trim().toLowerCase();
+        if (!q) return faculties;
+        return faculties.filter(item => item.name.toLowerCase().includes(q));
+    }, [facultySearch, faculties]);
+
+    const visibleGroups = useMemo(() => {
+        const q = groupSearch.trim().toLowerCase();
+
+        return groups.filter(item => {
+            const matchesText = !q || item.name.toLowerCase().includes(q);
+            const matchesFaculty = !groupFacultyFilter || String(item.facultyID) === groupFacultyFilter;
+            return matchesText && matchesFaculty;
+        });
+    }, [groupFacultyFilter, groupSearch, groups]);
 
     const runAction = async (action: () => Promise<void>) => {
         setLoading(true);
@@ -107,69 +137,119 @@ export function AdminScheduleManager() {
         }
     };
 
-    const loadFaculties = async () => {
+    const loadFacultiesData = async () => {
         const data = await listFaculties();
         setFaculties(data);
     };
 
-    const loadGroups = async () => {
+    const loadGroupsData = async () => {
         const data = await listGroups();
         setGroups(data);
     };
 
-    const loadLessons = async (filters: LessonSearchFilters = lessonFilters) => {
+    const loadLessonsData = async (filters: LessonSearchFilters = lessonFilters) => {
         const data = await searchAdminLessons(filters);
         setLessons(data);
     };
 
     useEffect(() => {
         void runAction(async () => {
-            await Promise.all([loadFaculties(), loadGroups()]);
-            const initialLessons = await searchAdminLessons(emptyFilters);
+            await Promise.all([loadFacultiesData(), loadGroupsData()]);
+            const initialLessons = await searchAdminLessons(emptyLessonFilters);
             setLessons(initialLessons);
         });
     }, []);
 
-    const resetGroupForm = () => {
-        setGroupForm(emptyGroupForm);
-        setEditingGroupId(null);
+    const openCreateFaculty = () => {
+        setEditingFaculty(null);
+        setFacultyFormName('');
+        setFacultyModalOpen(true);
     };
 
-    const resetLessonForm = () => {
-        setLessonForm(emptyLessonForm);
-        setEditingLessonId(null);
+    const openEditFaculty = (faculty: Faculty) => {
+        setEditingFaculty(faculty);
+        setFacultyFormName(faculty.name);
+        setFacultyModalOpen(true);
     };
 
-    const handleCreateOrUpdateFaculty = () => {
-        const name = facultyName.trim();
+    const closeFacultyModal = () => {
+        setFacultyModalOpen(false);
+        setEditingFaculty(null);
+        setFacultyFormName('');
+    };
+
+    const handleSaveFaculty = async () => {
+        const name = facultyFormName.trim();
         if (!name) {
             setError('Введите название факультета');
             return;
         }
 
-        void runAction(async () => {
-            if (editingFacultyId === null) {
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            if (editingFaculty) {
+                await updateFaculty(editingFaculty.id, { id: editingFaculty.id, name });
+                setMessage('Факультет обновлен');
+            } else {
                 await createFaculty({ name });
                 setMessage('Факультет создан');
-            } else {
-                await updateFaculty(editingFacultyId, { id: editingFacultyId, name });
-                setMessage('Факультет обновлен');
             }
 
-            await loadFaculties();
-            setFacultyName('');
-            setEditingFacultyId(null);
-        });
+            await loadFacultiesData();
+            closeFacultyModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleDeleteFaculty = (faculty: Faculty) => {
+    const handleDeleteFaculty = async (faculty: Faculty) => {
         if (!window.confirm(`Удалить факультет "${faculty.name}"?`)) return;
 
-        void runAction(async () => {
+        setDeletingId(faculty.id);
+        setError(null);
+        setMessage(null);
+
+        try {
             await deleteFaculty(faculty.id);
-            await loadFaculties();
+            await loadFacultiesData();
             setMessage('Факультет удален');
+            if (editingFaculty?.id === faculty.id) closeFacultyModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const openCreateGroup = () => {
+        setEditingGroup(null);
+        setGroupForm(emptyGroupForm);
+        setGroupModalOpen(true);
+    };
+
+    const openEditGroup = (group: GroupRecord) => {
+        setEditingGroup(group);
+        setGroupForm({
+            name: group.name,
+            course: String(group.course),
+            degree: group.degree,
+            facultyID: String(group.facultyID),
+            yearStart: String(group.yearStart),
+            specialization: group.specialization,
+            isActive: group.isActive,
         });
+        setGroupModalOpen(true);
+    };
+
+    const closeGroupModal = () => {
+        setGroupModalOpen(false);
+        setEditingGroup(null);
+        setGroupForm(emptyGroupForm);
     };
 
     const toGroupPayload = (): GroupPayload => ({
@@ -182,7 +262,7 @@ export function AdminScheduleManager() {
         isActive: groupForm.isActive,
     });
 
-    const handleCreateOrUpdateGroup = () => {
+    const handleSaveGroup = async () => {
         if (!groupForm.name.trim()) {
             setError('Введите название группы');
             return;
@@ -193,44 +273,74 @@ export function AdminScheduleManager() {
             return;
         }
 
-        void runAction(async () => {
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
             const payload = toGroupPayload();
-            if (editingGroupId === null) {
+
+            if (editingGroup) {
+                await updateGroup(editingGroup.id, { id: editingGroup.id, ...payload });
+                setMessage('Группа обновлена');
+            } else {
                 await createGroup(payload);
                 setMessage('Группа создана');
-            } else {
-                await updateGroup(editingGroupId, { id: editingGroupId, ...payload });
-                setMessage('Группа обновлена');
             }
 
-            await loadGroups();
-            resetGroupForm();
-        });
+            await loadGroupsData();
+            closeGroupModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleDeleteGroup = (group: GroupRecord) => {
+    const handleDeleteGroup = async (group: GroupRecord) => {
         if (!window.confirm(`Удалить группу "${group.name}"?`)) return;
 
-        void runAction(async () => {
+        setDeletingId(group.id);
+        setError(null);
+        setMessage(null);
+
+        try {
             await deleteGroup(group.id);
-            await loadGroups();
+            await loadGroupsData();
             setMessage('Группа удалена');
-            if (editingGroupId === group.id) resetGroupForm();
-        });
+            if (editingGroup?.id === group.id) closeGroupModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
     };
 
-    const handleEditGroup = (group: GroupRecord) => {
-        setEditingGroupId(group.id);
-        setGroupForm({
-            name: group.name,
-            course: String(group.course),
-            degree: group.degree,
-            facultyID: String(group.facultyID),
-            yearStart: String(group.yearStart),
-            specialization: group.specialization,
-            isActive: group.isActive,
+    const openCreateLesson = () => {
+        setEditingLesson(null);
+        setLessonForm(emptyLessonForm);
+        setLessonModalOpen(true);
+    };
+
+    const openEditLesson = (lesson: LessonRecord) => {
+        setEditingLesson(lesson);
+        setLessonForm({
+            date: lesson.date,
+            start_time: lesson.start_time,
+            end_time: lesson.end_time,
+            subject: lesson.subject,
+            type: lesson.type,
+            classroom: lesson.classroom,
+            group: String(lesson.group),
+            teacher_id: lesson.teacher_id ? String(lesson.teacher_id) : '',
         });
-        setTab('groups');
+        setLessonModalOpen(true);
+    };
+
+    const closeLessonModal = () => {
+        setLessonModalOpen(false);
+        setEditingLesson(null);
+        setLessonForm(emptyLessonForm);
     };
 
     const toLessonPayload = (): LessonPayload => ({
@@ -244,7 +354,7 @@ export function AdminScheduleManager() {
         teacher_id: lessonForm.teacher_id ? Number(lessonForm.teacher_id) : null,
     });
 
-    const handleCreateOrUpdateLesson = () => {
+    const handleSaveLesson = async () => {
         if (!lessonForm.group) {
             setError('Выберите группу');
             return;
@@ -255,51 +365,60 @@ export function AdminScheduleManager() {
             return;
         }
 
-        void runAction(async () => {
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
             const payload = toLessonPayload();
-            if (editingLessonId === null) {
+
+            if (editingLesson) {
+                await updateLesson(editingLesson.id, payload);
+                setMessage('Занятие обновлено');
+            } else {
                 await createLesson(payload);
                 setMessage('Занятие создано');
-            } else {
-                await updateLesson(editingLessonId, payload);
-                setMessage('Занятие обновлено');
             }
 
-            await loadLessons();
-            resetLessonForm();
-        });
+            await loadLessonsData();
+            closeLessonModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleDeleteLesson = (lesson: LessonRecord) => {
+    const handleDeleteLesson = async (lesson: LessonRecord) => {
         if (!window.confirm(`Удалить занятие "${lesson.subject}"?`)) return;
 
-        void runAction(async () => {
-            await deleteLesson(lesson.id);
-            await loadLessons();
-            setMessage('Занятие удалено');
-            if (editingLessonId === lesson.id) resetLessonForm();
-        });
-    };
+        setDeletingId(lesson.id);
+        setError(null);
+        setMessage(null);
 
-    const handleEditLesson = (lesson: LessonRecord) => {
-        setEditingLessonId(lesson.id);
-        setLessonForm({
-            date: lesson.date,
-            start_time: lesson.start_time,
-            end_time: lesson.end_time,
-            subject: lesson.subject,
-            type: lesson.type,
-            classroom: lesson.classroom,
-            group: String(lesson.group),
-            teacher_id: lesson.teacher_id ? String(lesson.teacher_id) : '',
-        });
-        setTab('lessons');
+        try {
+            await deleteLesson(lesson.id);
+            await loadLessonsData();
+            setMessage('Занятие удалено');
+            if (editingLesson?.id === lesson.id) closeLessonModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
     };
 
     const handleSearchLessons = () => {
         void runAction(async () => {
-            await loadLessons(lessonFilters);
+            await loadLessonsData(lessonFilters);
             setMessage('Список занятий обновлен');
+        });
+    };
+
+    const handleResetLessonFilters = () => {
+        setLessonFilters(emptyLessonFilters);
+        void runAction(async () => {
+            await loadLessonsData(emptyLessonFilters);
         });
     };
 
@@ -308,7 +427,7 @@ export function AdminScheduleManager() {
             <div className="admin-section-header">
                 <div>
                     <h2>CRUD расписания</h2>
-                    <p className="admin-section-subtitle">Факультеты, группы и занятия</p>
+                    <p className="admin-section-subtitle">Управление факультетами, группами и занятиями</p>
                 </div>
             </div>
 
@@ -336,91 +455,96 @@ export function AdminScheduleManager() {
                 </button>
             </div>
 
+            {loading && <p className="admin-section-status">Загрузка...</p>}
             {error && <p className="admin-section-error">{error}</p>}
             {message && <p className="admin-section-message">{message}</p>}
 
             {tab === 'faculties' && (
                 <div className="admin-crud-panel">
-                    <div className="admin-crud-form-row">
-                        <input
-                            type="text"
-                            value={facultyName}
-                            onChange={event => setFacultyName(event.target.value)}
-                            placeholder="Название факультета"
-                        />
-                        <button
-                            type="button"
-                            className="admin-primary-button"
-                            disabled={loading}
-                            onClick={handleCreateOrUpdateFaculty}
-                        >
-                            {editingFacultyId === null ? 'Создать' : 'Сохранить'}
-                        </button>
-                        {editingFacultyId !== null && (
+                    <div className="admin-accounts-filters">
+                        <label className="admin-field">
+                            Поиск факультета
+                            <input
+                                type="text"
+                                value={facultySearch}
+                                onChange={event => setFacultySearch(event.target.value)}
+                                placeholder="Название"
+                            />
+                        </label>
+                        <div className="admin-filters-actions">
                             <button
                                 type="button"
                                 className="admin-secondary-button"
-                                onClick={() => {
-                                    setEditingFacultyId(null);
-                                    setFacultyName('');
-                                }}
+                                onClick={() => void runAction(loadFacultiesData)}
+                                disabled={loading}
                             >
-                                Отмена
+                                Обновить список
                             </button>
-                        )}
+                            <button
+                                type="button"
+                                className="admin-primary-button"
+                                onClick={openCreateFaculty}
+                            >
+                                Добавить факультет
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="admin-simple-list">
-                        {faculties.map(faculty => (
-                            <div key={faculty.id} className="admin-simple-list-item">
+                    <div className="admin-schedule-table">
+                        <div className="admin-schedule-header admin-schedule-header--faculties">
+                            <span>ID</span>
+                            <span>Название</span>
+                            <span>Действия</span>
+                        </div>
+                        {visibleFaculties.map(faculty => (
+                            <div key={faculty.id} className="admin-schedule-row admin-schedule-row--faculties">
+                                <span>{faculty.id}</span>
                                 <span>{faculty.name}</span>
-                                <div className="admin-accounts-actions">
+                                <span className="admin-accounts-actions">
                                     <button
                                         type="button"
                                         className="admin-secondary-button"
-                                        onClick={() => {
-                                            setEditingFacultyId(faculty.id);
-                                            setFacultyName(faculty.name);
-                                        }}
+                                        onClick={() => openEditFaculty(faculty)}
                                     >
                                         Изменить
                                     </button>
                                     <button
                                         type="button"
                                         className="admin-danger-button"
-                                        onClick={() => handleDeleteFaculty(faculty)}
+                                        onClick={() => void handleDeleteFaculty(faculty)}
+                                        disabled={deletingId === faculty.id}
                                     >
                                         Удалить
                                     </button>
-                                </div>
+                                </span>
                             </div>
                         ))}
+                        {!visibleFaculties.length && !loading && (
+                            <p className="admin-section-status">Факультеты не найдены</p>
+                        )}
                     </div>
                 </div>
             )}
 
             {tab === 'groups' && (
                 <div className="admin-crud-panel">
-                    <div className="admin-grid-form">
+                    <div className="admin-accounts-filters">
                         <label className="admin-field">
-                            Название
+                            Поиск по названию
                             <input
                                 type="text"
-                                value={groupForm.name}
-                                onChange={event =>
-                                    setGroupForm({ ...groupForm, name: event.target.value })
-                                }
+                                value={groupSearch}
+                                onChange={event => setGroupSearch(event.target.value)}
+                                placeholder="Группа"
                             />
                         </label>
                         <label className="admin-field">
                             Факультет
                             <select
-                                value={groupForm.facultyID}
-                                onChange={event =>
-                                    setGroupForm({ ...groupForm, facultyID: event.target.value })
-                                }
+                                value={groupFacultyFilter}
+                                onChange={event => setGroupFacultyFilter(event.target.value)}
                             >
-                                <option value="">Выберите</option>
+                                <option value="">Все</option>
                                 {faculties.map(faculty => (
                                     <option key={faculty.id} value={faculty.id}>
                                         {faculty.name}
@@ -428,220 +552,70 @@ export function AdminScheduleManager() {
                                 ))}
                             </select>
                         </label>
-                        <label className="admin-field">
-                            Курс
-                            <input
-                                type="number"
-                                value={groupForm.course}
-                                onChange={event =>
-                                    setGroupForm({ ...groupForm, course: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Уровень
-                            <input
-                                type="text"
-                                value={groupForm.degree}
-                                onChange={event =>
-                                    setGroupForm({ ...groupForm, degree: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Год набора
-                            <input
-                                type="number"
-                                value={groupForm.yearStart}
-                                onChange={event =>
-                                    setGroupForm({ ...groupForm, yearStart: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Специализация
-                            <input
-                                type="text"
-                                value={groupForm.specialization}
-                                onChange={event =>
-                                    setGroupForm({ ...groupForm, specialization: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field admin-field-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={groupForm.isActive}
-                                onChange={event =>
-                                    setGroupForm({ ...groupForm, isActive: event.target.checked })
-                                }
-                            />
-                            Активная группа
-                        </label>
-                    </div>
-
-                    <div className="admin-edit-actions">
-                        {editingGroupId !== null && (
+                        <div className="admin-filters-actions">
                             <button
                                 type="button"
                                 className="admin-secondary-button"
-                                onClick={resetGroupForm}
+                                onClick={() => void runAction(loadGroupsData)}
+                                disabled={loading}
                             >
-                                Сбросить форму
+                                Обновить список
                             </button>
-                        )}
-                        <button
-                            type="button"
-                            className="admin-primary-button"
-                            disabled={loading}
-                            onClick={handleCreateOrUpdateGroup}
-                        >
-                            {editingGroupId === null ? 'Создать группу' : 'Сохранить группу'}
-                        </button>
+                            <button type="button" className="admin-primary-button" onClick={openCreateGroup}>
+                                Добавить группу
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="admin-simple-list">
-                        {groups.map(group => (
-                            <div key={group.id} className="admin-simple-list-item">
-                                <span>
-                                    {group.name} (курс {group.course}, {group.degree})
-                                </span>
-                                <div className="admin-accounts-actions">
+                    <div className="admin-schedule-table">
+                        <div className="admin-schedule-header admin-schedule-header--groups">
+                            <span>Название</span>
+                            <span>Факультет</span>
+                            <span>Курс</span>
+                            <span>Уровень</span>
+                            <span>Год</span>
+                            <span>Активна</span>
+                            <span>Действия</span>
+                        </div>
+                        {visibleGroups.map(group => (
+                            <div key={group.id} className="admin-schedule-row admin-schedule-row--groups">
+                                <span>{group.name}</span>
+                                <span>{facultyNames.get(group.facultyID) ?? `#${group.facultyID}`}</span>
+                                <span>{group.course}</span>
+                                <span>{group.degree || '—'}</span>
+                                <span>{group.yearStart || '—'}</span>
+                                <span>{group.isActive ? 'Да' : 'Нет'}</span>
+                                <span className="admin-accounts-actions">
                                     <button
                                         type="button"
                                         className="admin-secondary-button"
-                                        onClick={() => handleEditGroup(group)}
+                                        onClick={() => openEditGroup(group)}
                                     >
                                         Изменить
                                     </button>
                                     <button
                                         type="button"
                                         className="admin-danger-button"
-                                        onClick={() => handleDeleteGroup(group)}
+                                        onClick={() => void handleDeleteGroup(group)}
+                                        disabled={deletingId === group.id}
                                     >
                                         Удалить
                                     </button>
-                                </div>
+                                </span>
                             </div>
                         ))}
+                        {!visibleGroups.length && !loading && (
+                            <p className="admin-section-status">Группы не найдены</p>
+                        )}
                     </div>
                 </div>
             )}
 
             {tab === 'lessons' && (
                 <div className="admin-crud-panel">
-                    <div className="admin-grid-form">
+                    <div className="admin-accounts-filters">
                         <label className="admin-field">
                             Дата
-                            <input
-                                type="date"
-                                value={lessonForm.date}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, date: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Время начала
-                            <input
-                                type="time"
-                                value={lessonForm.start_time}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, start_time: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Время окончания
-                            <input
-                                type="time"
-                                value={lessonForm.end_time}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, end_time: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Предмет
-                            <input
-                                type="text"
-                                value={lessonForm.subject}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, subject: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Тип
-                            <input
-                                type="text"
-                                value={lessonForm.type}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, type: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Аудитория
-                            <input
-                                type="text"
-                                value={lessonForm.classroom}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, classroom: event.target.value })
-                                }
-                            />
-                        </label>
-                        <label className="admin-field">
-                            Группа
-                            <select
-                                value={lessonForm.group}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, group: event.target.value })
-                                }
-                            >
-                                <option value="">Выберите</option>
-                                {groups.map(group => (
-                                    <option key={group.id} value={group.id}>
-                                        {group.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label className="admin-field">
-                            ID преподавателя
-                            <input
-                                type="number"
-                                value={lessonForm.teacher_id}
-                                onChange={event =>
-                                    setLessonForm({ ...lessonForm, teacher_id: event.target.value })
-                                }
-                            />
-                        </label>
-                    </div>
-
-                    <div className="admin-edit-actions">
-                        {editingLessonId !== null && (
-                            <button
-                                type="button"
-                                className="admin-secondary-button"
-                                onClick={resetLessonForm}
-                            >
-                                Сбросить форму
-                            </button>
-                        )}
-                        <button
-                            type="button"
-                            className="admin-primary-button"
-                            disabled={loading}
-                            onClick={handleCreateOrUpdateLesson}
-                        >
-                            {editingLessonId === null ? 'Создать занятие' : 'Сохранить занятие'}
-                        </button>
-                    </div>
-
-                    <div className="admin-accounts-filters admin-lessons-filters">
-                        <label className="admin-field">
-                            Фильтр по дате
                             <input
                                 type="date"
                                 value={lessonFilters.date || ''}
@@ -651,7 +625,7 @@ export function AdminScheduleManager() {
                             />
                         </label>
                         <label className="admin-field">
-                            Фильтр по группе
+                            Группа
                             <select
                                 value={lessonFilters.groupId ? String(lessonFilters.groupId) : ''}
                                 onChange={event =>
@@ -669,43 +643,345 @@ export function AdminScheduleManager() {
                                 ))}
                             </select>
                         </label>
-                        <button
-                            type="button"
-                            className="admin-secondary-button"
-                            disabled={loading}
-                            onClick={handleSearchLessons}
-                        >
-                            Применить фильтры
-                        </button>
+                        <label className="admin-field">
+                            Teacher ID
+                            <input
+                                type="number"
+                                value={lessonFilters.teacherId ?? ''}
+                                onChange={event =>
+                                    setLessonFilters({
+                                        ...lessonFilters,
+                                        teacherId: event.target.value
+                                            ? Number(event.target.value)
+                                            : undefined,
+                                    })
+                                }
+                                placeholder="7"
+                            />
+                        </label>
+                        <label className="admin-field">
+                            Аудитория
+                            <input
+                                type="text"
+                                value={lessonFilters.classroom || ''}
+                                onChange={event =>
+                                    setLessonFilters({ ...lessonFilters, classroom: event.target.value })
+                                }
+                                placeholder="A-101"
+                            />
+                        </label>
+                        <label className="admin-field">
+                            Предмет
+                            <input
+                                type="text"
+                                value={lessonFilters.subject || ''}
+                                onChange={event =>
+                                    setLessonFilters({ ...lessonFilters, subject: event.target.value })
+                                }
+                                placeholder="Математика"
+                            />
+                        </label>
+                        <div className="admin-filters-actions">
+                            <button
+                                type="button"
+                                className="admin-primary-button"
+                                onClick={handleSearchLessons}
+                                disabled={loading}
+                            >
+                                Найти
+                            </button>
+                            <button
+                                type="button"
+                                className="admin-secondary-button"
+                                onClick={handleResetLessonFilters}
+                                disabled={loading}
+                            >
+                                Сбросить
+                            </button>
+                            <button type="button" className="admin-secondary-button" onClick={openCreateLesson}>
+                                Добавить занятие
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="admin-simple-list">
+                    <div className="admin-schedule-table">
+                        <div className="admin-schedule-header admin-schedule-header--lessons">
+                            <span>Дата</span>
+                            <span>Время</span>
+                            <span>Предмет</span>
+                            <span>Тип</span>
+                            <span>Аудитория</span>
+                            <span>Группа</span>
+                            <span>Teacher ID</span>
+                            <span>Действия</span>
+                        </div>
                         {lessons.map(lesson => (
-                            <div key={lesson.id} className="admin-simple-list-item">
+                            <div key={lesson.id} className="admin-schedule-row admin-schedule-row--lessons">
+                                <span>{lesson.date}</span>
                                 <span>
-                                    {lesson.date} {lesson.start_time}-{lesson.end_time} - {lesson.subject}
+                                    {lesson.start_time} - {lesson.end_time}
                                 </span>
-                                <div className="admin-accounts-actions">
+                                <span>{lesson.subject}</span>
+                                <span>{lesson.type || '—'}</span>
+                                <span>{lesson.classroom || '—'}</span>
+                                <span>{groups.find(group => group.id === lesson.group)?.name ?? `#${lesson.group}`}</span>
+                                <span>{lesson.teacher_id ?? '—'}</span>
+                                <span className="admin-accounts-actions">
                                     <button
                                         type="button"
                                         className="admin-secondary-button"
-                                        onClick={() => handleEditLesson(lesson)}
+                                        onClick={() => openEditLesson(lesson)}
                                     >
                                         Изменить
                                     </button>
                                     <button
                                         type="button"
                                         className="admin-danger-button"
-                                        onClick={() => handleDeleteLesson(lesson)}
+                                        onClick={() => void handleDeleteLesson(lesson)}
+                                        disabled={deletingId === lesson.id}
                                     >
                                         Удалить
                                     </button>
-                                </div>
+                                </span>
                             </div>
                         ))}
+                        {!lessons.length && !loading && (
+                            <p className="admin-section-status">Занятия не найдены</p>
+                        )}
                     </div>
                 </div>
             )}
+
+            <AdminModal
+                open={facultyModalOpen}
+                title={editingFaculty ? 'Редактирование факультета' : 'Новый факультет'}
+                onClose={closeFacultyModal}
+            >
+                <div className="admin-edit-form">
+                    <label className="admin-field">
+                        Название
+                        <input
+                            type="text"
+                            value={facultyFormName}
+                            onChange={event => setFacultyFormName(event.target.value)}
+                        />
+                    </label>
+                    <div className="admin-edit-actions">
+                        <button
+                            type="button"
+                            className="admin-secondary-button"
+                            onClick={closeFacultyModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-primary-button"
+                            onClick={() => void handleSaveFaculty()}
+                            disabled={saving}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
+                open={groupModalOpen}
+                title={editingGroup ? `Редактирование группы: ${editingGroup.name}` : 'Новая группа'}
+                size="wide"
+                onClose={closeGroupModal}
+            >
+                <div className="admin-edit-form">
+                    <label className="admin-field">
+                        Название
+                        <input
+                            type="text"
+                            value={groupForm.name}
+                            onChange={event => setGroupForm({ ...groupForm, name: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Факультет
+                        <select
+                            value={groupForm.facultyID}
+                            onChange={event => setGroupForm({ ...groupForm, facultyID: event.target.value })}
+                        >
+                            <option value="">Выберите</option>
+                            {faculties.map(faculty => (
+                                <option key={faculty.id} value={faculty.id}>
+                                    {faculty.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="admin-field">
+                        Курс
+                        <input
+                            type="number"
+                            value={groupForm.course}
+                            onChange={event => setGroupForm({ ...groupForm, course: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Уровень
+                        <input
+                            type="text"
+                            value={groupForm.degree}
+                            onChange={event => setGroupForm({ ...groupForm, degree: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Год набора
+                        <input
+                            type="number"
+                            value={groupForm.yearStart}
+                            onChange={event => setGroupForm({ ...groupForm, yearStart: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Специализация
+                        <input
+                            type="text"
+                            value={groupForm.specialization}
+                            onChange={event =>
+                                setGroupForm({ ...groupForm, specialization: event.target.value })
+                            }
+                        />
+                    </label>
+                    <label className="admin-field admin-field-checkbox">
+                        <input
+                            type="checkbox"
+                            checked={groupForm.isActive}
+                            onChange={event => setGroupForm({ ...groupForm, isActive: event.target.checked })}
+                        />
+                        Активная группа
+                    </label>
+                    <div className="admin-edit-actions">
+                        <button
+                            type="button"
+                            className="admin-secondary-button"
+                            onClick={closeGroupModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-primary-button"
+                            onClick={() => void handleSaveGroup()}
+                            disabled={saving}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
+                open={lessonModalOpen}
+                title={editingLesson ? `Редактирование занятия: ${editingLesson.subject}` : 'Новое занятие'}
+                size="wide"
+                onClose={closeLessonModal}
+            >
+                <div className="admin-edit-form">
+                    <label className="admin-field">
+                        Дата
+                        <input
+                            type="date"
+                            value={lessonForm.date}
+                            onChange={event => setLessonForm({ ...lessonForm, date: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Время начала
+                        <input
+                            type="time"
+                            value={lessonForm.start_time}
+                            onChange={event =>
+                                setLessonForm({ ...lessonForm, start_time: event.target.value })
+                            }
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Время окончания
+                        <input
+                            type="time"
+                            value={lessonForm.end_time}
+                            onChange={event => setLessonForm({ ...lessonForm, end_time: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Предмет
+                        <input
+                            type="text"
+                            value={lessonForm.subject}
+                            onChange={event => setLessonForm({ ...lessonForm, subject: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Тип
+                        <input
+                            type="text"
+                            value={lessonForm.type}
+                            onChange={event => setLessonForm({ ...lessonForm, type: event.target.value })}
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Аудитория
+                        <input
+                            type="text"
+                            value={lessonForm.classroom}
+                            onChange={event =>
+                                setLessonForm({ ...lessonForm, classroom: event.target.value })
+                            }
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Группа
+                        <select
+                            value={lessonForm.group}
+                            onChange={event => setLessonForm({ ...lessonForm, group: event.target.value })}
+                        >
+                            <option value="">Выберите</option>
+                            {groups.map(group => (
+                                <option key={group.id} value={group.id}>
+                                    {group.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="admin-field">
+                        ID преподавателя
+                        <input
+                            type="number"
+                            value={lessonForm.teacher_id}
+                            onChange={event =>
+                                setLessonForm({ ...lessonForm, teacher_id: event.target.value })
+                            }
+                        />
+                    </label>
+                    <div className="admin-edit-actions">
+                        <button
+                            type="button"
+                            className="admin-secondary-button"
+                            onClick={closeLessonModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-primary-button"
+                            onClick={() => void handleSaveLesson()}
+                            disabled={saving}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
         </section>
     );
 }
