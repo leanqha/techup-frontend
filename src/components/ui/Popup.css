@@ -4,12 +4,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 12px;
+    padding-block: 12px;
+    padding-inline: 12px;
     overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .popup-content {
-    width: min(100%, calc(100vw - 24px));
-    max-width: calc(100vw - 24px);
+    width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
 }
