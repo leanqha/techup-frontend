@@ -29,6 +29,15 @@ body {
     min-height: 100vh;
 }
 
+/* Prevent iOS Safari focus-zoom on text fields with small font sizes. */
+@supports (-webkit-touch-callout: none) {
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+    }
+}
+
 a {
     font-weight: 500;
     color: #646cff;
