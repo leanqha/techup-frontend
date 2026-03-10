@@ -1,0 +1,13 @@
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+}
+
+.popup-content {
+    max-width: calc(100vw - 24px);
+    box-sizing: border-box;
+}

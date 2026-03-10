@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { createPortal } from 'react-dom';
 import { CloseIcon } from '../icons/CloseIcon';
+import { Popup } from '../ui/Popup';
 import './AdminModal.css';
 
 type AdminModalProps = {
@@ -12,19 +12,16 @@ type AdminModalProps = {
 };
 
 export function AdminModal({ open, title, size = 'default', onClose, children }: AdminModalProps) {
-    if (!open) return null;
-
     const modalClassName = size === 'wide' ? 'admin-modal admin-modal--wide' : 'admin-modal';
 
-    return createPortal(
-        <div className="admin-modal-overlay" onClick={onClose}>
-            <div
-                className={modalClassName}
-                role="dialog"
-                aria-modal="true"
-                aria-label={title}
-                onClick={event => event.stopPropagation()}
-            >
+    return (
+        <Popup
+            open={open}
+            onClose={onClose}
+            overlayClassName="admin-modal-overlay"
+            ariaLabel={title}
+        >
+            <div className={modalClassName}>
                 <div className="admin-modal-header">
                     <h2>{title}</h2>
                     <button
@@ -38,7 +35,6 @@ export function AdminModal({ open, title, size = 'default', onClose, children }:
                 </div>
                 <div className="admin-modal-body">{children}</div>
             </div>
-        </div>,
-        document.body
+        </Popup>
     );
 }

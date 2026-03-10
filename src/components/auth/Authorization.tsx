@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './Authorization.css';
 import { forgotPassword, resetPassword } from '../../api/account.ts';
+import { Popup } from '../ui/Popup';
 
 type Props = {
     onClose?: () => void;
@@ -354,8 +355,13 @@ export function Authorization({
     }
 
     return (
-        <div className="auth-overlay" onClick={() => onClose?.()}>
-            <div onClick={(e) => e.stopPropagation()}>{content}</div>
-        </div>
+        <Popup
+            open={true}
+            onClose={onClose}
+            overlayClassName="auth-overlay"
+            ariaLabel={title}
+        >
+            {content}
+        </Popup>
     );
 }
