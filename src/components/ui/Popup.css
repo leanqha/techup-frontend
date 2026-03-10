@@ -5,7 +5,8 @@
     place-items: center;
     min-height: 100dvh;
     padding-block: 12px;
-    padding-inline: 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
     overflow-x: hidden;
     box-sizing: border-box;
 }
@@ -13,6 +14,7 @@
 .popup-content {
     width: auto;
     max-width: 100%;
+    margin-inline: auto;
     justify-self: center;
     box-sizing: border-box;
 }
