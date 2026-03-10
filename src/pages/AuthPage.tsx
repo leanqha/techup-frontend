@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Authorization } from '../components/auth/Authorization';
+import './AuthPage.css';
 
 type Props = {
     onAuthSuccess: () => void;
@@ -10,54 +11,51 @@ export function AuthPage({ onAuthSuccess }: Props) {
     const location = useLocation();
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
-    const [initialMode, setInitialMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
-    const [resetToken, setResetToken] = useState('');
-    const [hideResetTokenField, setHideResetTokenField] = useState(false);
 
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const token = params.get('token') || '';
-        if (location.pathname === '/reset-password') {
-            setInitialMode('reset');
-            setResetToken(token);
-            setHideResetTokenField(true);
-            setOpen(true);
-        }
-    }, [location.pathname, location.search]);
+    const token = new URLSearchParams(location.search).get('token') || '';
+    const isResetRoute = location.pathname === '/reset-password';
+    const initialMode = isResetRoute ? 'reset' : 'login';
+    const hideResetTokenField = isResetRoute;
+    const resetToken = isResetRoute ? token : '';
 
     const handleResetComplete = () => {
-        setInitialMode('login');
-        setHideResetTokenField(false);
-        setResetToken('');
         setOpen(true);
         navigate('/auth', { replace: true });
     };
 
-    return (
-        <div style={{ textAlign: 'center', marginTop: 120 }}>
-            <button
-                style={{
-                    padding: '14px 28px',
-                    fontSize: 16,
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#111',
-                    color: '#fff',
-                    cursor: 'pointer',
-                }}
-                onClick={() => {
-                    setInitialMode('login');
-                    setHideResetTokenField(false);
-                    setResetToken('');
-                    setOpen(true);
-                }}
-            >
-                Открыть авторизацию
-            </button>
+    const openLoginModal = () => {
+        setOpen(true);
+    };
 
-            {open && (
+    const isModalOpen = open || isResetRoute;
+
+    return (
+        <main className="auth-page">
+            <section className="auth-page-card">
+                <h1>Страница авторизации</h1>
+                <p>
+                    Нажмите кнопку ниже, чтобы открыть то же окно входа и регистрации,
+                    что и на гостевой странице.
+                </p>
+
+                <div className="auth-page-actions">
+                    <button className="auth-open-btn" onClick={openLoginModal}>
+                        Открыть авторизацию
+                    </button>
+                    <Link className="auth-back-link" to="/welcome">
+                        На приветственную страницу
+                    </Link>
+                </div>
+            </section>
+
+            {isModalOpen && (
                 <Authorization
-                    onClose={() => setOpen(false)}
+                    onClose={() => {
+                        setOpen(false);
+                        if (isResetRoute) {
+                            navigate('/auth', { replace: true });
+                        }
+                    }}
                     onAuthSuccess={onAuthSuccess}
                     onResetComplete={handleResetComplete}
                     initialMode={initialMode}
@@ -65,6 +63,6 @@ export function AuthPage({ onAuthSuccess }: Props) {
                     hideResetTokenField={hideResetTokenField}
                 />
             )}
-        </div>
+        </main>
     );
 }

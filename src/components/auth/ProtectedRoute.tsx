@@ -12,7 +12,7 @@ export function ProtectedRoute({ children }: { children: JSX.Element }) {
     }
 
     if (!profile) {
-        return <Navigate to="/auth" replace />;
+        return <Navigate to="/welcome" replace />;
     }
 
     return children;

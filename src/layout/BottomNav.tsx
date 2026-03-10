@@ -65,10 +65,14 @@ const UserIcon = () => (
     </svg>
 );
 
+type NavigatorWithStandalone = Navigator & {
+    standalone?: boolean;
+};
+
 export function BottomNav() {
     const isPWA =
         window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true;
+        (window.navigator as NavigatorWithStandalone).standalone === true;
 
     if (!isPWA) return null;
 

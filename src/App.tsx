@@ -4,6 +4,7 @@ import { Layout } from './layout/Layout';
 import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AuthPage } from './pages/AuthPage';
+import { WelcomePage } from './pages/WelcomePage';
 import { useAuth } from './context/useAuth.ts';
 import { SchedulePage } from './pages/SchedulePage.tsx';
 import { AdminPage } from './pages/AdminPage.tsx';
@@ -14,6 +15,25 @@ function App() {
 
     return (
         <Routes>
+            <Route
+                path="/"
+                element={
+                    <ProtectedRoute>
+                        <Layout>
+                            <HomePage />
+                        </Layout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/welcome"
+                element={
+                    profile
+                        ? <Navigate to="/" replace />
+                        : <WelcomePage onAuthSuccess={refreshProfile} />
+                }
+            />
 
             <Route
                 path="/auth"
@@ -34,14 +54,8 @@ function App() {
             />
 
             <Route
-                path="/"
-                element={
-                    <ProtectedRoute>
-                        <Layout>
-                            <HomePage />
-                        </Layout>
-                    </ProtectedRoute>
-                }
+                path="/home"
+                element={<Navigate to="/" replace />}
             />
 
             <Route
@@ -88,6 +102,7 @@ function App() {
                 }
             />
 
+            <Route path="*" element={<Navigate to={profile ? '/' : '/welcome'} replace />} />
         </Routes>
     );
 }
