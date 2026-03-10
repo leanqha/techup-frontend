@@ -11,7 +11,8 @@
 }
 
 .popup-content {
-    width: 100%;
+    width: auto;
     max-width: 100%;
+    justify-self: center;
     box-sizing: border-box;
 }
