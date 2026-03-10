@@ -3,12 +3,14 @@ import './Authorization.css';
 import { forgotPassword, resetPassword } from '../../api/account.ts';
 
 type Props = {
-    onClose: () => void;
+    onClose?: () => void;
     onAuthSuccess: () => void;
     onResetComplete?: () => void;
     initialMode?: 'login' | 'register' | 'forgot' | 'reset';
     initialResetToken?: string;
     hideResetTokenField?: boolean;
+    variant?: 'modal' | 'inline';
+    lockedMode?: 'login' | 'register' | 'forgot' | 'reset';
 };
 
 export function Authorization({
@@ -18,6 +20,8 @@ export function Authorization({
     initialMode = 'login',
     initialResetToken = '',
     hideResetTokenField = false,
+    variant = 'modal',
+    lockedMode,
 }: Props) {
     const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(initialMode);
     const [email, setEmail] = useState('');
@@ -40,6 +44,13 @@ export function Authorization({
         setResetToken(initialResetToken);
     }, [initialResetToken]);
 
+    useEffect(() => {
+        if (lockedMode) {
+            setMode(lockedMode);
+            setMessage('');
+        }
+    }, [lockedMode]);
+
     const validateEmail = (value: string) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -55,8 +66,10 @@ export function Authorization({
         newPassword.length >= 8 &&
         newPassword === confirmPassword;
     const isAuthMode = mode === 'login' || mode === 'register';
+    const isModeLocked = Boolean(lockedMode);
 
     const switchMode = (nextMode: 'login' | 'register' | 'forgot' | 'reset') => {
+        if (isModeLocked) return;
         setMode(nextMode);
         setMessage('');
         setLoading(false);
@@ -142,7 +155,9 @@ export function Authorization({
             }
 
             onAuthSuccess();
-            onClose();
+            if (variant === 'modal') {
+                onClose?.();
+            }
         } catch (err) {
             console.error(err);
             setMessage(err instanceof Error ? err.message : 'Сетевая ошибка');
@@ -161,160 +176,154 @@ export function Authorization({
             ? 'Сброс пароля'
             : mode === 'reset'
                 ? 'Новый пароль'
-                : 'Авторизация';
+                : mode === 'register'
+                    ? 'Регистрация'
+                    : 'Авторизация';
 
-    return (
-        <div className="auth-overlay" onClick={onClose}>
-            <div className="auth-slider" onClick={(e) => e.stopPropagation()}>
-                <div className="auth-header">
-                    <h2>{title}</h2>
-                    <button className="close-btn" onClick={onClose}>
+    const content = (
+        <div className={`auth-slider${variant === 'inline' ? ' auth-inline' : ''}`}>
+            <div className="auth-header">
+                <h2>{title}</h2>
+                {variant === 'modal' && (
+                    <button className="close-btn" type="button" onClick={() => onClose?.()}>
                         ✕
                     </button>
-                </div>
+                )}
+            </div>
 
-                {isAuthMode && (
-                    <div className="tabs">
-                        <button
-                            className={mode === 'login' ? 'active' : ''}
-                            onClick={() => switchMode('login')}
-                        >
-                            Вход
-                        </button>
-                        <button
-                            className={mode === 'register' ? 'active' : ''}
-                            onClick={() => switchMode('register')}
-                        >
-                            Регистрация
-                        </button>
-                    </div>
+            {isAuthMode && !isModeLocked && (
+                <div className="tabs">
+                    <button
+                        className={mode === 'login' ? 'active' : ''}
+                        type="button"
+                        onClick={() => switchMode('login')}
+                    >
+                        Вход
+                    </button>
+                    <button
+                        className={mode === 'register' ? 'active' : ''}
+                        type="button"
+                        onClick={() => switchMode('register')}
+                    >
+                        Регистрация
+                    </button>
+                </div>
+            )}
+
+            <form className="form" onSubmit={handleFormSubmit}>
+                {mode === 'register' && (
+                    <>
+                        <input
+                            name="first_name"
+                            placeholder="Имя"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                        />
+                        <input
+                            name="last_name"
+                            placeholder="Фамилия"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                        />
+                    </>
                 )}
 
-                <form className="form" onSubmit={handleFormSubmit}>
-                    {mode === 'register' && (
-                        <>
-                            <input
-                                name="first_name"
-                                placeholder="Имя"
-                                value={firstName}
-                                onChange={(e) => setFirstName(e.target.value)}
-                            />
-                            <input
-                                name="last_name"
-                                placeholder="Фамилия"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                            />
-                        </>
-                    )}
+                {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
+                    <input
+                        ref={emailRef}
+                        name="email"
+                        type="email"
+                        autoComplete={mode === 'forgot' ? 'username' : 'email'}
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className={email && !validateEmail(email) ? 'error' : ''}
+                    />
+                )}
 
-                    {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
+                {(mode === 'login' || mode === 'register') && (
+                    <input
+                        type="password"
+                        name={mode === 'login' ? 'current-password' : 'new-password'}
+                        autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                        placeholder="Пароль (мин. 8 символов)"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={password && password.length < 8 ? 'error' : ''}
+                    />
+                )}
+
+                {mode === 'reset' && (
+                    <>
+                        {!hideResetTokenField && (
+                            <input
+                                name="reset_token"
+                                placeholder="Токен из письма"
+                                value={resetToken}
+                                onChange={(e) => setResetToken(e.target.value)}
+                            />
+                        )}
                         <input
-                            ref={emailRef}
-                            name="email"
-                            type="email"
-                            autoComplete={mode === 'forgot' ? 'username' : 'email'}
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={email && !validateEmail(email) ? 'error' : ''}
+                            ref={newPasswordRef}
+                            type="password"
+                            name="new-password"
+                            autoComplete="new-password"
+                            placeholder="Новый пароль (мин. 8 символов)"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className={newPassword && newPassword.length < 8 ? 'error' : ''}
                         />
-                    )}
-
-                    {(mode === 'login' || mode === 'register') && (
                         <input
                             type="password"
-                            name={mode === 'login' ? 'current-password' : 'new-password'}
-                            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                            placeholder="Пароль (мин. 8 символов)"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className={password && password.length < 8 ? 'error' : ''}
+                            name="confirm-password"
+                            autoComplete="new-password"
+                            placeholder="Подтвердите пароль"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className={
+                                confirmPassword && confirmPassword !== newPassword ? 'error' : ''
+                            }
                         />
-                    )}
+                    </>
+                )}
 
-                    {mode === 'reset' && (
-                        <>
-                            {!hideResetTokenField && (
-                                <input
-                                    name="reset_token"
-                                    placeholder="Токен из письма"
-                                    value={resetToken}
-                                    onChange={(e) => setResetToken(e.target.value)}
-                                />
-                            )}
-                            <input
-                                ref={newPasswordRef}
-                                type="password"
-                                name="new-password"
-                                autoComplete="new-password"
-                                placeholder="Новый пароль (мин. 8 символов)"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className={newPassword && newPassword.length < 8 ? 'error' : ''}
-                            />
-                            <input
-                                type="password"
-                                name="confirm-password"
-                                autoComplete="new-password"
-                                placeholder="Подтвердите пароль"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className={
-                                    confirmPassword && confirmPassword !== newPassword ? 'error' : ''
-                                }
-                            />
-                        </>
-                    )}
+                <button
+                    className="submit-btn"
+                    type="submit"
+                    disabled={
+                        loading ||
+                        (mode === 'login'
+                            ? !isLoginValid
+                            : mode === 'register'
+                                ? !isRegisterValid
+                                : mode === 'forgot'
+                                    ? !isForgotValid
+                                    : !isResetValid)
+                    }
+                >
+                    {loading
+                        ? 'Загрузка...'
+                        : mode === 'login'
+                            ? 'Войти'
+                            : mode === 'register'
+                                ? 'Зарегистрироваться'
+                                : mode === 'forgot'
+                                    ? 'Отправить ссылку'
+                                    : 'Сбросить пароль'}
+                </button>
 
+                {mode === 'login' && !isModeLocked && (
                     <button
-                        className="submit-btn"
-                        type="submit"
-                        disabled={
-                            loading ||
-                            (mode === 'login'
-                                ? !isLoginValid
-                                : mode === 'register'
-                                    ? !isRegisterValid
-                                    : mode === 'forgot'
-                                        ? !isForgotValid
-                                        : !isResetValid)
-                        }
+                        type="button"
+                        className="link-btn"
+                        onClick={() => switchMode('forgot')}
                     >
-                        {loading
-                            ? 'Загрузка...'
-                            : mode === 'login'
-                                ? 'Войти'
-                                : mode === 'register'
-                                    ? 'Зарегистрироваться'
-                                    : mode === 'forgot'
-                                        ? 'Отправить ссылку'
-                                        : 'Сбросить пароль'}
+                        Забыли пароль?
                     </button>
+                )}
 
-                    {mode === 'login' && (
-                        <button
-                            type="button"
-                            className="link-btn"
-                            onClick={() => switchMode('forgot')}
-                        >
-                            Забыли пароль?
-                        </button>
-                    )}
-
-                    {mode === 'forgot' && (
-                        <div className="link-row">
-                            <button
-                                type="button"
-                                className="link-btn"
-                                onClick={() => switchMode('login')}
-                            >
-                                Назад ко входу
-                            </button>
-                        </div>
-                    )}
-
-                    {mode === 'reset' && (
+                {mode === 'forgot' && !isModeLocked && (
+                    <div className="link-row">
                         <button
                             type="button"
                             className="link-btn"
@@ -322,11 +331,31 @@ export function Authorization({
                         >
                             Назад ко входу
                         </button>
-                    )}
+                    </div>
+                )}
 
-                    {message && <div className="server-error">{message}</div>}
-                </form>
-            </div>
+                {mode === 'reset' && !isModeLocked && (
+                    <button
+                        type="button"
+                        className="link-btn"
+                        onClick={() => switchMode('login')}
+                    >
+                        Назад ко входу
+                    </button>
+                )}
+
+                {message && <div className="server-error">{message}</div>}
+            </form>
+        </div>
+    );
+
+    if (variant === 'inline') {
+        return <div className="auth-inline-wrap">{content}</div>;
+    }
+
+    return (
+        <div className="auth-overlay" onClick={() => onClose?.()}>
+            <div onClick={(e) => e.stopPropagation()}>{content}</div>
         </div>
     );
 }
