@@ -1,5 +1,5 @@
+import { createPortal } from 'react-dom';
 import { CloseIcon } from '../icons/CloseIcon';
-import { Popup } from '../ui/Popup';
 import './LessonNoteModal.css';
 
 type LessonNoteModalProps = {
@@ -25,57 +25,62 @@ export function LessonNoteModal({
     onClose,
     onSave,
 }: LessonNoteModalProps) {
-    return (
-        <Popup
-            open={open}
-            onClose={onClose}
-            overlayClassName="lesson-note-modal__overlay"
-            contentClassName="lesson-note-modal"
-            ariaLabel={`Заметка: ${lessonTitle}`}
-        >
-            <div className="lesson-note-modal__header">
-                <h3>Заметка к занятию</h3>
-                <button
-                    type="button"
-                    className="lesson-note-modal__close"
-                    onClick={onClose}
-                    aria-label="Закрыть окно"
-                >
-                    <CloseIcon />
-                </button>
-            </div>
+    if (!open) return null;
 
-            <p className="lesson-note-modal__subtitle">{lessonTitle}</p>
+    return createPortal(
+        <div className="lesson-note-modal__overlay" onClick={onClose}>
+            <div
+                className="lesson-note-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Заметка: ${lessonTitle}`}
+                onClick={event => event.stopPropagation()}
+            >
+                <div className="lesson-note-modal__header">
+                    <h3>Заметка к занятию</h3>
+                    <button
+                        type="button"
+                        className="lesson-note-modal__close"
+                        onClick={onClose}
+                        aria-label="Закрыть окно"
+                    >
+                        <CloseIcon />
+                    </button>
+                </div>
 
-            <textarea
-                className="lesson-note-modal__textarea"
-                value={value}
-                onChange={event => onChange(event.target.value)}
-                placeholder="Введите заметку..."
-                disabled={isLoading || isSaving}
-                rows={8}
-            />
+                <p className="lesson-note-modal__subtitle">{lessonTitle}</p>
 
-            {error && <p className="lesson-note-modal__error">{error}</p>}
-
-            <div className="lesson-note-modal__actions">
-                <button
-                    type="button"
-                    className="lesson-note-modal__button lesson-note-modal__button--secondary"
-                    onClick={onClose}
-                    disabled={isSaving}
-                >
-                    Отмена
-                </button>
-                <button
-                    type="button"
-                    className="lesson-note-modal__button lesson-note-modal__button--primary"
-                    onClick={onSave}
+                <textarea
+                    className="lesson-note-modal__textarea"
+                    value={value}
+                    onChange={event => onChange(event.target.value)}
+                    placeholder="Введите заметку..."
                     disabled={isLoading || isSaving}
-                >
-                    {isSaving ? 'Сохранение...' : 'Сохранить'}
-                </button>
+                    rows={8}
+                />
+
+                {error && <p className="lesson-note-modal__error">{error}</p>}
+
+                <div className="lesson-note-modal__actions">
+                    <button
+                        type="button"
+                        className="lesson-note-modal__button lesson-note-modal__button--secondary"
+                        onClick={onClose}
+                        disabled={isSaving}
+                    >
+                        Отмена
+                    </button>
+                    <button
+                        type="button"
+                        className="lesson-note-modal__button lesson-note-modal__button--primary"
+                        onClick={onSave}
+                        disabled={isLoading || isSaving}
+                    >
+                        {isSaving ? 'Сохранение...' : 'Сохранить'}
+                    </button>
+                </div>
             </div>
-        </Popup>
+        </div>,
+        document.body
     );
 }
