@@ -1,9 +1,9 @@
 .popup-overlay {
     position: fixed;
     inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: grid;
+    place-items: center;
+    min-height: 100dvh;
     padding-block: 12px;
     padding-inline: 12px;
     overflow-x: hidden;
