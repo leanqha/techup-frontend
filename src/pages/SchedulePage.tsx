@@ -66,9 +66,9 @@ export function SchedulePage() {
         setError(null);
         try {
             const isEmptyFilters = !filters.date && !filters.teacherId && !filters.classroom && !filters.subject;
-            if (isEmptyFilters && profile?.group_id) {
+            if (isEmptyFilters && filters.groupId) {
                 const { from, to } = getWeekRange(weekOffset);
-                const data = await fetchLessons(profile.group_id, from, to);
+                const data = await fetchLessons(filters.groupId, from, to);
                 setLessons(Array.isArray(data) ? data : []);
                 return;
             }
@@ -76,7 +76,7 @@ export function SchedulePage() {
             const data = await searchLessons({
                 date: filters.date || undefined,
                 teacherId: filters.teacherId ?? undefined,
-                groupId: profile?.group_id,
+                groupId: filters.groupId ?? undefined,
                 classroom: filters.classroom || undefined,
                 subject: filters.subject || undefined,
             });
@@ -113,7 +113,11 @@ export function SchedulePage() {
 
             <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
-            <ScheduleFiltersPanel onSearch={handleSearch} />
+            <ScheduleFiltersPanel
+                key={String(profile?.group_id ?? 'none')}
+                defaultGroupId={profile?.group_id ?? null}
+                onSearch={handleSearch}
+            />
 
             {loading && <Loader />}
             {error && <p style={{ color: 'red' }}>{error}</p>}

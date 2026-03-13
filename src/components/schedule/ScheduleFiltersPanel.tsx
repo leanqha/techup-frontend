@@ -5,19 +5,22 @@ import './ScheduleFilters.css';
 export type ScheduleFilterValues = {
     date: string;
     teacherId: number | null;
+    groupId: number | null;
     classroom: string;
     subject: string;
 };
 
 type Props = {
+    defaultGroupId?: number | null;
     onSearch: (filters: ScheduleFilterValues) => void;
 };
 
-export function ScheduleFiltersPanel({ onSearch }: Props) {
+export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [filters, setFilters] = useState<ScheduleFilterValues>({
         date: '',
         teacherId: null,
+        groupId: defaultGroupId,
         classroom: '',
         subject: '',
     });
@@ -28,6 +31,7 @@ export function ScheduleFiltersPanel({ onSearch }: Props) {
         const cleared = {
             date: '',
             teacherId: null,
+            groupId: defaultGroupId,
             classroom: '',
             subject: '',
         };
@@ -46,6 +50,7 @@ export function ScheduleFiltersPanel({ onSearch }: Props) {
                     <ScheduleFilters
                         date={filters.date}
                         teacherId={filters.teacherId}
+                        groupId={filters.groupId}
                         classroom={filters.classroom}
                         subject={filters.subject}
                         onChange={setFilters}

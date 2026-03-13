@@ -1,4 +1,4 @@
-import type {Lesson, LessonNote} from "./types/schedule.ts";
+import type {Lesson, LessonNote, Group} from "./types/schedule.ts";
 import type {Profile} from "./types/types.ts";
 import { fetchWithRefresh } from './fetchWithRefresh.ts';
 
@@ -18,13 +18,7 @@ export type SearchLessonsParams = {
     subject?: string;
 };
 
-export async function searchLessons(params: {
-    date?: string;
-    teacherId?: number;
-    groupId?: number;
-    classroom?: string;
-    subject?: string;
-}): Promise<Lesson[]> {
+export async function searchLessons(params: SearchLessonsParams): Promise<Lesson[]> {
     const query = new URLSearchParams();
     if (params.date) query.append('date', params.date);
     if (params.teacherId) query.append('teacher_id', String(params.teacherId));
@@ -50,6 +44,12 @@ export async function fetchTeachers(): Promise<Profile[]> {
 export async function fetchClassrooms(): Promise<string[]> {
     const res = await fetch('/api/v1/schedule/classrooms', { credentials: 'include' });
     if (!res.ok) throw new Error('Ошибка получения аудиторий');
+    return res.json();
+}
+
+export async function fetchGroups(): Promise<Group[]> {
+    const res = await fetch('/api/v1/schedule/groups', { credentials: 'include' });
+    if (!res.ok) throw new Error('Ошибка получения групп');
     return res.json();
 }
 
