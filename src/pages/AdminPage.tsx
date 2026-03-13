@@ -11,7 +11,7 @@ import './AdminPage.css';
 
 type Lesson = {
     id: number;
-    group: number;
+    group: string;
     date: string;
     start_time: string;
     end_time: string;
@@ -107,7 +107,7 @@ export function AdminPage() {
                 while (currentDate <= endDate) {
                     lessons.push({
                         id: idCounter++,
-                        group: Number(row.group),
+                        group: row.group,
                         date: format(currentDate, 'yyyy-MM-dd'),
                         start_time: normalizeTime(row.start_time),
                         end_time: normalizeTime(row.end_time),
