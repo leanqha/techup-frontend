@@ -31,6 +31,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
     const [teachers, setTeachers] = useState<AccountProfile[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
     const [allClassrooms, setAllClassrooms] = useState<string[]>([]);
+    const menuPortalTarget = typeof document !== 'undefined' ? document.body : null;
 
     const teacherOptions: TeacherOption[] = teachers.map(t => {
         const nameParts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
@@ -82,6 +83,9 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     }}
                     isMulti
                     isClearable
+                    menuPortalTarget={menuPortalTarget}
+                    menuPosition="fixed"
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
                 />
             </div>
 
@@ -103,6 +107,9 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     }}
                     isMulti
                     isClearable
+                    menuPortalTarget={menuPortalTarget}
+                    menuPosition="fixed"
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
                 />
             </div>
 
@@ -124,6 +131,9 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     }}
                     isMulti
                     isClearable
+                    menuPortalTarget={menuPortalTarget}
+                    menuPosition="fixed"
+                    styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
                 />
             </div>
 
