@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScheduleFilters } from './ScheduleFilters.tsx';
 import { Popup } from '../ui/Popup.tsx';
 import { CloseIcon } from '../icons/CloseIcon.tsx';
@@ -69,62 +69,58 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props)
         applyFilters(cleared);
     };
 
-    const activeFilterChips = useMemo(() => {
-        const chips: ActiveChip[] = [];
+    const activeFilterChips: ActiveChip[] = [];
 
-        if (filters.date) {
-            chips.push({
-                key: 'date',
-                text: `Дата: ${filters.date}`,
-                onRemove: () => applyFilters({ ...filters, date: '' }),
-            });
-        }
-
-        filters.teacherIds.forEach(teacherId => {
-            const teacher = teachers.find(item => item.id === teacherId);
-            chips.push({
-                key: `teacher-${teacherId}`,
-                text: `Преподаватель: ${teacher ? formatTeacherName(teacher) : `ID ${teacherId}`}`,
-                onRemove: () => applyFilters({
-                    ...filters,
-                    teacherIds: filters.teacherIds.filter(id => id !== teacherId),
-                }),
-            });
+    if (filters.date) {
+        activeFilterChips.push({
+            key: 'date',
+            text: `Дата: ${filters.date}`,
+            onRemove: () => applyFilters({ ...filters, date: '' }),
         });
+    }
 
-        filters.groupIds.forEach(groupId => {
-            const group = groups.find(item => item.id === groupId);
-            chips.push({
-                key: `group-${groupId}`,
-                text: `Группа: ${group?.name ?? `ID ${groupId}`}`,
-                onRemove: () => applyFilters({
-                    ...filters,
-                    groupIds: filters.groupIds.filter(id => id !== groupId),
-                }),
-            });
+    filters.teacherIds.forEach(teacherId => {
+        const teacher = teachers.find(item => item.id === teacherId);
+        activeFilterChips.push({
+            key: `teacher-${teacherId}`,
+            text: `Преподаватель: ${teacher ? formatTeacherName(teacher) : `ID ${teacherId}`}`,
+            onRemove: () => applyFilters({
+                ...filters,
+                teacherIds: filters.teacherIds.filter(id => id !== teacherId),
+            }),
         });
+    });
 
-        filters.classrooms.forEach(classroom => {
-            chips.push({
-                key: `classroom-${classroom}`,
-                text: `Аудитория: ${classroom}`,
-                onRemove: () => applyFilters({
-                    ...filters,
-                    classrooms: filters.classrooms.filter(item => item !== classroom),
-                }),
-            });
+    filters.groupIds.forEach(groupId => {
+        const group = groups.find(item => item.id === groupId);
+        activeFilterChips.push({
+            key: `group-${groupId}`,
+            text: `Группа: ${group?.name ?? `ID ${groupId}`}`,
+            onRemove: () => applyFilters({
+                ...filters,
+                groupIds: filters.groupIds.filter(id => id !== groupId),
+            }),
         });
+    });
 
-        if (filters.subject) {
-            chips.push({
-                key: 'subject',
-                text: `Предмет: ${filters.subject}`,
-                onRemove: () => applyFilters({ ...filters, subject: '' }),
-            });
-        }
+    filters.classrooms.forEach(classroom => {
+        activeFilterChips.push({
+            key: `classroom-${classroom}`,
+            text: `Аудитория: ${classroom}`,
+            onRemove: () => applyFilters({
+                ...filters,
+                classrooms: filters.classrooms.filter(item => item !== classroom),
+            }),
+        });
+    });
 
-        return chips;
-    }, [filters, groups, teachers]);
+    if (filters.subject) {
+        activeFilterChips.push({
+            key: 'subject',
+            text: `Предмет: ${filters.subject}`,
+            onRemove: () => applyFilters({ ...filters, subject: '' }),
+        });
+    }
 
     const activeFiltersCount = activeFilterChips.length;
 
@@ -150,7 +146,7 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props)
                                 onClick={chip.onRemove}
                                 aria-label={`Убрать фильтр: ${chip.text}`}
                             >
-                                ×
+                                <CloseIcon size={14} />
                             </button>
                         </div>
                     ))}
