@@ -125,7 +125,7 @@ export function SchedulePage() {
 
     const handleSearch = (filters: ScheduleFilterValues) => {
         setAppliedFilters(filters);
-        setShowGroupInLessonCard(filters.groupIds.length > 1);
+        setShowGroupInLessonCard(filters.groupIds.length !== 1);
     };
 
     const lessonsByDate: Record<string, Lesson[]> = lessons.reduce((acc, lesson) => {
