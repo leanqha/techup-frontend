@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { fetchLessons, searchLessons } from '../api/schedule';
 import { ScheduleFiltersPanel, type ScheduleFilterValues } from '../components/schedule/ScheduleFiltersPanel.tsx';
@@ -29,6 +29,10 @@ function uniqueLessons(items: Lesson[]): Lesson[] {
     });
 }
 
+function filterLessonsByWeek(items: Lesson[], from: string, to: string): Lesson[] {
+    return items.filter(lesson => lesson.date >= from && lesson.date <= to);
+}
+
 export function SchedulePage() {
     const { profile } = useAuth();
 
@@ -38,6 +42,7 @@ export function SchedulePage() {
     const [error, setError] = useState<string | null>(null);
     const [hasAutoScrolledToToday, setHasAutoScrolledToToday] = useState(false);
     const [showGroupInLessonCard, setShowGroupInLessonCard] = useState(false);
+    const [appliedFilters, setAppliedFilters] = useState<ScheduleFilterValues | null>(null);
     const dayRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const todayIso = useMemo(() => {
         const now = new Date();
@@ -47,6 +52,41 @@ export function SchedulePage() {
         return `${year}-${month}-${day}`;
     }, []);
 
+    const loadByFilters = useCallback(async (filters: ScheduleFilterValues): Promise<Lesson[]> => {
+        const { from, to } = getWeekRange(weekOffset);
+
+        const hasNoSearchTerms = !filters.date
+            && filters.teacherIds.length === 0
+            && filters.classrooms.length === 0
+            && !filters.subject;
+
+        if (hasNoSearchTerms && filters.groupIds.length > 0) {
+            const groupedData = await Promise.all(filters.groupIds.map(groupId => fetchLessons(groupId, from, to)));
+            const merged = uniqueLessons(groupedData.flatMap(items => (Array.isArray(items) ? items : [])));
+            return filterLessonsByWeek(merged, from, to);
+        }
+
+        const teacherIds = filters.teacherIds.length ? filters.teacherIds : [undefined];
+        const groupIds = filters.groupIds.length ? filters.groupIds : [undefined];
+        const classrooms = filters.classrooms.length ? filters.classrooms : [undefined];
+
+        const requests = teacherIds.flatMap(teacherId =>
+            groupIds.flatMap(groupId =>
+                classrooms.map(classroom => searchLessons({
+                    date: filters.date || undefined,
+                    teacherId,
+                    groupId,
+                    classroom,
+                    subject: filters.subject || undefined,
+                }))
+            )
+        );
+
+        const responses = await Promise.all(requests);
+        const merged = uniqueLessons(responses.flatMap(items => (Array.isArray(items) ? items : [])));
+        return filterLessonsByWeek(merged, from, to);
+    }, [weekOffset]);
+
     useEffect(() => {
         if (!profile?.group_id) return;
         let cancelled = false;
@@ -55,6 +95,12 @@ export function SchedulePage() {
             setLoading(true);
             setError(null);
             try {
+                if (appliedFilters) {
+                    const data = await loadByFilters(appliedFilters);
+                    if (!cancelled) setLessons(data);
+                    return;
+                }
+
                 const { from, to } = getWeekRange(weekOffset);
                 const data = await fetchLessons(profile.group_id, from, to);
                 if (!cancelled) setLessons(Array.isArray(data) ? data : []);
@@ -70,51 +116,16 @@ export function SchedulePage() {
 
         load();
         return () => { cancelled = true; };
-    }, [profile?.group_id, weekOffset]);
+    }, [appliedFilters, loadByFilters, profile?.group_id, weekOffset]);
 
-    const handleSearch = async (filters: ScheduleFilterValues) => {
+    useEffect(() => {
+        setAppliedFilters(null);
+        setShowGroupInLessonCard(false);
+    }, [profile?.group_id]);
+
+    const handleSearch = (filters: ScheduleFilterValues) => {
+        setAppliedFilters(filters);
         setShowGroupInLessonCard(filters.groupIds.length > 1);
-        setLoading(true);
-        setError(null);
-        try {
-            const hasNoSearchTerms = !filters.date
-                && filters.teacherIds.length === 0
-                && filters.classrooms.length === 0
-                && !filters.subject;
-
-            if (hasNoSearchTerms && filters.groupIds.length > 0) {
-                const { from, to } = getWeekRange(weekOffset);
-                const groupedData = await Promise.all(filters.groupIds.map(groupId => fetchLessons(groupId, from, to)));
-                const merged = uniqueLessons(groupedData.flatMap(items => (Array.isArray(items) ? items : [])));
-                setLessons(merged);
-                return;
-            }
-
-            const teacherIds = filters.teacherIds.length ? filters.teacherIds : [undefined];
-            const groupIds = filters.groupIds.length ? filters.groupIds : [undefined];
-            const classrooms = filters.classrooms.length ? filters.classrooms : [undefined];
-
-            const requests = teacherIds.flatMap(teacherId =>
-                groupIds.flatMap(groupId =>
-                    classrooms.map(classroom => searchLessons({
-                        date: filters.date || undefined,
-                        teacherId,
-                        groupId,
-                        classroom,
-                        subject: filters.subject || undefined,
-                    }))
-                )
-            );
-
-            const responses = await Promise.all(requests);
-            const merged = uniqueLessons(responses.flatMap(items => (Array.isArray(items) ? items : [])));
-            setLessons(merged);
-        } catch (e: unknown) {
-            setError(e instanceof Error ? e.message : 'Ошибка поиска');
-            setLessons([]);
-        } finally {
-            setLoading(false);
-        }
     };
 
     const lessonsByDate: Record<string, Lesson[]> = lessons.reduce((acc, lesson) => {
