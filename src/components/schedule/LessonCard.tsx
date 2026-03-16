@@ -38,7 +38,7 @@ function toNoteText(text: string) {
     return text.trim();
 }
 
-export function LessonCard({ lesson }: { lesson: Lesson }) {
+export function LessonCard({ lesson, showGroup = false }: { lesson: Lesson; showGroup?: boolean }) {
     const [isNoteOpen, setIsNoteOpen] = useState(false);
     const [noteText, setNoteText] = useState('');
     const [savedNoteText, setSavedNoteText] = useState('');
@@ -52,6 +52,7 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
         lesson.classroom &&
         lesson.classroom !== '0' &&
         lesson.classroom.trim() !== '';
+    const showGroupName = showGroup && Boolean(lesson.group?.name);
 
     const typeMeta = getTypeMeta(lesson.type);
 
@@ -218,6 +219,17 @@ export function LessonCard({ lesson }: { lesson: Lesson }) {
                         }}
                     >
                         {lesson.teacher.full_name}
+                    </div>
+                )}
+
+                {showGroupName && (
+                    <div
+                        style={{
+                            fontSize: 14,
+                            color: '#6B7280',
+                        }}
+                    >
+                        Группа: {lesson.group.name}
                     </div>
                 )}
 

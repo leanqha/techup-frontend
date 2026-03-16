@@ -37,6 +37,7 @@ export function SchedulePage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasAutoScrolledToToday, setHasAutoScrolledToToday] = useState(false);
+    const [showGroupInLessonCard, setShowGroupInLessonCard] = useState(false);
     const dayRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const todayIso = useMemo(() => {
         const now = new Date();
@@ -72,6 +73,7 @@ export function SchedulePage() {
     }, [profile?.group_id, weekOffset]);
 
     const handleSearch = async (filters: ScheduleFilterValues) => {
+        setShowGroupInLessonCard(filters.groupIds.length > 1);
         setLoading(true);
         setError(null);
         try {
@@ -161,7 +163,11 @@ export function SchedulePage() {
                         dayRefs.current[date] = node;
                     }}
                 >
-                    <ScheduleDay date={date} lessons={lessonsByDate[date]} />
+                    <ScheduleDay
+                        date={date}
+                        lessons={lessonsByDate[date]}
+                        showGroupInLessonCard={showGroupInLessonCard}
+                    />
                 </div>
             ))}
         </div>

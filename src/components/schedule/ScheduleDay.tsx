@@ -5,9 +5,10 @@ import { toStringDate } from '../../utils/date';
 type Props = {
     date: string;
     lessons: Lesson[];
+    showGroupInLessonCard?: boolean;
 };
 
-export function ScheduleDay({ date, lessons }: Props) {
+export function ScheduleDay({ date, lessons, showGroupInLessonCard = false }: Props) {
     const sortedLessons = [...lessons].sort((a, b) =>
         a.start_time.localeCompare(b.start_time)
     );
@@ -43,7 +44,7 @@ export function ScheduleDay({ date, lessons }: Props) {
                     }}
                 >
                     {sortedLessons.map(lesson => (
-                        <LessonCard key={lesson.id} lesson={lesson} />
+                        <LessonCard key={lesson.id} lesson={lesson} showGroup={showGroupInLessonCard} />
                     ))}
                 </div>
             ) : (
