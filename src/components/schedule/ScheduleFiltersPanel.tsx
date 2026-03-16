@@ -9,9 +9,9 @@ import './ScheduleFilters.css';
 
 export type ScheduleFilterValues = {
     date: string;
-    teacherId: number | null;
-    groupId: number | null;
-    classroom: string;
+    teacherIds: number[];
+    groupIds: number[];
+    classrooms: string[];
     subject: string;
 };
 
@@ -20,7 +20,16 @@ type Props = {
     onSearch: (filters: ScheduleFilterValues) => void;
 };
 
-type FilterKey = keyof ScheduleFilterValues;
+type ActiveChip = {
+    key: string;
+    text: string;
+    onRemove: () => void;
+};
+
+function formatTeacherName(teacher: AccountProfile) {
+    const parts = [teacher.last_name, teacher.first_name, teacher.middle_name].filter(Boolean);
+    return parts.length ? parts.join(' ') : teacher.email || teacher.uid;
+}
 
 export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props) {
     const [isOpen, setIsOpen] = useState(false);
@@ -28,9 +37,9 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props)
     const [groups, setGroups] = useState<Group[]>([]);
     const [filters, setFilters] = useState<ScheduleFilterValues>({
         date: '',
-        teacherId: null,
-        groupId: defaultGroupId,
-        classroom: '',
+        teacherIds: [],
+        groupIds: defaultGroupId ? [defaultGroupId] : [],
+        classrooms: [],
         subject: '',
     });
 
@@ -52,46 +61,72 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props)
     const handleReset = () => {
         const cleared = {
             date: '',
-            teacherId: null,
-            groupId: defaultGroupId,
-            classroom: '',
+            teacherIds: [],
+            groupIds: defaultGroupId ? [defaultGroupId] : [],
+            classrooms: [],
             subject: '',
         };
         applyFilters(cleared);
     };
 
     const activeFilterChips = useMemo(() => {
-        const teacher = teachers.find(item => item.id === filters.teacherId);
-        const group = groups.find(item => item.id === filters.groupId);
+        const chips: ActiveChip[] = [];
 
-        return [
-            filters.date ? { key: 'date' as FilterKey, text: `Дата: ${filters.date}` } : null,
-            filters.teacherId
-                ? {
-                    key: 'teacherId' as FilterKey,
-                    text: `Преподаватель: ${teacher ? [teacher.last_name, teacher.first_name, teacher.middle_name].filter(Boolean).join(' ') : `ID ${filters.teacherId}`}`,
-                }
-                : null,
-            filters.groupId
-                ? {
-                    key: 'groupId' as FilterKey,
-                    text: `Группа: ${group?.name ?? `ID ${filters.groupId}`}`,
-                }
-                : null,
-            filters.classroom ? { key: 'classroom' as FilterKey, text: `Аудитория: ${filters.classroom}` } : null,
-            filters.subject ? { key: 'subject' as FilterKey, text: `Предмет: ${filters.subject}` } : null,
-        ].filter(Boolean) as Array<{ key: FilterKey; text: string }>;
+        if (filters.date) {
+            chips.push({
+                key: 'date',
+                text: `Дата: ${filters.date}`,
+                onRemove: () => applyFilters({ ...filters, date: '' }),
+            });
+        }
+
+        filters.teacherIds.forEach(teacherId => {
+            const teacher = teachers.find(item => item.id === teacherId);
+            chips.push({
+                key: `teacher-${teacherId}`,
+                text: `Преподаватель: ${teacher ? formatTeacherName(teacher) : `ID ${teacherId}`}`,
+                onRemove: () => applyFilters({
+                    ...filters,
+                    teacherIds: filters.teacherIds.filter(id => id !== teacherId),
+                }),
+            });
+        });
+
+        filters.groupIds.forEach(groupId => {
+            const group = groups.find(item => item.id === groupId);
+            chips.push({
+                key: `group-${groupId}`,
+                text: `Группа: ${group?.name ?? `ID ${groupId}`}`,
+                onRemove: () => applyFilters({
+                    ...filters,
+                    groupIds: filters.groupIds.filter(id => id !== groupId),
+                }),
+            });
+        });
+
+        filters.classrooms.forEach(classroom => {
+            chips.push({
+                key: `classroom-${classroom}`,
+                text: `Аудитория: ${classroom}`,
+                onRemove: () => applyFilters({
+                    ...filters,
+                    classrooms: filters.classrooms.filter(item => item !== classroom),
+                }),
+            });
+        });
+
+        if (filters.subject) {
+            chips.push({
+                key: 'subject',
+                text: `Предмет: ${filters.subject}`,
+                onRemove: () => applyFilters({ ...filters, subject: '' }),
+            });
+        }
+
+        return chips;
     }, [filters, groups, teachers]);
 
     const activeFiltersCount = activeFilterChips.length;
-
-    const handleRemoveFilter = (key: FilterKey) => {
-        const nextFilters: ScheduleFilterValues = {
-            ...filters,
-            [key]: key === 'teacherId' || key === 'groupId' ? null : '',
-        };
-        applyFilters(nextFilters);
-    };
 
     return (
         <div className="schedule-filters-panel">
@@ -112,7 +147,7 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props)
                             <button
                                 type="button"
                                 className="schedule-filters-panel__chip-remove"
-                                onClick={() => handleRemoveFilter(chip.key)}
+                                onClick={chip.onRemove}
                                 aria-label={`Убрать фильтр: ${chip.text}`}
                             >
                                 ×
@@ -144,9 +179,9 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props)
                 <div className="schedule-filters-popup__body">
                     <ScheduleFilters
                         date={filters.date}
-                        teacherId={filters.teacherId}
-                        groupId={filters.groupId}
-                        classroom={filters.classroom}
+                        teacherIds={filters.teacherIds}
+                        groupIds={filters.groupIds}
+                        classrooms={filters.classrooms}
                         subject={filters.subject}
                         onChange={setFilters}
                         onSearch={handleSearch}

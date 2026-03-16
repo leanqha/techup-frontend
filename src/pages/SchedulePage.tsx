@@ -5,7 +5,7 @@ import { ScheduleFiltersPanel, type ScheduleFilterValues } from '../components/s
 import { ScheduleDay } from '../components/schedule/ScheduleDay';
 import type { Lesson } from '../api/types/schedule';
 import type { Dispatch, SetStateAction } from 'react';
-import {Loader} from "../components/Loader.tsx";
+import { Loader } from '../components/Loader.tsx';
 import './SchedulePage.css';
 
 function getWeekRange(offset: number) {
@@ -17,6 +17,16 @@ function getWeekRange(offset: number) {
 
     const toISO = (d: Date) => d.toISOString().slice(0, 10);
     return { from: toISO(monday), to: toISO(sunday) };
+}
+
+function uniqueLessons(items: Lesson[]): Lesson[] {
+    const seen = new Set<string>();
+    return items.filter(lesson => {
+        const key = lesson.id ? `id:${lesson.id}` : `${lesson.date}|${lesson.start_time}|${lesson.end_time}|${lesson.subject}|${lesson.classroom}|${lesson.group.id}|${lesson.teacher.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
 }
 
 export function SchedulePage() {
@@ -65,22 +75,38 @@ export function SchedulePage() {
         setLoading(true);
         setError(null);
         try {
-            const isEmptyFilters = !filters.date && !filters.teacherId && !filters.classroom && !filters.subject;
-            if (isEmptyFilters && filters.groupId) {
+            const hasNoSearchTerms = !filters.date
+                && filters.teacherIds.length === 0
+                && filters.classrooms.length === 0
+                && !filters.subject;
+
+            if (hasNoSearchTerms && filters.groupIds.length > 0) {
                 const { from, to } = getWeekRange(weekOffset);
-                const data = await fetchLessons(filters.groupId, from, to);
-                setLessons(Array.isArray(data) ? data : []);
+                const groupedData = await Promise.all(filters.groupIds.map(groupId => fetchLessons(groupId, from, to)));
+                const merged = uniqueLessons(groupedData.flatMap(items => (Array.isArray(items) ? items : [])));
+                setLessons(merged);
                 return;
             }
 
-            const data = await searchLessons({
-                date: filters.date || undefined,
-                teacherId: filters.teacherId ?? undefined,
-                groupId: filters.groupId ?? undefined,
-                classroom: filters.classroom || undefined,
-                subject: filters.subject || undefined,
-            });
-            setLessons(Array.isArray(data) ? data : []);
+            const teacherIds = filters.teacherIds.length ? filters.teacherIds : [undefined];
+            const groupIds = filters.groupIds.length ? filters.groupIds : [undefined];
+            const classrooms = filters.classrooms.length ? filters.classrooms : [undefined];
+
+            const requests = teacherIds.flatMap(teacherId =>
+                groupIds.flatMap(groupId =>
+                    classrooms.map(classroom => searchLessons({
+                        date: filters.date || undefined,
+                        teacherId,
+                        groupId,
+                        classroom,
+                        subject: filters.subject || undefined,
+                    }))
+                )
+            );
+
+            const responses = await Promise.all(requests);
+            const merged = uniqueLessons(responses.flatMap(items => (Array.isArray(items) ? items : [])));
+            setLessons(merged);
         } catch (e: unknown) {
             setError(e instanceof Error ? e.message : 'Ошибка поиска');
             setLessons([]);

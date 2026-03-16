@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Select, {type SingleValue } from 'react-select';
+import Select, { type MultiValue } from 'react-select';
 import { fetchTeachers, fetchClassrooms, fetchGroups } from '../../api/schedule.ts';
 import type { Group } from '../../api/types/schedule.ts';
 import type { Profile as AccountProfile } from '../../api/types/types.ts';
@@ -7,17 +7,17 @@ import './ScheduleFilters.css';
 
 type FilterValues = {
     date: string;
-    teacherId: number | null;
-    groupId: number | null;
-    classroom: string;
+    teacherIds: number[];
+    groupIds: number[];
+    classrooms: string[];
     subject: string;
 };
 
 type Props = {
     date: string;
-    teacherId: number | null; // для API
-    groupId: number | null;
-    classroom: string;
+    teacherIds: number[];
+    groupIds: number[];
+    classrooms: string[];
     subject: string;
     onChange: (v: FilterValues) => void;
     onSearch: () => void;
@@ -27,30 +27,30 @@ type TeacherOption = { value: number; label: string };
 type GroupOption = { value: number; label: string };
 type ClassroomOption = { value: string; label: string };
 
-export function ScheduleFilters({ date, teacherId, groupId, classroom, subject, onChange, onSearch }: Props) {
+export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subject, onChange, onSearch }: Props) {
     const [teachers, setTeachers] = useState<AccountProfile[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
-    const [classrooms, setClassrooms] = useState<string[]>([]);
+    const [allClassrooms, setAllClassrooms] = useState<string[]>([]);
 
     const teacherOptions: TeacherOption[] = teachers.map(t => {
         const nameParts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
         return {
-            value: t.id, // для API
+            value: t.id,
             label: nameParts.length ? nameParts.join(' ') : t.email || t.uid,
         };
     });
 
     const groupOptions: GroupOption[] = groups.map(group => ({ value: group.id, label: group.name }));
-    const classroomOptions: ClassroomOption[] = classrooms.map(c => ({ value: c, label: c }));
+    const classroomOptions: ClassroomOption[] = allClassrooms.map(c => ({ value: c, label: c }));
 
-    const selectedTeacher = teacherOptions.find(option => option.value === teacherId) ?? null;
-    const selectedGroup = groupOptions.find(option => option.value === groupId) ?? null;
-    const selectedClassroom = classroomOptions.find(option => option.value === classroom) ?? null;
+    const selectedTeachers = teacherOptions.filter(option => teacherIds.includes(option.value));
+    const selectedGroups = groupOptions.filter(option => groupIds.includes(option.value));
+    const selectedClassrooms = classroomOptions.filter(option => classrooms.includes(option.value));
 
     useEffect(() => {
         fetchTeachers().then(setTeachers).catch(console.error);
         fetchGroups().then(setGroups).catch(console.error);
-        fetchClassrooms().then(setClassrooms).catch(console.error);
+        fetchClassrooms().then(setAllClassrooms).catch(console.error);
     }, []);
 
     return (
@@ -60,66 +60,69 @@ export function ScheduleFilters({ date, teacherId, groupId, classroom, subject, 
                     className="schedule-filters__input"
                     type="date"
                     value={date}
-                    onChange={e => onChange({ date: e.target.value, teacherId, groupId, classroom, subject })}
+                    onChange={e => onChange({ date: e.target.value, teacherIds, groupIds, classrooms, subject })}
                 />
             </div>
 
             <div className="schedule-filters__field schedule-filters__field--wide">
-                <Select<TeacherOption, false>
+                <Select<TeacherOption, true>
                     className="schedule-filter-select"
                     classNamePrefix="schedule-filter-select"
                     placeholder="Преподаватель"
                     options={teacherOptions}
-                    value={selectedTeacher}
-                    onChange={(option: SingleValue<TeacherOption>) => {
+                    value={selectedTeachers}
+                    onChange={(options: MultiValue<TeacherOption>) => {
                         onChange({
                             date,
-                            teacherId: option ? option.value : null,
-                            groupId,
-                            classroom,
+                            teacherIds: options.map(option => option.value),
+                            groupIds,
+                            classrooms,
                             subject,
                         });
                     }}
+                    isMulti
                     isClearable
                 />
             </div>
 
             <div className="schedule-filters__field schedule-filters__field--wide">
-                <Select<GroupOption, false>
+                <Select<GroupOption, true>
                     className="schedule-filter-select"
                     classNamePrefix="schedule-filter-select"
                     placeholder="Группа"
                     options={groupOptions}
-                    value={selectedGroup}
-                    onChange={(option: SingleValue<GroupOption>) => {
+                    value={selectedGroups}
+                    onChange={(options: MultiValue<GroupOption>) => {
                         onChange({
                             date,
-                            teacherId,
-                            groupId: option ? option.value : null,
-                            classroom,
+                            teacherIds,
+                            groupIds: options.map(option => option.value),
+                            classrooms,
                             subject,
                         });
                     }}
+                    isMulti
                     isClearable
                 />
             </div>
 
             <div className="schedule-filters__field">
-                <Select<ClassroomOption, false>
+                <Select<ClassroomOption, true>
                     className="schedule-filter-select"
                     classNamePrefix="schedule-filter-select"
                     placeholder="Аудитория"
                     options={classroomOptions}
-                    value={selectedClassroom}
-                    onChange={(option: SingleValue<ClassroomOption>) => {
+                    value={selectedClassrooms}
+                    onChange={(options: MultiValue<ClassroomOption>) => {
                         onChange({
                             date,
-                            teacherId,
-                            groupId,
-                            classroom: option ? option.value : '',
+                            teacherIds,
+                            groupIds,
+                            classrooms: options.map(option => option.value),
                             subject,
                         });
                     }}
+                    isMulti
                     isClearable
                 />
             </div>
@@ -130,12 +133,12 @@ export function ScheduleFilters({ date, teacherId, groupId, classroom, subject, 
                     type="text"
                     placeholder="Предмет"
                     value={subject}
-                    onChange={e => onChange({ date, teacherId, groupId, classroom, subject: e.target.value })}
+                    onChange={e => onChange({ date, teacherIds, groupIds, classrooms, subject: e.target.value })}
                 />
             </div>
 
             <div className="schedule-filters__action">
-                <button className="schedule-filters__submit" onClick={onSearch}>Найти</button>
+                <button className="schedule-filters__submit" type="button" onClick={onSearch}>Найти</button>
             </div>
         </div>
     );
