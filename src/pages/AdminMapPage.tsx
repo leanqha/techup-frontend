@@ -62,19 +62,31 @@ type RoomGraph = {
 type SvgGraphNode = {
     roomId: number;
     roomName: string;
+    buildingId: number;
+    floor: number;
+    corridorY: number;
     x: number;
     y: number;
     isIsolated: boolean;
+};
+
+type SvgGraphZone = {
+    key: string;
+    label: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    corridorY: number;
 };
 
 type SvgGraphEdge = {
     key: string;
     fromRoomId: number;
     toRoomId: number;
-    fromX: number;
-    fromY: number;
-    toX: number;
-    toY: number;
+    pathD: string;
+    labelX: number;
+    labelY: number;
     distance: number;
     type: string;
 };
@@ -82,6 +94,7 @@ type SvgGraphEdge = {
 type SvgGraphLayout = {
     width: number;
     height: number;
+    zones: SvgGraphZone[];
     nodes: SvgGraphNode[];
     edges: SvgGraphEdge[];
 };
@@ -195,29 +208,86 @@ function buildRoomGraph(rooms: MapRoom[], connections: MapConnection[]): RoomGra
 }
 
 function buildSvgGraphLayout(graph: RoomGraph): SvgGraphLayout {
-    const width = 900;
-    const height = 520;
+    const buildingIds = [...new Set(graph.nodes.map(node => node.buildingId))].sort((a, b) => a - b);
+    const floors = [...new Set(graph.nodes.map(node => node.floor))].sort((a, b) => a - b);
+
+    const zoneWidth = 280;
+    const zoneHeight = 120;
+    const marginX = 70;
+    const marginY = 70;
+    const gapX = 40;
+    const gapY = 44;
+
+    const width = Math.max(900, marginX * 2 + buildingIds.length * zoneWidth + Math.max(0, buildingIds.length - 1) * gapX);
+    const height = Math.max(520, marginY * 2 + floors.length * zoneHeight + Math.max(0, floors.length - 1) * gapY);
 
     if (!graph.nodes.length) {
-        return { width, height, nodes: [], edges: [] };
+        return { width, height, zones: [], nodes: [], edges: [] };
     }
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const baseRadius = 150;
-    const outerRadius = Math.min(width, height) / 2 - 60;
-    const ringRadius = Math.max(baseRadius, Math.min(outerRadius, graph.nodes.length * 14));
+    const buildingIndex = new Map(buildingIds.map((id, index) => [id, index]));
+    const floorIndex = new Map(floors.map((value, index) => [value, index]));
 
-    const positionedNodes: SvgGraphNode[] = graph.nodes.map((node, index) => {
-        const angle = (2 * Math.PI * index) / graph.nodes.length - Math.PI / 2;
-        return {
-            roomId: node.roomId,
-            roomName: node.roomName,
-            x: centerX + Math.cos(angle) * ringRadius,
-            y: centerY + Math.sin(angle) * ringRadius,
-            isIsolated: node.neighbors.length === 0,
-        };
-    });
+    const zones: SvgGraphZone[] = [];
+    const nodesByZone = new Map<string, GraphNode[]>();
+
+    for (const node of graph.nodes) {
+        const zoneKey = `${node.buildingId}:${node.floor}`;
+        const bucket = nodesByZone.get(zoneKey) ?? [];
+        bucket.push(node);
+        nodesByZone.set(zoneKey, bucket);
+    }
+
+    for (const [zoneKey] of nodesByZone) {
+        const [buildingText, floorText] = zoneKey.split(':');
+        const buildingId = Number(buildingText);
+        const floor = Number(floorText);
+        const col = buildingIndex.get(buildingId) ?? 0;
+        const row = floorIndex.get(floor) ?? 0;
+
+        const x = marginX + col * (zoneWidth + gapX);
+        const y = marginY + row * (zoneHeight + gapY);
+        const corridorY = y + zoneHeight / 2;
+
+        zones.push({
+            key: zoneKey,
+            label: `Корпус ${buildingId}, этаж ${floor}`,
+            x,
+            y,
+            width: zoneWidth,
+            height: zoneHeight,
+            corridorY,
+        });
+    }
+
+    zones.sort((a, b) => a.y - b.y || a.x - b.x);
+
+    const zoneByKey = new Map(zones.map(zone => [zone.key, zone]));
+    const positionedNodes: SvgGraphNode[] = [];
+
+    for (const [zoneKey, nodes] of nodesByZone) {
+        const zone = zoneByKey.get(zoneKey);
+        if (!zone) continue;
+
+        const sortedNodes = [...nodes].sort((a, b) => a.roomName.localeCompare(b.roomName, 'ru', { sensitivity: 'base' }));
+        const stepX = zone.width / (sortedNodes.length + 1);
+
+        sortedNodes.forEach((node, index) => {
+            const x = zone.x + stepX * (index + 1);
+            const y = zone.corridorY + (index % 2 === 0 ? -26 : 26);
+
+            positionedNodes.push({
+                roomId: node.roomId,
+                roomName: node.roomName,
+                buildingId: node.buildingId,
+                floor: node.floor,
+                corridorY: zone.corridorY,
+                x,
+                y,
+                isIsolated: node.neighbors.length === 0,
+            });
+        });
+    }
 
     const nodeById = new Map(positionedNodes.map(node => [node.roomId, node]));
     const usedConnectionIds = new Set<number>();
@@ -232,14 +302,25 @@ function buildSvgGraphLayout(graph: RoomGraph): SvgGraphLayout {
             if (!fromNode || !toNode) continue;
 
             usedConnectionIds.add(neighbor.connectionId);
+
+            const centerX = (fromNode.x + toNode.x) / 2;
+            const centerY = (fromNode.corridorY + toNode.corridorY) / 2;
+            const pathD = [
+                `M ${fromNode.x} ${fromNode.y}`,
+                `L ${fromNode.x} ${fromNode.corridorY}`,
+                `L ${centerX} ${fromNode.corridorY}`,
+                `L ${centerX} ${toNode.corridorY}`,
+                `L ${toNode.x} ${toNode.corridorY}`,
+                `L ${toNode.x} ${toNode.y}`,
+            ].join(' ');
+
             edges.push({
                 key: String(neighbor.connectionId),
                 fromRoomId: fromNode.roomId,
                 toRoomId: toNode.roomId,
-                fromX: fromNode.x,
-                fromY: fromNode.y,
-                toX: toNode.x,
-                toY: toNode.y,
+                pathD,
+                labelX: centerX,
+                labelY: centerY - 6,
                 distance: neighbor.distance,
                 type: neighbor.type,
             });
@@ -249,6 +330,7 @@ function buildSvgGraphLayout(graph: RoomGraph): SvgGraphLayout {
     return {
         width,
         height,
+        zones,
         nodes: positionedNodes,
         edges,
     };
@@ -612,21 +694,23 @@ export function AdminMapPage() {
                             aria-label="Визуализация графа комнат и связей"
                         >
                             <g>
+                                {svgGraphLayout.zones.map(zone => (
+                                    <g key={zone.key}>
+                                        <rect x={zone.x} y={zone.y} width={zone.width} height={zone.height} className="admin-map-svg-zone" />
+                                        <line x1={zone.x + 16} y1={zone.corridorY} x2={zone.x + zone.width - 16} y2={zone.corridorY} className="admin-map-svg-corridor" />
+                                        <text x={zone.x + 10} y={zone.y + 16} className="admin-map-svg-zone-label">{zone.label}</text>
+                                    </g>
+                                ))}
+                            </g>
+
+                            <g>
                                 {svgGraphLayout.edges.map(edge => {
-                                    const midX = (edge.fromX + edge.toX) / 2;
-                                    const midY = (edge.fromY + edge.toY) / 2;
                                     const isSpecialType = edge.type !== 'corridor';
 
                                     return (
                                         <g key={edge.key}>
-                                            <line
-                                                x1={edge.fromX}
-                                                y1={edge.fromY}
-                                                x2={edge.toX}
-                                                y2={edge.toY}
-                                                className={isSpecialType ? 'admin-map-svg-edge admin-map-svg-edge--special' : 'admin-map-svg-edge'}
-                                            />
-                                            <text x={midX} y={midY} className="admin-map-svg-edge-label">
+                                            <path d={edge.pathD} className={isSpecialType ? 'admin-map-svg-edge admin-map-svg-edge--special' : 'admin-map-svg-edge'} />
+                                            <text x={edge.labelX} y={edge.labelY} className="admin-map-svg-edge-label">
                                                 {edge.distance}
                                             </text>
                                         </g>
@@ -646,7 +730,7 @@ export function AdminMapPage() {
                                         <text x={node.x} y={node.y + 4} className="admin-map-svg-node-label">
                                             {shortRoomLabel(node.roomName)}
                                         </text>
-                                        <title>{`${node.roomName} (#${node.roomId})`}</title>
+                                        <title>{`${node.roomName} (#${node.roomId}), корпус ${node.buildingId}, этаж ${node.floor}`}</title>
                                     </g>
                                 ))}
                             </g>

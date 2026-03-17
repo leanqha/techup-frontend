@@ -214,30 +214,39 @@
 
 .admin-map-svg {
     width: 100%;
-    min-width: 680px;
+    min-width: 760px;
     height: auto;
     display: block;
 }
 
-.admin-map-svg-edge {
+.admin-map-svg-zone {
+    fill: #eef2ff;
+    stroke: #c7d2fe;
+    stroke-width: 1;
+    rx: 12;
+}
+
+.admin-map-svg-zone-label {
+    font-size: 12px;
+    fill: #334155;
+    font-weight: 600;
+}
+
+.admin-map-svg-corridor {
     stroke: #94a3b8;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.admin-map-svg-edge {
+    fill: none;
+    stroke: #64748b;
     stroke-width: 2;
 }
 
 .admin-map-svg-edge--special {
     stroke: #0ea5e9;
     stroke-dasharray: 6 4;
-}
-
-.admin-map-svg-edge-label {
-    font-size: 11px;
-    fill: #334155;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    paint-order: stroke;
-    stroke: #ffffff;
-    stroke-width: 3px;
-    stroke-linejoin: round;
 }
 
 .admin-map-svg-node {
