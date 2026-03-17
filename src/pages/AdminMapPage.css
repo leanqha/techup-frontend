@@ -204,6 +204,93 @@
     color: #64748b;
 }
 
+.admin-map-svg-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 8px;
+    overflow: auto;
+}
+
+.admin-map-svg {
+    width: 100%;
+    min-width: 680px;
+    height: auto;
+    display: block;
+}
+
+.admin-map-svg-edge {
+    stroke: #94a3b8;
+    stroke-width: 2;
+}
+
+.admin-map-svg-edge--special {
+    stroke: #0ea5e9;
+    stroke-dasharray: 6 4;
+}
+
+.admin-map-svg-edge-label {
+    font-size: 11px;
+    fill: #334155;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    paint-order: stroke;
+    stroke: #ffffff;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+.admin-map-svg-node {
+    fill: #2563eb;
+    stroke: #1d4ed8;
+    stroke-width: 2;
+}
+
+.admin-map-svg-node--isolated {
+    fill: #f59e0b;
+    stroke: #d97706;
+}
+
+.admin-map-svg-node-label {
+    fill: #ffffff;
+    font-size: 10px;
+    text-anchor: middle;
+    pointer-events: none;
+    font-weight: 600;
+}
+
+.admin-map-graph-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+}
+
+.admin-map-graph-node {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    background: #f8fafc;
+    display: grid;
+    gap: 8px;
+}
+
+.admin-map-graph-node h3 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.admin-map-graph-node ul {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 4px;
+}
+
+.admin-map-graph-node li {
+    color: #1e293b;
+    font-size: 13px;
+}
+
 @media (max-width: 1024px) {
     .admin-map-table-header {
         display: none;

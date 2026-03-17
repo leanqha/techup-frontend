@@ -36,6 +36,56 @@ type ConnectionFormState = {
     type: string;
 };
 
+type GraphNeighbor = {
+    connectionId: number;
+    targetRoomId: number;
+    targetRoomName: string;
+    distance: number;
+    type: string;
+};
+
+type GraphNode = {
+    roomId: number;
+    roomName: string;
+    buildingId: number;
+    floor: number;
+    neighbors: GraphNeighbor[];
+};
+
+type RoomGraph = {
+    nodes: GraphNode[];
+    validConnectionCount: number;
+    invalidConnectionIds: number[];
+    isolatedRoomIds: number[];
+};
+
+type SvgGraphNode = {
+    roomId: number;
+    roomName: string;
+    x: number;
+    y: number;
+    isIsolated: boolean;
+};
+
+type SvgGraphEdge = {
+    key: string;
+    fromRoomId: number;
+    toRoomId: number;
+    fromX: number;
+    fromY: number;
+    toX: number;
+    toY: number;
+    distance: number;
+    type: string;
+};
+
+type SvgGraphLayout = {
+    width: number;
+    height: number;
+    nodes: SvgGraphNode[];
+    edges: SvgGraphEdge[];
+};
+
 const emptyRoomForm: RoomFormState = {
     name: '',
     building_id: '',
@@ -49,6 +99,163 @@ const emptyConnectionForm: ConnectionFormState = {
     distance: '1',
     type: 'corridor',
 };
+
+const normalizeRoomName = (value: string) => value.trim().toLocaleLowerCase('ru');
+
+function buildRoomGraph(rooms: MapRoom[], connections: MapConnection[]): RoomGraph {
+    const roomsById = new Map(rooms.map(room => [room.id, room]));
+    const roomIdByName = new Map<string, number>();
+
+    for (const room of rooms) {
+        const key = normalizeRoomName(room.name);
+        if (!roomIdByName.has(key)) {
+            roomIdByName.set(key, room.id);
+        }
+    }
+
+    const adjacency = new Map<number, GraphNeighbor[]>();
+    for (const room of rooms) {
+        adjacency.set(room.id, []);
+    }
+
+    const invalidConnectionIds: number[] = [];
+    let validConnectionCount = 0;
+
+    const resolveRoomId = (roomId: number | undefined, roomName: string | undefined): number | null => {
+        if (typeof roomId === 'number' && roomsById.has(roomId)) {
+            return roomId;
+        }
+
+        if (roomName) {
+            const resolvedByName = roomIdByName.get(normalizeRoomName(roomName));
+            if (typeof resolvedByName === 'number') {
+                return resolvedByName;
+            }
+        }
+
+        return null;
+    };
+
+    for (const connection of connections) {
+        const fromId = resolveRoomId(connection.from_room_id, connection.room_from);
+        const toId = resolveRoomId(connection.to_room_id, connection.room_to);
+
+        if (!fromId || !toId) {
+            invalidConnectionIds.push(connection.id);
+            continue;
+        }
+
+        const fromRoom = roomsById.get(fromId);
+        const toRoom = roomsById.get(toId);
+
+        if (!fromRoom || !toRoom) {
+            invalidConnectionIds.push(connection.id);
+            continue;
+        }
+
+        validConnectionCount += 1;
+        const edgeType = connection.type ?? 'corridor';
+
+        adjacency.get(fromId)?.push({
+            connectionId: connection.id,
+            targetRoomId: toRoom.id,
+            targetRoomName: toRoom.name,
+            distance: connection.distance,
+            type: edgeType,
+        });
+
+        // Assume undirected navigation between connected rooms.
+        adjacency.get(toId)?.push({
+            connectionId: connection.id,
+            targetRoomId: fromRoom.id,
+            targetRoomName: fromRoom.name,
+            distance: connection.distance,
+            type: edgeType,
+        });
+    }
+
+    const nodes: GraphNode[] = rooms
+        .map(room => ({
+            roomId: room.id,
+            roomName: room.name,
+            buildingId: room.building_id,
+            floor: room.floor,
+            neighbors: [...(adjacency.get(room.id) ?? [])].sort((a, b) => a.targetRoomName.localeCompare(b.targetRoomName, 'ru', { sensitivity: 'base' })),
+        }))
+        .sort((a, b) => a.roomName.localeCompare(b.roomName, 'ru', { sensitivity: 'base' }));
+
+    const isolatedRoomIds = nodes.filter(node => node.neighbors.length === 0).map(node => node.roomId);
+
+    return {
+        nodes,
+        validConnectionCount,
+        invalidConnectionIds,
+        isolatedRoomIds,
+    };
+}
+
+function buildSvgGraphLayout(graph: RoomGraph): SvgGraphLayout {
+    const width = 900;
+    const height = 520;
+
+    if (!graph.nodes.length) {
+        return { width, height, nodes: [], edges: [] };
+    }
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const baseRadius = 150;
+    const outerRadius = Math.min(width, height) / 2 - 60;
+    const ringRadius = Math.max(baseRadius, Math.min(outerRadius, graph.nodes.length * 14));
+
+    const positionedNodes: SvgGraphNode[] = graph.nodes.map((node, index) => {
+        const angle = (2 * Math.PI * index) / graph.nodes.length - Math.PI / 2;
+        return {
+            roomId: node.roomId,
+            roomName: node.roomName,
+            x: centerX + Math.cos(angle) * ringRadius,
+            y: centerY + Math.sin(angle) * ringRadius,
+            isIsolated: node.neighbors.length === 0,
+        };
+    });
+
+    const nodeById = new Map(positionedNodes.map(node => [node.roomId, node]));
+    const usedConnectionIds = new Set<number>();
+    const edges: SvgGraphEdge[] = [];
+
+    for (const node of graph.nodes) {
+        for (const neighbor of node.neighbors) {
+            if (usedConnectionIds.has(neighbor.connectionId)) continue;
+
+            const fromNode = nodeById.get(node.roomId);
+            const toNode = nodeById.get(neighbor.targetRoomId);
+            if (!fromNode || !toNode) continue;
+
+            usedConnectionIds.add(neighbor.connectionId);
+            edges.push({
+                key: String(neighbor.connectionId),
+                fromRoomId: fromNode.roomId,
+                toRoomId: toNode.roomId,
+                fromX: fromNode.x,
+                fromY: fromNode.y,
+                toX: toNode.x,
+                toY: toNode.y,
+                distance: neighbor.distance,
+                type: neighbor.type,
+            });
+        }
+    }
+
+    return {
+        width,
+        height,
+        nodes: positionedNodes,
+        edges,
+    };
+}
+
+const svgNodeRadius = 18;
+const shortRoomLabel = (name: string) => (name.length > 10 ? `${name.slice(0, 9)}...` : name);
 
 export function AdminMapPage() {
     const { profile } = useAuth();
@@ -83,6 +290,8 @@ export function AdminMapPage() {
 
     const roomsById = useMemo(() => new Map(rooms.map(item => [item.id, item])), [rooms]);
     const buildingsById = useMemo(() => new Map(buildings.map(item => [item.id, item])), [buildings]);
+    const roomGraph = useMemo(() => buildRoomGraph(rooms, connections), [rooms, connections]);
+    const svgGraphLayout = useMemo(() => buildSvgGraphLayout(roomGraph), [roomGraph]);
 
     const pathRoomOptions = useMemo(() => {
         return [...rooms].sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
@@ -381,6 +590,96 @@ export function AdminMapPage() {
                     </button>
                 </div>
                 <pre>{pathResult || 'Нет данных'}</pre>
+            </section>
+
+            <section className="admin-map-card">
+                <h2>Граф комнат и связей</h2>
+                <p className="admin-map-status">
+                    Комнат: {roomGraph.nodes.length}, валидных связей: {roomGraph.validConnectionCount}, изолированных комнат: {roomGraph.isolatedRoomIds.length}
+                </p>
+                {!!roomGraph.invalidConnectionIds.length && (
+                    <p className="admin-map-hint">
+                        Пропущено связей с неизвестными комнатами: {roomGraph.invalidConnectionIds.join(', ')}
+                    </p>
+                )}
+
+                <div className="admin-map-svg-wrap">
+                    {svgGraphLayout.nodes.length ? (
+                        <svg
+                            className="admin-map-svg"
+                            viewBox={`0 0 ${svgGraphLayout.width} ${svgGraphLayout.height}`}
+                            role="img"
+                            aria-label="Визуализация графа комнат и связей"
+                        >
+                            <g>
+                                {svgGraphLayout.edges.map(edge => {
+                                    const midX = (edge.fromX + edge.toX) / 2;
+                                    const midY = (edge.fromY + edge.toY) / 2;
+                                    const isSpecialType = edge.type !== 'corridor';
+
+                                    return (
+                                        <g key={edge.key}>
+                                            <line
+                                                x1={edge.fromX}
+                                                y1={edge.fromY}
+                                                x2={edge.toX}
+                                                y2={edge.toY}
+                                                className={isSpecialType ? 'admin-map-svg-edge admin-map-svg-edge--special' : 'admin-map-svg-edge'}
+                                            />
+                                            <text x={midX} y={midY} className="admin-map-svg-edge-label">
+                                                {edge.distance}
+                                            </text>
+                                        </g>
+                                    );
+                                })}
+                            </g>
+
+                            <g>
+                                {svgGraphLayout.nodes.map(node => (
+                                    <g key={node.roomId}>
+                                        <circle
+                                            cx={node.x}
+                                            cy={node.y}
+                                            r={svgNodeRadius}
+                                            className={node.isIsolated ? 'admin-map-svg-node admin-map-svg-node--isolated' : 'admin-map-svg-node'}
+                                        />
+                                        <text x={node.x} y={node.y + 4} className="admin-map-svg-node-label">
+                                            {shortRoomLabel(node.roomName)}
+                                        </text>
+                                        <title>{`${node.roomName} (#${node.roomId})`}</title>
+                                    </g>
+                                ))}
+                            </g>
+                        </svg>
+                    ) : (
+                        <p className="admin-map-status">Нет данных для SVG-графа</p>
+                    )}
+                </div>
+
+                <div className="admin-map-graph-list">
+                    {roomGraph.nodes.map(node => (
+                        <article key={node.roomId} className="admin-map-graph-node">
+                            <h3>
+                                {node.roomName} (#{node.roomId})
+                            </h3>
+                            <p className="admin-map-hint">
+                                {buildingsById.get(node.buildingId)?.name ?? `Корпус #${node.buildingId}`}, этаж {node.floor}
+                            </p>
+                            {node.neighbors.length > 0 ? (
+                                <ul>
+                                    {node.neighbors.map(neighbor => (
+                                        <li key={`${neighbor.connectionId}-${neighbor.targetRoomId}`}>
+                                            {neighbor.targetRoomName} (dist: {neighbor.distance}, type: {neighbor.type})
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="admin-map-hint">Нет связей</p>
+                            )}
+                        </article>
+                    ))}
+                    {!roomGraph.nodes.length && !busy && <p className="admin-map-status">Данные для графа отсутствуют</p>}
+                </div>
             </section>
 
             <section className="admin-map-card">
