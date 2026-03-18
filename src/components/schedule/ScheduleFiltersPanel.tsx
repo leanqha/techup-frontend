@@ -17,6 +17,7 @@ export type ScheduleFilterValues = {
 
 type Props = {
     defaultGroupId?: number | null;
+    defaultTeacherIds?: number[];
     onSearch: (filters: ScheduleFilterValues) => void;
 };
 
@@ -31,13 +32,13 @@ function formatTeacherName(teacher: AccountProfile) {
     return parts.length ? parts.join(' ') : teacher.email || teacher.uid;
 }
 
-export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props) {
+export function ScheduleFiltersPanel({ defaultGroupId = null, defaultTeacherIds = [], onSearch }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [teachers, setTeachers] = useState<AccountProfile[]>([]);
     const [groups, setGroups] = useState<Group[]>([]);
     const [filters, setFilters] = useState<ScheduleFilterValues>({
         date: '',
-        teacherIds: [],
+        teacherIds: [...new Set(defaultTeacherIds)],
         groupIds: defaultGroupId ? [defaultGroupId] : [],
         classrooms: [],
         subject: '',
@@ -61,7 +62,7 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, onSearch }: Props)
     const handleReset = () => {
         const cleared = {
             date: '',
-            teacherIds: [],
+            teacherIds: [...new Set(defaultTeacherIds)],
             groupIds: defaultGroupId ? [defaultGroupId] : [],
             classrooms: [],
             subject: '',

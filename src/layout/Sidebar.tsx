@@ -70,6 +70,27 @@ const CalendarIcon = () => (
     </svg>
 );
 
+const UsersIcon = () => (
+    <svg className="sidebarLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+            d="M8 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        <path
+            d="M2 20a6 6 0 0 1 12 0M10 20a6 6 0 0 1 12 0"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+
 const ShieldIcon = () => (
     <svg className="sidebarLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -148,6 +169,16 @@ export function Sidebar({ closeSidebar }: Props) {
                     >
                         <CalendarIcon />
                         <span>Расписание</span>
+                    </NavLink>
+                    <NavLink
+                        to="/teachers"
+                        onClick={handleNavClick}
+                        className={({ isActive }) =>
+                            `sidebarLink${isActive ? ' active' : ''}`
+                        }
+                    >
+                        <UsersIcon />
+                        <span>Преподаватели</span>
                     </NavLink>
                     {profile?.role === 'admin' && (
                         <>

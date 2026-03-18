@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import { fetchLessons, searchLessons } from '../api/schedule';
 import { ScheduleFiltersPanel, type ScheduleFilterValues } from '../components/schedule/ScheduleFiltersPanel.tsx';
@@ -33,16 +34,36 @@ function filterLessonsByWeek(items: Lesson[], from: string, to: string): Lesson[
     return items.filter(lesson => lesson.date >= from && lesson.date <= to);
 }
 
+function parseTeacherId(value: string | null): number | null {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function makeTeacherFilters(teacherId: number): ScheduleFilterValues {
+    return {
+        date: '',
+        teacherIds: [teacherId],
+        groupIds: [],
+        classrooms: [],
+        subject: '',
+    };
+}
+
 export function SchedulePage() {
     const { profile } = useAuth();
+    const [searchParams] = useSearchParams();
+
+    const teacherIdFromQuery = useMemo(() => parseTeacherId(searchParams.get('teacherId')), [searchParams]);
 
     const [weekOffset, setWeekOffset] = useState(0);
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasAutoScrolledToToday, setHasAutoScrolledToToday] = useState(false);
-    const [showGroupInLessonCard, setShowGroupInLessonCard] = useState(false);
-    const [appliedFilters, setAppliedFilters] = useState<ScheduleFilterValues | null>(null);
+    const [showGroupInLessonCard, setShowGroupInLessonCard] = useState(Boolean(teacherIdFromQuery));
+    const [appliedFilters, setAppliedFilters] = useState<ScheduleFilterValues | null>(
+        teacherIdFromQuery ? makeTeacherFilters(teacherIdFromQuery) : null
+    );
     const dayRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const todayIso = useMemo(() => {
         const now = new Date();
@@ -88,7 +109,7 @@ export function SchedulePage() {
     }, [weekOffset]);
 
     useEffect(() => {
-        if (!profile?.group_id) return;
+        if (!profile?.group_id && !appliedFilters) return;
         let cancelled = false;
 
         const load = async () => {
@@ -119,9 +140,15 @@ export function SchedulePage() {
     }, [appliedFilters, loadByFilters, profile?.group_id, weekOffset]);
 
     useEffect(() => {
+        if (teacherIdFromQuery) {
+            setAppliedFilters(makeTeacherFilters(teacherIdFromQuery));
+            setShowGroupInLessonCard(true);
+            return;
+        }
+
         setAppliedFilters(null);
         setShowGroupInLessonCard(false);
-    }, [profile?.group_id]);
+    }, [profile?.group_id, teacherIdFromQuery]);
 
     const handleSearch = (filters: ScheduleFilterValues) => {
         setAppliedFilters(filters);
@@ -153,8 +180,9 @@ export function SchedulePage() {
             <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
             <ScheduleFiltersPanel
-                key={String(profile?.group_id ?? 'none')}
-                defaultGroupId={profile?.group_id ?? null}
+                key={`${String(profile?.group_id ?? 'none')}-${String(teacherIdFromQuery ?? 'none')}`}
+                defaultGroupId={teacherIdFromQuery ? null : profile?.group_id ?? null}
+                defaultTeacherIds={teacherIdFromQuery ? [teacherIdFromQuery] : []}
                 onSearch={handleSearch}
             />
 

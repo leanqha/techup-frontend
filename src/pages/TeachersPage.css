@@ -1,0 +1,138 @@
+.teachers-page {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.teachers-page__header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.teachers-page__header p {
+    margin: 6px 0 0;
+    color: #6b7280;
+}
+
+.teachers-page__search {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.teachers-page__search input {
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.teachers-page__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.teachers-page__card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 14px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.teachers-page__card:hover {
+    border-color: #93c5fd;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.1);
+}
+
+.teachers-page__card-name {
+    font-weight: 600;
+}
+
+.teachers-page__card-meta {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.teachers-page__error {
+    margin: 0;
+    color: #b91c1c;
+}
+
+.teachers-page__empty {
+    margin: 0;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.teachers-page__popup-overlay {
+    background: rgba(17, 24, 39, 0.45);
+    padding: 16px;
+}
+
+.teachers-page__popup {
+    width: min(520px, 100%);
+}
+
+.teachers-page__modal {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.teachers-page__modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.teachers-page__modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.teachers-page__modal-close {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+}
+
+.teachers-page__modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.teachers-page__modal-body p {
+    margin: 0;
+}
+
+.teachers-page__modal-action {
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #ffffff;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.teachers-page__modal-action:hover {
+    background: #1d4ed8;
+}
+

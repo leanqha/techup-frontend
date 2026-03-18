@@ -9,6 +9,7 @@ import { useAuth } from './context/useAuth.ts';
 import { SchedulePage } from './pages/SchedulePage.tsx';
 import { AdminPage } from './pages/AdminPage.tsx';
 import { AdminMapPage } from './pages/AdminMapPage.tsx';
+import { TeachersPage } from './pages/TeachersPage.tsx';
 
 function App() {
     const { profile, refreshProfile } = useAuth();
@@ -75,6 +76,17 @@ function App() {
                     <ProtectedRoute>
                         <Layout>
                             <SchedulePage />
+                        </Layout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/teachers"
+                element={
+                    <ProtectedRoute>
+                        <Layout>
+                            <TeachersPage />
                         </Layout>
                     </ProtectedRoute>
                 }
