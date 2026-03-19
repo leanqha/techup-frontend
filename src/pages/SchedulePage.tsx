@@ -122,8 +122,14 @@ export function SchedulePage() {
                     return;
                 }
 
+                const groupId = profile?.group_id;
+                if (!groupId) {
+                    if (!cancelled) setLessons([]);
+                    return;
+                }
+
                 const { from, to } = getWeekRange(weekOffset);
-                const data = await fetchLessons(profile.group_id, from, to);
+                const data = await fetchLessons(groupId, from, to);
                 if (!cancelled) setLessons(Array.isArray(data) ? data : []);
             } catch (e: unknown) {
                 if (!cancelled) {
