@@ -9,7 +9,9 @@ import './TeachersPage.css';
 
 function formatTeacherName(teacher: AccountProfile) {
     const parts = [teacher.last_name, teacher.first_name, teacher.middle_name].filter(Boolean);
-    return parts.length ? parts.join(' ') : teacher.email || teacher.uid;
+    if (parts.length) return parts.join(' ');
+    if (teacher.email) return teacher.email;
+    return 'Преподаватель';
 }
 
 export function TeachersPage() {
@@ -52,11 +54,16 @@ export function TeachersPage() {
         };
     }, []);
 
+    const visibleTeachers = useMemo(
+        () => teachers.filter(teacher => teacher.id > 0),
+        [teachers]
+    );
+
     const filteredTeachers = useMemo(() => {
         const query = search.trim().toLowerCase();
-        if (!query) return teachers;
+        if (!query) return visibleTeachers;
 
-        return teachers.filter(teacher => {
+        return visibleTeachers.filter(teacher => {
             const fullName = [teacher.last_name, teacher.first_name, teacher.middle_name]
                 .filter(Boolean)
                 .join(' ')
@@ -64,7 +71,7 @@ export function TeachersPage() {
 
             return fullName.includes(query);
         });
-    }, [search, teachers]);
+    }, [search, visibleTeachers]);
 
     const openTeacher = (teacher: AccountProfile) => {
         setSelectedTeacher(teacher);
