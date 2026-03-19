@@ -58,11 +58,6 @@
     font-weight: 600;
 }
 
-.teachers-page__card-meta {
-    color: #6b7280;
-    font-size: 13px;
-}
-
 .teachers-page__error {
     margin: 0;
     color: #b91c1c;
@@ -135,4 +130,3 @@
 .teachers-page__modal-action:hover {
     background: #1d4ed8;
 }
-

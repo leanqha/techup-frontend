@@ -57,10 +57,12 @@ export function TeachersPage() {
         if (!query) return teachers;
 
         return teachers.filter(teacher => {
-            const fullName = formatTeacherName(teacher).toLowerCase();
-            const email = teacher.email?.toLowerCase() ?? '';
-            const uid = teacher.uid?.toLowerCase() ?? '';
-            return fullName.includes(query) || email.includes(query) || uid.includes(query);
+            const fullName = [teacher.last_name, teacher.first_name, teacher.middle_name]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+
+            return fullName.includes(query);
         });
     }, [search, teachers]);
 
@@ -86,7 +88,7 @@ export function TeachersPage() {
                     type="text"
                     value={search}
                     onChange={event => setSearch(event.target.value)}
-                    placeholder="ФИО, email или uid"
+                    placeholder="ФИО преподавателя"
                 />
             </label>
 
@@ -103,7 +105,6 @@ export function TeachersPage() {
                             onClick={() => openTeacher(teacher)}
                         >
                             <span className="teachers-page__card-name">{formatTeacherName(teacher)}</span>
-                            <span className="teachers-page__card-meta">ID: {teacher.id}</span>
                         </button>
                     ))}
                 </div>
@@ -154,4 +155,3 @@ export function TeachersPage() {
         </div>
     );
 }
-
