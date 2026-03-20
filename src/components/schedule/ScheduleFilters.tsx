@@ -71,15 +71,19 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
     const [allClassrooms, setAllClassrooms] = useState<string[]>([]);
     const menuPortalTarget = typeof document !== 'undefined' ? document.body : null;
 
-    const teacherOptions: TeacherOption[] = teachers.map(t => {
-        const nameParts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
-        return {
-            value: t.id,
-            label: nameParts.length ? nameParts.join(' ') : t.email || t.uid,
-        };
-    });
+    const teacherOptions: TeacherOption[] = teachers
+        .filter(teacher => teacher.id > 0)
+        .map(t => {
+            const nameParts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
+            return {
+                value: t.id,
+                label: nameParts.length ? nameParts.join(' ') : t.email || t.uid,
+            };
+        });
 
-    const groupOptions: GroupOption[] = groups.map(group => ({ value: group.id, label: group.name }));
+    const groupOptions: GroupOption[] = groups
+        .filter(group => group.id > 0)
+        .map(group => ({ value: group.id, label: group.name }));
     const classroomOptions: ClassroomOption[] = allClassrooms.map(c => ({ value: c, label: c }));
 
     const selectedTeachers = teacherOptions.filter(option => teacherIds.includes(option.value));
