@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScheduleFilters } from './ScheduleFilters.tsx';
 import { Popup } from '../ui/Popup.tsx';
 import { CloseIcon } from '../icons/CloseIcon.tsx';
-import { fetchGroups, fetchTeachers } from '../../api/schedule.ts';
-import type { Group } from '../../api/types/schedule.ts';
 import type { Profile as AccountProfile } from '../../api/types/types.ts';
+import { useScheduleFilterOptions } from './useScheduleFilterOptions.ts';
 import './ScheduleFilters.css';
 
 export type ScheduleFilterValues = {
@@ -34,8 +33,13 @@ function formatTeacherName(teacher: AccountProfile) {
 
 export function ScheduleFiltersPanel({ defaultGroupId = null, defaultTeacherIds = [], onSearch }: Props) {
     const [isOpen, setIsOpen] = useState(false);
-    const [teachers, setTeachers] = useState<AccountProfile[]>([]);
-    const [groups, setGroups] = useState<Group[]>([]);
+    const {
+        teachers,
+        groups,
+        allClassrooms,
+        loadingOptions,
+        optionsError,
+    } = useScheduleFilterOptions();
     const [filters, setFilters] = useState<ScheduleFilterValues>({
         date: '',
         teacherIds: [...new Set(defaultTeacherIds)],
@@ -43,11 +47,6 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, defaultTeacherIds 
         classrooms: [],
         subject: '',
     });
-
-    useEffect(() => {
-        fetchTeachers().then(setTeachers).catch(console.error);
-        fetchGroups().then(setGroups).catch(console.error);
-    }, []);
 
     const applyFilters = (nextFilters: ScheduleFilterValues) => {
         setFilters(nextFilters);
@@ -180,6 +179,11 @@ export function ScheduleFiltersPanel({ defaultGroupId = null, defaultTeacherIds 
                         groupIds={filters.groupIds}
                         classrooms={filters.classrooms}
                         subject={filters.subject}
+                        teachers={teachers}
+                        groups={groups}
+                        allClassrooms={allClassrooms}
+                        loadingOptions={loadingOptions}
+                        optionsError={optionsError}
                         onChange={setFilters}
                         onSearch={handleSearch}
                     />

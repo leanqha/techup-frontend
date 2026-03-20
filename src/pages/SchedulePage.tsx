@@ -9,15 +9,24 @@ import type { Dispatch, SetStateAction } from 'react';
 import { Loader } from '../components/Loader.tsx';
 import './SchedulePage.css';
 
+function formatLocalDateISO(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function getWeekRange(offset: number) {
     const now = new Date();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - now.getDay() + 1 + offset * 7);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    const mondayShift = (now.getDay() + 6) % 7;
 
-    const toISO = (d: Date) => d.toISOString().slice(0, 10);
-    return { from: toISO(monday), to: toISO(sunday) };
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayShift + offset * 7);
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+
+    return {
+        from: formatLocalDateISO(monday),
+        to: formatLocalDateISO(sunday),
+    };
 }
 
 function uniqueLessons(items: Lesson[]): Lesson[] {

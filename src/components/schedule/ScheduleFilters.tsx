@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
 import Select, { components, type MultiValue, type OptionProps } from 'react-select';
-import { fetchTeachers, fetchClassrooms, fetchGroups } from '../../api/schedule.ts';
 import type { Group } from '../../api/types/schedule.ts';
 import type { Profile as AccountProfile } from '../../api/types/types.ts';
 import './ScheduleFilters.css';
@@ -19,6 +17,11 @@ type Props = {
     groupIds: number[];
     classrooms: string[];
     subject: string;
+    teachers: AccountProfile[];
+    groups: Group[];
+    allClassrooms: string[];
+    loadingOptions: boolean;
+    optionsError: string | null;
     onChange: (v: FilterValues) => void;
     onSearch: () => void;
 };
@@ -31,6 +34,41 @@ type CheckboxOptionProps = {
     label: string;
     isSelected: boolean;
 };
+
+function normalizeClassrooms(values: string[]): ClassroomOption[] {
+    const unique = [...new Set(values.map(value => value.trim()).filter(Boolean))];
+    return unique
+        .sort((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'base' }))
+        .map(value => ({ value, label: value }));
+}
+
+function normalizeGroups(values: Group[]): GroupOption[] {
+    const uniqueById = new Map<number, string>();
+
+    values.forEach(group => {
+        if (group.id > 0 && !uniqueById.has(group.id)) {
+            uniqueById.set(group.id, group.name);
+        }
+    });
+
+    return [...uniqueById.entries()]
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'ru', { sensitivity: 'base' }));
+}
+
+function normalizeTeachers(values: AccountProfile[]): TeacherOption[] {
+    const uniqueById = new Map<number, string>();
+
+    values.forEach(teacher => {
+        if (teacher.id <= 0 || uniqueById.has(teacher.id)) return;
+        const nameParts = [teacher.last_name, teacher.first_name, teacher.middle_name].filter(Boolean);
+        uniqueById.set(teacher.id, nameParts.length ? nameParts.join(' ') : teacher.email || teacher.uid);
+    });
+
+    return [...uniqueById.entries()]
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'ru', { sensitivity: 'base' }));
+}
 
 function CheckboxOptionContent({ label, isSelected }: CheckboxOptionProps) {
     return (
@@ -65,39 +103,35 @@ function ClassroomCheckboxOption(props: OptionProps<ClassroomOption, true>) {
     );
 }
 
-export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subject, onChange, onSearch }: Props) {
-    const [teachers, setTeachers] = useState<AccountProfile[]>([]);
-    const [groups, setGroups] = useState<Group[]>([]);
-    const [allClassrooms, setAllClassrooms] = useState<string[]>([]);
+export function ScheduleFilters({
+    date,
+    teacherIds,
+    groupIds,
+    classrooms,
+    subject,
+    teachers,
+    groups,
+    allClassrooms,
+    loadingOptions,
+    optionsError,
+    onChange,
+    onSearch,
+}: Props) {
     const menuPortalTarget = typeof document !== 'undefined' ? document.body : null;
 
-    const teacherOptions: TeacherOption[] = teachers
-        .filter(teacher => teacher.id > 0)
-        .map(t => {
-            const nameParts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
-            return {
-                value: t.id,
-                label: nameParts.length ? nameParts.join(' ') : t.email || t.uid,
-            };
-        });
-
-    const groupOptions: GroupOption[] = groups
-        .filter(group => group.id > 0)
-        .map(group => ({ value: group.id, label: group.name }));
-    const classroomOptions: ClassroomOption[] = allClassrooms.map(c => ({ value: c, label: c }));
+    const teacherOptions = normalizeTeachers(teachers);
+    const groupOptions = normalizeGroups(groups);
+    const classroomOptions = normalizeClassrooms(allClassrooms);
 
     const selectedTeachers = teacherOptions.filter(option => teacherIds.includes(option.value));
     const selectedGroups = groupOptions.filter(option => groupIds.includes(option.value));
     const selectedClassrooms = classroomOptions.filter(option => classrooms.includes(option.value));
 
-    useEffect(() => {
-        fetchTeachers().then(setTeachers).catch(console.error);
-        fetchGroups().then(setGroups).catch(console.error);
-        fetchClassrooms().then(setAllClassrooms).catch(console.error);
-    }, []);
 
     return (
         <div className="schedule-filters">
+            {loadingOptions && <p>Загрузка фильтров...</p>}
+            {optionsError && <p style={{ color: '#DC2626' }}>{optionsError}</p>}
             <div className="schedule-filters__field">
                 <label className="schedule-filters__label" htmlFor="schedule-filter-date">Дата</label>
                 <input
@@ -128,6 +162,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                         });
                     }}
                     isMulti
+                    isDisabled={loadingOptions}
                     isClearable
                     closeMenuOnSelect={false}
                     blurInputOnSelect={false}
@@ -158,6 +193,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                         });
                     }}
                     isMulti
+                    isDisabled={loadingOptions}
                     isClearable
                     closeMenuOnSelect={false}
                     blurInputOnSelect={false}
@@ -188,6 +224,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                         });
                     }}
                     isMulti
+                    isDisabled={loadingOptions}
                     isClearable
                     closeMenuOnSelect={false}
                     blurInputOnSelect={false}
@@ -212,7 +249,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
             </div>
 
             <div className="schedule-filters__action">
-                <button className="schedule-filters__submit" type="button" onClick={onSearch}>Найти</button>
+                <button className="schedule-filters__submit" type="button" onClick={onSearch} disabled={loadingOptions}>Найти</button>
             </div>
         </div>
     );
