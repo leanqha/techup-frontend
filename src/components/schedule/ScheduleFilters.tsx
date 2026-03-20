@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Select, { type MultiValue } from 'react-select';
+import Select, { components, type MultiValue, type OptionProps } from 'react-select';
 import { fetchTeachers, fetchClassrooms, fetchGroups } from '../../api/schedule.ts';
 import type { Group } from '../../api/types/schedule.ts';
 import type { Profile as AccountProfile } from '../../api/types/types.ts';
@@ -26,6 +26,44 @@ type Props = {
 type TeacherOption = { value: number; label: string };
 type GroupOption = { value: number; label: string };
 type ClassroomOption = { value: string; label: string };
+
+type CheckboxOptionProps = {
+    label: string;
+    isSelected: boolean;
+};
+
+function CheckboxOptionContent({ label, isSelected }: CheckboxOptionProps) {
+    return (
+        <label className="schedule-filter-select__option-checkbox" onClick={event => event.preventDefault()}>
+            <input type="checkbox" checked={isSelected} readOnly aria-hidden tabIndex={-1} />
+            <span>{label}</span>
+        </label>
+    );
+}
+
+function TeacherCheckboxOption(props: OptionProps<TeacherOption, true>) {
+    return (
+        <components.Option {...props}>
+            <CheckboxOptionContent label={props.label} isSelected={props.isSelected} />
+        </components.Option>
+    );
+}
+
+function GroupCheckboxOption(props: OptionProps<GroupOption, true>) {
+    return (
+        <components.Option {...props}>
+            <CheckboxOptionContent label={props.label} isSelected={props.isSelected} />
+        </components.Option>
+    );
+}
+
+function ClassroomCheckboxOption(props: OptionProps<ClassroomOption, true>) {
+    return (
+        <components.Option {...props}>
+            <CheckboxOptionContent label={props.label} isSelected={props.isSelected} />
+        </components.Option>
+    );
+}
 
 export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subject, onChange, onSearch }: Props) {
     const [teachers, setTeachers] = useState<AccountProfile[]>([]);
@@ -57,7 +95,9 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
     return (
         <div className="schedule-filters">
             <div className="schedule-filters__field">
+                <label className="schedule-filters__label" htmlFor="schedule-filter-date">Дата</label>
                 <input
+                    id="schedule-filter-date"
                     className="schedule-filters__input"
                     type="date"
                     value={date}
@@ -66,10 +106,12 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
             </div>
 
             <div className="schedule-filters__field schedule-filters__field--wide">
+                <label className="schedule-filters__label" htmlFor="schedule-filter-teacher">Преподаватели</label>
                 <Select<TeacherOption, true>
+                    inputId="schedule-filter-teacher"
                     className="schedule-filter-select"
                     classNamePrefix="schedule-filter-select"
-                    placeholder="Преподаватель"
+                    placeholder="Выберите преподавателей"
                     options={teacherOptions}
                     value={selectedTeachers}
                     onChange={(options: MultiValue<TeacherOption>) => {
@@ -83,6 +125,9 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     }}
                     isMulti
                     isClearable
+                    closeMenuOnSelect={false}
+                    hideSelectedOptions={false}
+                    components={{ Option: TeacherCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
                     menuPosition="fixed"
                     styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
@@ -90,10 +135,12 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
             </div>
 
             <div className="schedule-filters__field schedule-filters__field--wide">
+                <label className="schedule-filters__label" htmlFor="schedule-filter-group">Группы</label>
                 <Select<GroupOption, true>
+                    inputId="schedule-filter-group"
                     className="schedule-filter-select"
                     classNamePrefix="schedule-filter-select"
-                    placeholder="Группа"
+                    placeholder="Выберите группы"
                     options={groupOptions}
                     value={selectedGroups}
                     onChange={(options: MultiValue<GroupOption>) => {
@@ -107,6 +154,9 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     }}
                     isMulti
                     isClearable
+                    closeMenuOnSelect={false}
+                    hideSelectedOptions={false}
+                    components={{ Option: GroupCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
                     menuPosition="fixed"
                     styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
@@ -114,10 +164,12 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
             </div>
 
             <div className="schedule-filters__field">
+                <label className="schedule-filters__label" htmlFor="schedule-filter-classroom">Аудитории</label>
                 <Select<ClassroomOption, true>
+                    inputId="schedule-filter-classroom"
                     className="schedule-filter-select"
                     classNamePrefix="schedule-filter-select"
-                    placeholder="Аудитория"
+                    placeholder="Выберите аудитории"
                     options={classroomOptions}
                     value={selectedClassrooms}
                     onChange={(options: MultiValue<ClassroomOption>) => {
@@ -131,6 +183,9 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     }}
                     isMulti
                     isClearable
+                    closeMenuOnSelect={false}
+                    hideSelectedOptions={false}
+                    components={{ Option: ClassroomCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
                     menuPosition="fixed"
                     styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
@@ -138,10 +193,12 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
             </div>
 
             <div className="schedule-filters__field">
+                <label className="schedule-filters__label" htmlFor="schedule-filter-subject">Предмет</label>
                 <input
+                    id="schedule-filter-subject"
                     className="schedule-filters__input"
                     type="text"
-                    placeholder="Предмет"
+                    placeholder="Введите название предмета"
                     value={subject}
                     onChange={e => onChange({ date, teacherIds, groupIds, classrooms, subject: e.target.value })}
                 />

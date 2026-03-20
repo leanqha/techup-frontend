@@ -90,21 +90,29 @@
 }
 
 .schedule-filters {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
     margin: 0;
     width: 100%;
     box-sizing: border-box;
 }
 
 .schedule-filters__field {
-    grid-column: span 3;
+    width: 100%;
     min-width: 0;
 }
 
+.schedule-filters__label {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
 .schedule-filters__field--wide {
-    grid-column: span 4;
+    width: 100%;
 }
 
 .schedule-filters__input,
@@ -156,8 +164,26 @@
     overflow: hidden;
 }
 
+.schedule-filter-select__option-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.schedule-filter-select__option-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #2563eb;
+}
+
+.schedule-filter-select__option-checkbox span {
+    flex: 1;
+}
+
 .schedule-filters__action {
-    grid-column: span 2;
+    width: 100%;
 }
 
 .schedule-filters__submit,
@@ -251,15 +277,15 @@
 
 @media (max-width: 900px) {
     .schedule-filters__field {
-        grid-column: span 6;
+        width: 100%;
     }
 
     .schedule-filters__field--wide {
-        grid-column: span 6;
+        width: 100%;
     }
 
     .schedule-filters__action {
-        grid-column: span 6;
+        width: 100%;
     }
 }
 
@@ -283,7 +309,7 @@
     .schedule-filters__field,
     .schedule-filters__field--wide,
     .schedule-filters__action {
-        grid-column: 1 / -1;
+        width: 100%;
     }
 
     .schedule-filters-panel__actions {
