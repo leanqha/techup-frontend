@@ -70,16 +70,6 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
     const [groups, setGroups] = useState<Group[]>([]);
     const [allClassrooms, setAllClassrooms] = useState<string[]>([]);
     const menuPortalTarget = typeof document !== 'undefined' ? document.body : null;
-    const isTouchDevice = typeof window !== 'undefined'
-        && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-
-    const blurKeyboardOnMenuOpen = () => {
-        if (!isTouchDevice || typeof document === 'undefined') return;
-        requestAnimationFrame(() => {
-            const activeElement = document.activeElement;
-            if (activeElement instanceof HTMLElement) activeElement.blur();
-        });
-    };
 
     const teacherOptions: TeacherOption[] = teachers
         .filter(teacher => teacher.id > 0)
@@ -145,7 +135,6 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     components={{ Option: TeacherCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
                     menuPosition="fixed"
-                    onMenuOpen={blurKeyboardOnMenuOpen}
                     styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
                 />
             </div>
@@ -176,7 +165,6 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     components={{ Option: GroupCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
                     menuPosition="fixed"
-                    onMenuOpen={blurKeyboardOnMenuOpen}
                     styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
                 />
             </div>
@@ -207,7 +195,6 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     components={{ Option: ClassroomCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
                     menuPosition="fixed"
-                    onMenuOpen={blurKeyboardOnMenuOpen}
                     styles={{ menuPortal: base => ({ ...base, zIndex: 2000 }) }}
                 />
             </div>
