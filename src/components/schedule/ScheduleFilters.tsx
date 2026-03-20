@@ -130,6 +130,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     isMulti
                     isClearable
                     closeMenuOnSelect={false}
+                    blurInputOnSelect={false}
                     hideSelectedOptions={false}
                     components={{ Option: TeacherCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
@@ -159,6 +160,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     isMulti
                     isClearable
                     closeMenuOnSelect={false}
+                    blurInputOnSelect={false}
                     hideSelectedOptions={false}
                     components={{ Option: GroupCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
@@ -188,6 +190,7 @@ export function ScheduleFilters({ date, teacherIds, groupIds, classrooms, subjec
                     isMulti
                     isClearable
                     closeMenuOnSelect={false}
+                    blurInputOnSelect={false}
                     hideSelectedOptions={false}
                     components={{ Option: ClassroomCheckboxOption }}
                     menuPortalTarget={menuPortalTarget}
