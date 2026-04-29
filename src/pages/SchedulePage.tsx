@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import { useSchedulePreferences, type WeekStart } from '../context/useSchedulePreferences.ts';
 import { fetchLessons, searchLessons } from '../api/schedule';
 import { ScheduleFiltersPanel, type ScheduleFilterValues } from '../components/schedule/ScheduleFiltersPanel.tsx';
 import { ScheduleDay } from '../components/schedule/ScheduleDay';
@@ -16,16 +17,17 @@ function formatLocalDateISO(date: Date): string {
     return `${year}-${month}-${day}`;
 }
 
-function getWeekRange(offset: number) {
+function getWeekRange(offset: number, weekStart: WeekStart) {
     const now = new Date();
-    const mondayShift = (now.getDay() + 6) % 7;
+    const startDayIndex = weekStart === 'saturday' ? 6 : weekStart === 'sunday' ? 0 : 1;
+    const shift = (now.getDay() - startDayIndex + 7) % 7;
 
-    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - mondayShift + offset * 7);
-    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - shift + offset * 7);
+    const endOfWeek = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 6);
 
     return {
-        from: formatLocalDateISO(monday),
-        to: formatLocalDateISO(sunday),
+        from: formatLocalDateISO(startOfWeek),
+        to: formatLocalDateISO(endOfWeek),
     };
 }
 
@@ -60,6 +62,7 @@ function makeTeacherFilters(teacherId: number): ScheduleFilterValues {
 
 export function SchedulePage() {
     const { profile } = useAuth();
+    const { preferences } = useSchedulePreferences();
     const [searchParams] = useSearchParams();
 
     const teacherIdFromQuery = useMemo(() => parseTeacherId(searchParams.get('teacherId')), [searchParams]);
@@ -83,7 +86,7 @@ export function SchedulePage() {
     }, []);
 
     const loadByFilters = useCallback(async (filters: ScheduleFilterValues): Promise<Lesson[]> => {
-        const { from, to } = getWeekRange(weekOffset);
+        const { from, to } = getWeekRange(weekOffset, preferences.weekStart);
 
         const hasNoSearchTerms = !filters.date
             && filters.teacherIds.length === 0
@@ -115,7 +118,7 @@ export function SchedulePage() {
         const responses = await Promise.all(requests);
         const merged = uniqueLessons(responses.flatMap(items => (Array.isArray(items) ? items : [])));
         return filterLessonsByWeek(merged, from, to);
-    }, [weekOffset]);
+    }, [preferences.weekStart, weekOffset]);
 
     useEffect(() => {
         if (!profile?.group_id && !appliedFilters) return;
@@ -137,7 +140,7 @@ export function SchedulePage() {
                     return;
                 }
 
-                const { from, to } = getWeekRange(weekOffset);
+                const { from, to } = getWeekRange(weekOffset, preferences.weekStart);
                 const data = await fetchLessons(groupId, from, to);
                 if (!cancelled) setLessons(Array.isArray(data) ? data : []);
             } catch (e: unknown) {
@@ -152,7 +155,7 @@ export function SchedulePage() {
 
         load();
         return () => { cancelled = true; };
-    }, [appliedFilters, loadByFilters, profile?.group_id, weekOffset]);
+    }, [appliedFilters, loadByFilters, preferences.weekStart, profile?.group_id, weekOffset]);
 
     useEffect(() => {
         if (teacherIdFromQuery) {
@@ -179,6 +182,12 @@ export function SchedulePage() {
     const sortedDates = Object.keys(lessonsByDate).sort();
 
     useEffect(() => {
+        if (preferences.autoScrollToToday) return;
+        setHasAutoScrolledToToday(false);
+    }, [preferences.autoScrollToToday]);
+
+    useEffect(() => {
+        if (!preferences.autoScrollToToday) return;
         if (loading || hasAutoScrolledToToday || weekOffset !== 0 || sortedDates.length === 0) return;
 
         const todayNode = dayRefs.current[todayIso];
@@ -186,7 +195,7 @@ export function SchedulePage() {
 
         todayNode.scrollIntoView({ behavior: 'smooth', block: 'start' });
         setHasAutoScrolledToToday(true);
-    }, [hasAutoScrolledToToday, loading, sortedDates, todayIso, weekOffset]);
+    }, [hasAutoScrolledToToday, loading, preferences.autoScrollToToday, sortedDates, todayIso, weekOffset]);
 
     return (
         <div style={{ padding: 16, minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 24 }}>

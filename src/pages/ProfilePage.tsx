@@ -1,9 +1,12 @@
 // src/pages/ProfilePage.tsx
 import { useAuth } from '../context/useAuth.ts';
+import { useSchedulePreferences, type WeekStart } from '../context/useSchedulePreferences.ts';
+import type { ChangeEvent } from 'react';
 import './ProfilePage.css';
 
 export function ProfilePage() {
     const { profile, logout } = useAuth();
+    const { preferences, updatePreferences } = useSchedulePreferences();
 
     if (!profile) return null;
 
@@ -30,6 +33,10 @@ export function ProfilePage() {
         { label: 'Группа', value: profile.group_name },
     ];
 
+    const handleWeekStartChange = (event: ChangeEvent<HTMLSelectElement>) => {
+        updatePreferences({ weekStart: event.target.value as WeekStart });
+    };
+
     return (
         <div className="profile-page">
             <header className="profile-header">
@@ -55,6 +62,42 @@ export function ProfilePage() {
                             <span className="profile-detail-value">{row.value || '—'}</span>
                         </div>
                     ))}
+                </div>
+            </section>
+
+            <section className="profile-card">
+                <h2 className="profile-card-title">Настройки расписания</h2>
+                <div className="profile-settings">
+                    <label className="profile-setting-row">
+                        <span className="profile-setting-text">
+                            <span className="profile-setting-title">Прокрутка к текущему дню</span>
+                            <span className="profile-setting-hint">
+                                Автоматически прокручивать расписание до сегодняшней даты.
+                            </span>
+                        </span>
+                        <input
+                            className="profile-toggle"
+                            type="checkbox"
+                            checked={preferences.autoScrollToToday}
+                            onChange={(event) => updatePreferences({ autoScrollToToday: event.target.checked })}
+                        />
+                    </label>
+
+                    <div className="profile-setting-row profile-setting-row--stack">
+                        <label className="profile-setting-title" htmlFor="profile-week-start">
+                            Показывать новую неделю с
+                        </label>
+                        <select
+                            id="profile-week-start"
+                            className="profile-select"
+                            value={preferences.weekStart}
+                            onChange={handleWeekStartChange}
+                        >
+                            <option value="saturday">Субботы</option>
+                            <option value="sunday">Воскресенья</option>
+                            <option value="monday">Понедельника</option>
+                        </select>
+                    </div>
                 </div>
             </section>
 
