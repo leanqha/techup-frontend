@@ -17,7 +17,7 @@ import {
     type MapRoom,
     type RoomPayload,
 } from '../api/map';
-import { floor2PlanTest } from '../data/building/floor2Test';
+import { floor2PlanTest, type FloorPlanPoint, type FloorPlanRoute } from '../data/building/floor2Test.ts';
 import type { GetPathResponse } from '../api/types/types';
 import { AdminModal } from '../components/admin/AdminModal';
 import './AdminMapPage.css';
@@ -132,9 +132,11 @@ const parseViewBox = (viewBox: string): SvgViewBox => {
 };
 
 const floor2ViewBox = parseViewBox(floor2PlanTest.viewBox);
-const floor2PointsById = new Map(floor2PlanTest.points.map(point => [point.id, point]));
+const floor2PointsById = new Map<string, FloorPlanPoint>(
+    floor2PlanTest.points.map(point => [point.id, point]),
+);
 const floor2Routes = floor2PlanTest.routes
-    .map(route => {
+    .map((route: FloorPlanRoute) => {
         const from = floor2PointsById.get(route.from);
         const to = floor2PointsById.get(route.to);
         if (!from || !to) return null;
@@ -144,15 +146,15 @@ const floor2Routes = floor2PlanTest.routes
 
 const normalizeFloorPointId = (value: string) => value.trim().toLowerCase();
 
-type FloorPlanPointItem = (typeof floor2PlanTest.points)[number];
+type FloorPlanPointItem = FloorPlanPoint;
 
 type FloorRouteGraph = Map<string, string[]>;
 
-const getFloorPointCandidates = (rawId: string) => {
+const getFloorPointCandidates = (rawId: string): FloorPlanPoint[] => {
     const normalized = normalizeFloorPointId(rawId);
     if (!normalized) return [];
 
-    const exactMatches = floor2PlanTest.points.filter(point => {
+    const exactMatches = floor2PlanTest.points.filter((point: FloorPlanPoint) => {
         const pointId = normalizeFloorPointId(point.id);
         const labelId = normalizeFloorPointId(point.label);
         return pointId === normalized || labelId === normalized;
@@ -160,7 +162,7 @@ const getFloorPointCandidates = (rawId: string) => {
 
     if (exactMatches.length) return exactMatches;
 
-    return floor2PlanTest.points.filter(point => {
+    return floor2PlanTest.points.filter((point: FloorPlanPoint) => {
         const pointId = normalizeFloorPointId(point.id);
         const labelId = normalizeFloorPointId(point.label);
         return pointId.startsWith(normalized) || labelId.startsWith(normalized);
@@ -169,7 +171,7 @@ const getFloorPointCandidates = (rawId: string) => {
 
 const floor2RouteGraph = buildFloorRouteGraph(floor2PlanTest.routes);
 
-function buildFloorRouteGraph(routes: typeof floor2PlanTest.routes): FloorRouteGraph {
+function buildFloorRouteGraph(routes: FloorPlanRoute[]): FloorRouteGraph {
     const adjacency = new Map<string, string[]>();
     for (const point of floor2PlanTest.points) {
         adjacency.set(point.id, []);
