@@ -66,7 +66,7 @@ export function ProfilePage() {
             </section>
 
             <section className="profile-card">
-                <h2 className="profile-card-title">Настройки расписания</h2>
+                <h2 className="profile-card-title">Настройки</h2>
                 <div className="profile-settings">
                     <label className="profile-setting-row">
                         <span className="profile-setting-text">
