@@ -22,9 +22,6 @@ export function AdminMapPage() {
 
     const activeRoutePoints = useMemo(() => buildPolylinePoints(pathIds, mapGraph.points), [mapGraph, pathIds]);
 
-    const startPoint = mapGraph.points.get(startId);
-    const endPoint = mapGraph.points.get(endId);
-
     return (
         <section className="admin-map-page">
             <header className="map-header">
@@ -70,19 +67,7 @@ export function AdminMapPage() {
                 >
                     <image href={TechUpMapUrl} x={MAP_VIEWBOX.minX} y={MAP_VIEWBOX.minY} width={MAP_VIEWBOX.width} height={MAP_VIEWBOX.height} />
                     <g className="map-routes">
-                        {mapGraph.edges.map(edge => (
-                            <line
-                                key={edge.id}
-                                x1={edge.from.x}
-                                y1={edge.from.y}
-                                x2={edge.to.x}
-                                y2={edge.to.y}
-                                className={edge.type === 'door' ? 'map-edge map-edge-door' : 'map-edge'}
-                            />
-                        ))}
                         {activeRoutePoints && <polyline className="map-route" points={activeRoutePoints} />}
-                        {startPoint && <circle className="map-route-node" cx={startPoint.x} cy={startPoint.y} r={1.2} />}
-                        {endPoint && <circle className="map-route-node" cx={endPoint.x} cy={endPoint.y} r={1.2} />}
                     </g>
                 </svg>
             </div>
