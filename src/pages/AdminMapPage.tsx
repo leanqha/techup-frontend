@@ -859,7 +859,14 @@ export function AdminMapPage() {
                             <g>
                                 {svgGraphLayout.zones.map(zone => (
                                     <g key={zone.key}>
-                                        <rect x={zone.x} y={zone.y} width={zone.width} height={zone.height} className="admin-map-svg-zone" />
+                                        <rect
+                                            x={zone.x}
+                                            y={zone.y}
+                                            width={zone.width}
+                                            height={zone.height}
+                                            rx={12}
+                                            className="admin-map-svg-zone"
+                                        />
                                         <line x1={zone.x + 16} y1={zone.corridorY} x2={zone.x + zone.width - 16} y2={zone.corridorY} className="admin-map-svg-corridor" />
                                         <text x={zone.x + 10} y={zone.y + 16} className="admin-map-svg-zone-label">{zone.label}</text>
                                     </g>
