@@ -219,6 +219,45 @@
     display: block;
 }
 
+.admin-map-floor-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 8px;
+    overflow: auto;
+}
+
+.admin-map-floor-svg {
+    width: 100%;
+    min-width: 520px;
+    height: auto;
+    display: block;
+}
+
+.admin-map-floor-route {
+    fill: none;
+    stroke: #94a3b8;
+    stroke-width: 1;
+}
+
+.admin-map-floor-route--active {
+    stroke: #ef4444;
+    stroke-width: 2.5;
+}
+
+.admin-map-floor-route-point {
+    fill: #ef4444;
+}
+
+.admin-map-floor-point {
+    fill: #0f172a;
+}
+
+.admin-map-floor-point-label {
+    fill: #1e293b;
+    font-size: 3.6px;
+}
+
 .admin-map-svg-zone {
     fill: #eef2ff;
     stroke: #c7d2fe;

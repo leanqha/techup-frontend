@@ -17,6 +17,8 @@ import {
     type MapRoom,
     type RoomPayload,
 } from '../api/map';
+import { floor2PlanTest } from '../data/building/floor2Test';
+import type { GetPathResponse } from '../api/types/types';
 import { AdminModal } from '../components/admin/AdminModal';
 import './AdminMapPage.css';
 
@@ -99,6 +101,13 @@ type SvgGraphLayout = {
     edges: SvgGraphEdge[];
 };
 
+type SvgViewBox = {
+    minX: number;
+    minY: number;
+    width: number;
+    height: number;
+};
+
 const emptyRoomForm: RoomFormState = {
     name: '',
     building_id: '',
@@ -112,6 +121,143 @@ const emptyConnectionForm: ConnectionFormState = {
     distance: '1',
     type: 'corridor',
 };
+
+const parseViewBox = (viewBox: string): SvgViewBox => {
+    const parts = viewBox.trim().split(/\s+/).map(Number);
+    if (parts.length !== 4 || parts.some(part => Number.isNaN(part))) {
+        return { minX: 0, minY: 0, width: 1000, height: 600 };
+    }
+    const [minX, minY, width, height] = parts;
+    return { minX, minY, width, height };
+};
+
+const floor2ViewBox = parseViewBox(floor2PlanTest.viewBox);
+const floor2PointsById = new Map(floor2PlanTest.points.map(point => [point.id, point]));
+const floor2Routes = floor2PlanTest.routes
+    .map(route => {
+        const from = floor2PointsById.get(route.from);
+        const to = floor2PointsById.get(route.to);
+        if (!from || !to) return null;
+        return { ...route, from, to };
+    })
+    .filter((route): route is NonNullable<typeof route> => Boolean(route));
+
+const normalizeFloorPointId = (value: string) => value.trim().toLowerCase();
+
+type FloorPlanPointItem = (typeof floor2PlanTest.points)[number];
+
+type FloorRouteGraph = Map<string, string[]>;
+
+const getFloorPointCandidates = (rawId: string) => {
+    const normalized = normalizeFloorPointId(rawId);
+    if (!normalized) return [];
+
+    const exactMatches = floor2PlanTest.points.filter(point => {
+        const pointId = normalizeFloorPointId(point.id);
+        const labelId = normalizeFloorPointId(point.label);
+        return pointId === normalized || labelId === normalized;
+    });
+
+    if (exactMatches.length) return exactMatches;
+
+    return floor2PlanTest.points.filter(point => {
+        const pointId = normalizeFloorPointId(point.id);
+        const labelId = normalizeFloorPointId(point.label);
+        return pointId.startsWith(normalized) || labelId.startsWith(normalized);
+    });
+};
+
+const floor2RouteGraph = buildFloorRouteGraph(floor2PlanTest.routes);
+
+function buildFloorRouteGraph(routes: typeof floor2PlanTest.routes): FloorRouteGraph {
+    const adjacency = new Map<string, string[]>();
+    for (const point of floor2PlanTest.points) {
+        adjacency.set(point.id, []);
+    }
+
+    for (const route of routes) {
+        if (!floor2PointsById.has(route.from) || !floor2PointsById.has(route.to)) continue;
+        adjacency.get(route.from)?.push(route.to);
+        adjacency.get(route.to)?.push(route.from);
+    }
+
+    return adjacency;
+}
+
+function findFloorRoutePath(startIds: string[], endIds: string[], adjacency: FloorRouteGraph): string[] | null {
+    if (!startIds.length || !endIds.length || adjacency.size === 0) return null;
+
+    const endSet = new Set(endIds);
+    const queue: string[] = [];
+    const prev = new Map<string, string | null>();
+
+    for (const startId of startIds) {
+        if (!adjacency.has(startId)) continue;
+        prev.set(startId, null);
+        queue.push(startId);
+    }
+
+    while (queue.length) {
+        const current = queue.shift();
+        if (!current) continue;
+
+        if (endSet.has(current)) {
+            const path: string[] = [];
+            let node: string | null = current;
+            while (node) {
+                path.push(node);
+                node = prev.get(node) ?? null;
+            }
+            return path.reverse();
+        }
+
+        for (const neighbor of adjacency.get(current) ?? []) {
+            if (prev.has(neighbor)) continue;
+            prev.set(neighbor, current);
+            queue.push(neighbor);
+        }
+    }
+
+    return null;
+}
+
+function buildFloorRoutePoints(pathIds: string[], adjacency: FloorRouteGraph): FloorPlanPointItem[] {
+    if (!pathIds.length) return [];
+
+    if (pathIds.length === 1) {
+        return getFloorPointCandidates(pathIds[0]).slice(0, 1);
+    }
+
+    const result: FloorPlanPointItem[] = [];
+
+    for (let index = 0; index < pathIds.length - 1; index += 1) {
+        const startCandidates = getFloorPointCandidates(pathIds[index]);
+        const endCandidates = getFloorPointCandidates(pathIds[index + 1]);
+
+        if (!startCandidates.length || !endCandidates.length) continue;
+
+        const segmentIds = findFloorRoutePath(
+            startCandidates.map(point => point.id),
+            endCandidates.map(point => point.id),
+            adjacency,
+        );
+
+        const idsToUse = segmentIds ?? [startCandidates[0].id, endCandidates[0].id];
+
+        for (const pointId of idsToUse) {
+            const point = floor2PointsById.get(pointId);
+            if (!point) continue;
+            if (result.length && result[result.length - 1].id === point.id) continue;
+            result.push(point);
+        }
+    }
+
+    return result;
+}
+
+function findMissingFloorPoints(pathIds: string[]) {
+    return pathIds.filter(roomId => getFloorPointCandidates(roomId).length === 0);
+}
 
 const normalizeRoomName = (value: string) => value.trim().toLocaleLowerCase('ru');
 
@@ -361,6 +507,7 @@ export function AdminMapPage() {
     const [pathStart, setPathStart] = useState('');
     const [pathEnd, setPathEnd] = useState('');
     const [pathResult, setPathResult] = useState('');
+    const [pathData, setPathData] = useState<GetPathResponse | null>(null);
 
     const [roomModalOpen, setRoomModalOpen] = useState(false);
     const [connectionModalOpen, setConnectionModalOpen] = useState(false);
@@ -378,6 +525,18 @@ export function AdminMapPage() {
     const pathRoomOptions = useMemo(() => {
         return [...rooms].sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
     }, [rooms]);
+
+    const activeFloorRoutePoints = useMemo(() => {
+        return buildFloorRoutePoints(pathData?.path ?? [], floor2RouteGraph);
+    }, [pathData]);
+
+    const activeFloorRoutePolyline = useMemo(() => {
+        return activeFloorRoutePoints.map(point => `${point.x},${point.y}`).join(' ');
+    }, [activeFloorRoutePoints]);
+
+    const missingFloorPointIds = useMemo(() => {
+        return findMissingFloorPoints(pathData?.path ?? []);
+    }, [pathData]);
 
     const formatRoomOptionLabel = (room: MapRoom) => {
         const description = room.description.trim();
@@ -624,8 +783,12 @@ export function AdminMapPage() {
             return;
         }
 
+        setPathData(null);
+        setPathResult('');
+
         void runAction(async () => {
             const result = await findMapPath(pathStart.trim(), pathEnd.trim());
+            setPathData(result);
             setPathResult(JSON.stringify(result, null, 2));
             setMessage('Путь рассчитан');
         });
@@ -946,6 +1109,75 @@ export function AdminMapPage() {
                     </div>
                 </div>
             </AdminModal>
+
+            <section className="admin-map-card">
+                <h2>Тест: план 2 этажа</h2>
+                <p className="admin-map-hint">
+                    SVG берется из `src/assets/TechUpMap.svg` через `src/data/building/floor2Test.ts`. Обновите {`viewBox`} и координаты точек там же.
+                </p>
+                {!!missingFloorPointIds.length && (
+                    <p className="admin-map-hint">
+                        Не найдены точки для маршрута: {missingFloorPointIds.join(', ')}
+                    </p>
+                )}
+                <div className="admin-map-floor-wrap">
+                    <svg
+                        className="admin-map-floor-svg"
+                        viewBox={floor2PlanTest.viewBox}
+                        role="img"
+                        aria-label="Тестовый план 2 этажа"
+                    >
+                        <image
+                            href={floor2PlanTest.svgUrl}
+                            x={floor2ViewBox.minX}
+                            y={floor2ViewBox.minY}
+                            width={floor2ViewBox.width}
+                            height={floor2ViewBox.height}
+                            preserveAspectRatio="xMidYMid meet"
+                        />
+                        <g className="admin-map-floor-routes">
+                            {floor2Routes.map(route => (
+                                <line
+                                    key={route.id}
+                                    x1={route.from.x}
+                                    y1={route.from.y}
+                                    x2={route.to.x}
+                                    y2={route.to.y}
+                                    className="admin-map-floor-route"
+                                    stroke={route.color ?? undefined}
+                                />
+                            ))}
+                        </g>
+                        <g className="admin-map-floor-active-route">
+                            {!!activeFloorRoutePolyline && (
+                                <polyline
+                                    points={activeFloorRoutePolyline}
+                                    className="admin-map-floor-route admin-map-floor-route--active"
+                                />
+                            )}
+                            {activeFloorRoutePoints.map((point, index) => (
+                                <circle
+                                    key={`${point.id}-${index}`}
+                                    cx={point.x}
+                                    cy={point.y}
+                                    r={2.4}
+                                    className="admin-map-floor-route-point"
+                                />
+                            ))}
+                        </g>
+                        <g className="admin-map-floor-points">
+                            {floor2PlanTest.points.map(point => (
+                                <g key={point.id}>
+                                    <circle cx={point.x} cy={point.y} r={1.5} className="admin-map-floor-point" />
+                                    <text x={point.x} y={point.y - 3} className="admin-map-floor-point-label">
+                                        {point.label}
+                                    </text>
+                                </g>
+                            ))}
+                        </g>
+                    </svg>
+                </div>
+            </section>
         </div>
     );
 }

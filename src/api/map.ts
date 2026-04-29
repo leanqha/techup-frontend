@@ -1,4 +1,5 @@
 import { fetchWithRefresh } from './fetchWithRefresh';
+import type { GetPathResponse } from './types/types';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -126,7 +127,7 @@ export function listMapConnections() {
 }
 
 export function findMapPath(start: string, end: string) {
-    return mapRequest<unknown>(`/map/path/${encodeURIComponent(start)}/${encodeURIComponent(end)}`);
+    return mapRequest<GetPathResponse>(`/map/path/${encodeURIComponent(start)}/${encodeURIComponent(end)}`);
 }
 
 export function createRoom(payload: RoomPayload) {
