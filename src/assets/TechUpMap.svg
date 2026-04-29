@@ -23,105 +23,113 @@
       }
     </style>
   </defs>
-  <g id="_Стены">
+  <g id="_Стены" data-name="Стены">
     <rect class="cls-1" x="60.7" y="53.6" width="86.62" height="47.38" transform="translate(-24.71 62.36) rotate(-30)"/>
     <polygon class="cls-1" points="69.04 19.81 57.29 40.16 48.56 35.12 39.1 51.49 95.32 148.87 129.74 148.87 129.74 137.55 129.74 137.55 141.55 137.55 141.55 173.99 62.18 173.99 .58 67.29 2.8 63.43 39.03 .68 69.82 18.46 69.04 19.81"/>
   </g>
-  <g id="_Этажи">
-    <g id="_2_этаж">
-      <polygon class="cls-1" points="83.23 161.26 90.93 156.82 80.67 156.82 83.23 161.26"/>
-      <rect class="cls-3" x="129.74" y="137.55" width="11.81" height="11.32"/>
-      <rect class="cls-3" x="124.95" y="156.82" width="8.35" height="17.18"/>
-      <rect class="cls-3" x="133.3" y="162.19" width="8.25" height="11.81"/>
-      <rect class="cls-3" x="46.66" y="21.75" width="25.06" height="10.08" transform="translate(6.4 64.66) rotate(-60)"/>
-      <g id="_1215">
+  <g id="_Этажи" data-name="Этажи">
+    <g id="_2_этаж" data-name="2 этаж">
+      <polygon id="wall" class="cls-1" points="83.23 161.26 90.93 156.82 80.67 156.82 83.23 161.26"/>
+      <g id="stairs-c">
+        <rect id="room-stairs-c" class="cls-3" x="129.74" y="137.55" width="11.81" height="11.32"/>
+        <line id="door-stairs-c" class="cls-2" x1="131.35" y1="148.87" x2="135.25" y2="148.87"/>
+      </g>
+      <g id="stairs-b">
+        <rect id="room-stairs-b" class="cls-3" x="46.66" y="21.75" width="25.06" height="10.08" transform="translate(6.4 64.66) rotate(-60)"/>
+        <line id="door-stairs-b" class="cls-2" x1="56.93" y1="20.62" x2="58.89" y2="17.24"/>
+      </g>
+      <g id="_1215" data-name="1215">
         <rect id="room-1215" class="cls-3" x="63.31" y="107.99" width="16.67" height="33.04" transform="translate(-52.66 52.5) rotate(-30)"/>
         <line id="door-1215-b" class="cls-2" x1="71.5" y1="140.94" x2="69.55" y2="137.56"/>
         <line id="door-1215-a" class="cls-2" x1="65.83" y1="131.11" x2="63.87" y2="127.73"/>
       </g>
-      <g id="_1211">
+      <g id="_1214" data-name="1214">
+        <polygon id="room-1214" class="cls-3" points="72.68 142.98 76.08 148.87 95.32 148.87 87.11 134.65 72.68 142.98"/>
+        <line id="door-1214" class="cls-2" x1="87.11" y1="148.87" x2="91.02" y2="148.87"/>
+      </g>
+      <g id="_1213" data-name="1213">
+        <rect id="room-1213" class="cls-3" x="133.3" y="162.19" width="8.25" height="11.81"/>
+        <line id="door-1213" class="cls-2" x1="135.47" y1="162.19" x2="139.37" y2="162.19"/>
+      </g>
+      <g id="_1212" data-name="1212">
+        <rect id="room-1212" class="cls-3" x="124.95" y="156.82" width="8.35" height="17.18"/>
+        <line id="door-1212" class="cls-2" x1="133.3" y1="161.45" x2="133.3" y2="157.55"/>
+      </g>
+      <g id="_1211" data-name="1211">
         <rect id="room-1211" class="cls-3" x="96.03" y="156.82" width="28.92" height="17.18"/>
-        <line id="door-1211-b" class="cls-2" x1="99.29" y1="156.82" x2="103.2" y2="156.82"/>
-        <line id="door-1211-a" class="cls-2" x1="115.44" y1="156.82" x2="119.35" y2="156.82"/>
+        <line id="door-1211-b" class="cls-2" x1="115.44" y1="156.82" x2="119.35" y2="156.82"/>
+        <line id="door-1211-a" class="cls-2" x1="99.29" y1="156.82" x2="103.2" y2="156.82"/>
       </g>
-      <g id="_1210">
-        <polygon id="room-1210" class="cls-3" points="62.18 173.99 52.09 156.51 66.51 148.19 81.41 173.99 62.18 173.99"/>
-        <line id="door-1210-b" class="cls-2" x1="70.53" y1="155.2" x2="68.58" y2="151.82"/>
-        <line id="door-1210-a" class="cls-2" x1="78.94" y1="169.77" x2="76.99" y2="166.39"/>
+      <g id="_1210" data-name="1210">
+        <polygon id="room-1210" class="cls-3" points="62.18 173.99 52.1 156.53 66.49 148.2 81.41 173.99 62.18 173.99"/>
       </g>
-      <g id="_1209">
-        <polygon id="room-1209" class="cls-3" points="44.28 142.98 58.68 134.67 66.5 148.22 52.07 156.52 44.28 142.98"/>
+      <g id="_1209" data-name="1209">
+        <rect id="room-1209" class="cls-3" x="47.08" y="137.78" width="16.63" height="15.64" transform="translate(-65.38 47.2) rotate(-30)"/>
         <line id="door-1209-b" class="cls-2" x1="65.21" y1="145.98" x2="63.26" y2="142.6"/>
         <line id="door-1209-a" class="cls-2" x1="61.82" y1="140.11" x2="59.87" y2="136.73"/>
       </g>
-      <g id="_Мужской_туалет">
-        <polygon id="_Мужской_туалет-2" class="cls-3" points="72.68 142.98 76.08 148.87 95.32 148.87 87.11 134.65 72.68 142.98"/>
-        <line id="door-1206-a" class="cls-2" x1="87.11" y1="148.87" x2="91.02" y2="148.87"/>
-      </g>
-      <g id="_1207">
+      <g id="_1207" data-name="1207">
         <polygon id="room-1207" class="cls-3" points="28.94 116.41 43.34 108.1 58.67 134.65 44.28 142.98 28.94 116.41"/>
         <line id="door-1207" class="cls-2" x1="47.27" y1="114.91" x2="45.32" y2="111.53"/>
       </g>
-      <g id="_1206">
+      <g id="_1206" data-name="1206">
         <rect id="room-1206" class="cls-3" x="20.72" y="85.73" width="16.63" height="28.44" transform="translate(-46.08 27.9) rotate(-30)"/>
         <line id="door-1206-b" class="cls-2" x1="32.5" y1="89.34" x2="30.55" y2="85.95"/>
-        <line id="door-1206-a-2" class="cls-2" x1="37.72" y1="98.37" x2="35.77" y2="94.99"/>
+        <line id="door-1206-a" class="cls-2" x1="37.72" y1="98.37" x2="35.77" y2="94.99"/>
       </g>
-      <g id="_1205">
+      <g id="_1205" data-name="1205">
         <polyline id="room-1205" class="cls-3" points="21.2 69.76 29.12 83.47 14.72 91.79 6.8 78.07 21.2 69.76"/>
         <line id="door-1205" class="cls-2" x1="24.33" y1="75.17" x2="22.37" y2="71.79"/>
       </g>
-      <g id="_1204">
+      <g id="_1204" data-name="1204">
         <polyline id="room-1204" class="cls-3" points="18.32 71.42 20.65 70.08 21.2 69.76 10.18 50.67 6.8 56.51 .58 67.29 6.8 78.07 18.32 71.42"/>
         <line id="door-1204" class="cls-2" x1="18.27" y1="64.69" x2="16.32" y2="61.31"/>
       </g>
-      <g id="_1203">
+      <g id="_1203" data-name="1203">
         <polygon id="room-1203" class="cls-3" points="39.03 .68 55.8 10.36 34.63 47.02 21.62 54.54 14.78 42.69 39.03 .68"/>
         <line id="door-1203-b" class="cls-2" x1="51.64" y1="17.56" x2="53.59" y2="14.18"/>
         <line id="door-1203-a" class="cls-2" x1="37.62" y1="41.85" x2="39.57" y2="38.47"/>
       </g>
-      <g id="_1202">
+      <g id="_1202" data-name="1202">
         <rect id="room-1202" class="cls-3" x="27.16" y="54.72" width="16.67" height="14.36" transform="translate(-26.19 26.04) rotate(-30)"/>
         <line id="door-1202" class="cls-2" x1="29.61" y1="68.38" x2="27.66" y2="65"/>
       </g>
-      <g id="_1201">
+      <g id="_1201" data-name="1201">
         <polygon id="room-1201" class="cls-3" points="47.97 100.17 31.86 72.28 46.3 63.96 62.4 91.84 47.97 100.17"/>
         <line id="door-1201-b" class="cls-2" x1="36.18" y1="79.77" x2="34.23" y2="76.38"/>
         <line id="door-1201-a" class="cls-2" x1="46.29" y1="97.28" x2="44.34" y2="93.9"/>
       </g>
-      <line id="door-stairs-b" class="cls-2" x1="56.93" y1="20.62" x2="58.89" y2="17.24"/>
-      <line id="door-1212" class="cls-2" x1="133.3" y1="161.45" x2="133.3" y2="157.55"/>
-      <line id="door-1213" class="cls-2" x1="135.47" y1="162.19" x2="139.37" y2="162.19"/>
-      <line id="door-stairs-c" class="cls-2" x1="131.35" y1="148.87" x2="135.25" y2="148.87"/>
       <g id="edges">
-        <circle id="_2" class="cls-1" cx="48.61" cy="109.26" r=".5"/>
-        <circle id="_1201-a" class="cls-1" cx="41.87" cy="97.58" r=".5"/>
-        <circle id="_1206-a" class="cls-1" cx="40.2" cy="94.69" r=".5"/>
-        <circle id="_1206-b" class="cls-1" cx="34.98" cy="85.65" r=".5"/>
-        <circle id="_1201-b" class="cls-1" cx="31.75" cy="80.07" r=".5"/>
-        <circle id="_1205-2" class="cls-1" cx="26.8" cy="71.49" r=".5"/>
-        <circle id="_1204-2" class="cls-1" cx="20.75" cy="61" r=".5"/>
-        <circle id="_9" class="cls-1" cx="19.7" cy="59.18" r=".5"/>
-        <circle id="_10" class="cls-1" cx="36.86" cy="49.28" r=".5"/>
-        <circle id="_1203-a" class="cls-1" cx="41.24" cy="41.68" r=".5"/>
-        <circle id="_1203-b" class="cls-1" cx="55.26" cy="17.4" r=".5"/>
-        <circle class="cls-1" cx="49.75" cy="111.23" r=".5"/>
-        <circle id="_1200-stairs" class="cls-1" cx="59.28" cy="103.11" r=".5"/>
-        <circle id="_1215-a" class="cls-1" cx="61.4" cy="131.41" r=".5"/>
-        <circle id="_1209-a" class="cls-1" cx="64.3" cy="136.43" r=".5"/>
-        <circle id="_1209-b" class="cls-1" cx="67.68" cy="142.3" r=".5"/>
-        <circle id="_1210-a" class="cls-1" cx="73" cy="151.51" r=".5"/>
-        <circle id="_1215-b" class="cls-1" cx="67.08" cy="141.25" r=".5"/>
-        <circle id="_12" class="cls-1" cx="73.77" cy="152.84" r=".5"/>
-        <circle id="_1210-b" class="cls-1" cx="81.41" cy="166.07" r=".5"/>
-        <circle id="_Мужской_туалет-3" class="cls-1" cx="89.07" cy="152.84" r=".5"/>
-        <circle id="_1211-a" class="cls-1" cx="101.24" cy="152.84" r=".5"/>
-        <circle id="_1211-b" class="cls-1" cx="117.4" cy="152.84" r=".5"/>
-        <circle id="_1212" class="cls-1" cx="133.3" cy="152.84" r=".5"/>
-        <circle id="_1213" class="cls-1" cx="137.42" cy="152.84" r=".5"/>
-        <circle id="_1214" class="cls-1" cx="137.42" cy="159.5" r=".5"/>
-        <circle id="_1202-2" class="cls-1" cx="25.17" cy="68.69" r=".5"/>
+        <circle id="node-1-2-35" class="cls-1" cx="137.42" cy="159.5" r=".5"/>
+        <circle id="node-1-2-34" class="cls-1" cx="137.42" cy="152.84" r=".5"/>
+        <circle id="node-1-2-33" class="cls-1" cx="133.3" cy="152.84" r=".5"/>
+        <circle id="node-1-2-32" class="cls-1" cx="117.4" cy="152.84" r=".5"/>
+        <circle id="node-1-2-31" class="cls-1" cx="101.24" cy="152.84" r=".5"/>
+        <circle id="node-1-2-30" class="cls-1" cx="89.07" cy="152.84" r=".5"/>
+        <circle id="node-1-2-27" class="cls-1" cx="81.41" cy="166.07" r=".5"/>
+        <circle id="node-1-2-26" class="cls-1" cx="73.77" cy="152.84" r=".5"/>
+        <circle id="node-1-2-25" class="cls-1" cx="73" cy="151.51" r=".5"/>
+        <circle id="node-1-2-24" class="cls-1" cx="67.68" cy="142.3" r=".5"/>
+        <circle id="node-1-2-23" class="cls-1" cx="67.08" cy="141.25" r=".5"/>
+        <circle id="node-1-2-22" class="cls-1" cx="64.3" cy="136.43" r=".5"/>
+        <circle id="node-1-2-21" class="cls-1" cx="61.4" cy="131.41" r=".5"/>
+        <circle id="node-1-2-20" class="cls-1" cx="49.75" cy="111.23" r=".5"/>
+        <circle id="node-1-2-12" class="cls-1" cx="55.26" cy="17.4" r=".5"/>
+        <circle id="node-1-2-11" class="cls-1" cx="41.24" cy="41.68" r=".5"/>
+        <circle id="node-1-2-10" class="cls-1" cx="36.86" cy="49.28" r=".5"/>
+        <circle id="node-1-2-9" class="cls-1" cx="19.7" cy="59.18" r=".5"/>
+        <circle id="node-1-2-8" class="cls-1" cx="20.75" cy="61" r=".5"/>
+        <circle id="node-1-2-7" class="cls-1" cx="25.17" cy="68.69" r=".5"/>
+        <circle id="node-1-2-6" class="cls-1" cx="26.8" cy="71.49" r=".5"/>
+        <circle id="node-1-2-5" class="cls-1" cx="31.75" cy="80.07" r=".5"/>
+        <circle id="node-1-2-4" class="cls-1" cx="34.98" cy="85.65" r=".5"/>
+        <circle id="node-1-2-3" class="cls-1" cx="40.2" cy="94.69" r=".5"/>
+        <circle id="node-1-2-2" class="cls-1" cx="41.87" cy="97.58" r=".5"/>
+        <circle id="node-1-2-1" class="cls-1" cx="48.61" cy="109.26" r=".5"/>
+        <circle id="node-1-2-0" class="cls-1" cx="59.28" cy="103.11" r=".5"/>
       </g>
+      <line id="door-1210-b" class="cls-2" x1="78.96" y1="169.76" x2="77.01" y2="166.38"/>
+      <line id="door-1210-a" class="cls-2" x1="70.53" y1="155.17" x2="68.58" y2="151.79"/>
     </g>
   </g>
 </svg>
