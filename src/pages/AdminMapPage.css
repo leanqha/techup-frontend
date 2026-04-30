@@ -54,7 +54,7 @@
     position: absolute;
     top: calc(env(safe-area-inset-top) + 12px);
     left: 16px;
-    z-index: 2;
+    z-index: 3;
     padding: 8px;
     margin: -8px;
     border-radius: 0;
@@ -110,4 +110,44 @@
     fill: #4aa3e3;
     stroke: #ffffff;
     stroke-width: 0.4;
+}
+
+.map-edge-guard {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.map-edge-guard-edge {
+    position: absolute;
+    pointer-events: auto;
+}
+
+.map-edge-guard-top {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+}
+
+.map-edge-guard-right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 12px;
+}
+
+.map-edge-guard-bottom {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 12px;
+}
+
+.map-edge-guard-left {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 12px;
 }

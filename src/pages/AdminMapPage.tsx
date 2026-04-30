@@ -116,6 +116,12 @@ export function AdminMapPage() {
                         ))}
                     </datalist>
                 </div>
+                <div className="map-edge-guard" aria-hidden="true">
+                    <span className="map-edge-guard-edge map-edge-guard-top" />
+                    <span className="map-edge-guard-edge map-edge-guard-right" />
+                    <span className="map-edge-guard-edge map-edge-guard-bottom" />
+                    <span className="map-edge-guard-edge map-edge-guard-left" />
+                </div>
 
                 {hasViewerSize && (
                     <ReactSVGPanZoom
