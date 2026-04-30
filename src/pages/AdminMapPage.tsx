@@ -175,7 +175,7 @@ export function AdminMapPage() {
                                 <marker
                                     id="route-arrow"
                                     viewBox="0 0 6 6"
-                                    refX="6"
+                                    refX="6.8"
                                     refY="3"
                                     markerWidth="4"
                                     markerHeight="4"
