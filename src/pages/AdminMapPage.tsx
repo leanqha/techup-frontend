@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useLayoutEffect, useEffect } from 'react';
+import { useMemo, useRef, useState, useLayoutEffect } from 'react';
 import { ReactSVGPanZoom, TOOL_AUTO, POSITION_NONE, INITIAL_VALUE } from 'react-svg-pan-zoom';
 import TechUpMapUrl from '../assets/TechUpMap.svg';
 import { buildMapGraph, buildPolylinePoints, findShortestPath, MAP_VIEWBOX } from '../utils/mapRoutes';
@@ -68,10 +68,13 @@ export function AdminMapPage() {
     const viewerSize = useElementSize(mapFrameRef);
     const hasViewerSize = viewerSize.width > 0 && viewerSize.height > 0;
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!hasViewerSize || !viewerRef.current) return;
-        viewerRef.current.reset();
-        viewerRef.current.fitToViewer();
+        const frame = requestAnimationFrame(() => {
+            viewerRef.current?.reset();
+            viewerRef.current?.fitToViewer();
+        });
+        return () => cancelAnimationFrame(frame);
     }, [hasViewerSize, viewerSize.height, viewerSize.width]);
 
     const pathIds = useMemo(() => {
