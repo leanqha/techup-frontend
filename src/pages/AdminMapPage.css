@@ -12,10 +12,10 @@
 .map-controls {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     align-items: center;
-    max-width: calc(100vw - 32px);
+    width: min(100vw - 32px, 520px);
 }
 
 .map-field {
@@ -26,8 +26,8 @@
 }
 
 .map-input {
-    width: min(42vw, 240px);
-    min-width: 140px;
+    flex: 1 1 0;
+    min-width: 0;
     padding: 8px 12px;
     border-radius: 999px;
     border: 1px solid rgba(0, 0, 0, 0.15);
@@ -45,7 +45,7 @@
 
 .map-controls-overlay {
     position: absolute;
-    top: 16px;
+    top: calc(env(safe-area-inset-top) + 12px);
     left: 16px;
     z-index: 2;
     padding: 0;
