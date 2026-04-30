@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useLayoutEffect } from 'react';
-import { ReactSVGPanZoom, TOOL_AUTO, POSITION_NONE, INITIAL_VALUE } from 'react-svg-pan-zoom';
+import { ReactSVGPanZoom, TOOL_PAN, POSITION_NONE, INITIAL_VALUE } from 'react-svg-pan-zoom';
 import TechUpMapUrl from '../assets/TechUpMap.svg';
 import { buildMapGraph, buildPolylinePoints, findShortestPath, MAP_VIEWBOX } from '../utils/mapRoutes';
 import './AdminMapPage.css';
@@ -116,12 +116,6 @@ export function AdminMapPage() {
                         ))}
                     </datalist>
                 </div>
-                <div className="map-edge-guard" aria-hidden="true">
-                    <span className="map-edge-guard-edge map-edge-guard-top" />
-                    <span className="map-edge-guard-edge map-edge-guard-right" />
-                    <span className="map-edge-guard-edge map-edge-guard-bottom" />
-                    <span className="map-edge-guard-edge map-edge-guard-left" />
-                </div>
 
                 {hasViewerSize && (
                     <ReactSVGPanZoom
@@ -130,7 +124,7 @@ export function AdminMapPage() {
                         height={viewerSize.height}
                         value={viewerValue}
                         onChangeValue={setViewerValue}
-                        tool={TOOL_AUTO}
+                        tool={TOOL_PAN}
                         detectWheel
                         detectPinchGesture
                         preventPanOutside
