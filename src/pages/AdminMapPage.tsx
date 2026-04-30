@@ -95,49 +95,49 @@ export function AdminMapPage() {
 
     return (
         <section className="admin-map-page">
-            <div className="map-controls">
-                <label className="map-field">
-                    <span>Откуда</span>
-                    <input
-                        className="map-input"
-                        list="map-point-ids"
-                        value={startId}
-                        onChange={event => setStartId(formatPointId(event.target.value))}
-                        placeholder="node-1-2-0"
-                    />
-                </label>
-                <label className="map-field">
-                    <span>Куда</span>
-                    <input
-                        className="map-input"
-                        list="map-point-ids"
-                        value={endId}
-                        onChange={event => setEndId(formatPointId(event.target.value))}
-                        placeholder="node-1-2-35"
-                    />
-                </label>
-                <div className="map-zoom">
-                    <span>Масштаб</span>
-                    <div className="map-zoom-buttons">
-                        <button className="map-zoom-button" type="button" onClick={handleZoomOut} aria-label="Уменьшить">
-                            -
-                        </button>
-                        <button className="map-zoom-button" type="button" onClick={handleZoomIn} aria-label="Увеличить">
-                            +
-                        </button>
-                        <button className="map-zoom-button" type="button" onClick={handleZoomReset} aria-label="Сбросить масштаб">
-                            1:1
-                        </button>
-                    </div>
-                </div>
-                <datalist id="map-point-ids">
-                    {pointIds.map(id => (
-                        <option key={id} value={id} />
-                    ))}
-                </datalist>
-            </div>
-
             <div className="map-frame" ref={mapFrameRef}>
+                <div className="map-controls map-controls-overlay">
+                    <label className="map-field">
+                        <span>Откуда</span>
+                        <input
+                            className="map-input"
+                            list="map-point-ids"
+                            value={startId}
+                            onChange={event => setStartId(formatPointId(event.target.value))}
+                            placeholder="node-1-2-0"
+                        />
+                    </label>
+                    <label className="map-field">
+                        <span>Куда</span>
+                        <input
+                            className="map-input"
+                            list="map-point-ids"
+                            value={endId}
+                            onChange={event => setEndId(formatPointId(event.target.value))}
+                            placeholder="node-1-2-35"
+                        />
+                    </label>
+                    <div className="map-zoom">
+                        <span>Масштаб</span>
+                        <div className="map-zoom-buttons">
+                            <button className="map-zoom-button" type="button" onClick={handleZoomOut} aria-label="Уменьшить">
+                                -
+                            </button>
+                            <button className="map-zoom-button" type="button" onClick={handleZoomIn} aria-label="Увеличить">
+                                +
+                            </button>
+                            <button className="map-zoom-button" type="button" onClick={handleZoomReset} aria-label="Сбросить масштаб">
+                                1:1
+                            </button>
+                        </div>
+                    </div>
+                    <datalist id="map-point-ids">
+                        {pointIds.map(id => (
+                            <option key={id} value={id} />
+                        ))}
+                    </datalist>
+                </div>
+
                 {hasViewerSize && (
                     <ReactSVGPanZoom
                         ref={viewerRef}
