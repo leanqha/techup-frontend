@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useLayoutEffect } from 'react';
-import { ReactSVGPanZoom, TOOL_AUTO, POSITION_NONE, INITIAL_VALUE } from 'react-svg-pan-zoom';
+import { ReactSVGPanZoom, TOOL_AUTO, POSITION_NONE } from 'react-svg-pan-zoom';
 import TechUpMapUrl from '../assets/TechUpMap.svg';
 import { buildMapGraph, buildPolylinePoints, findShortestPath, MAP_VIEWBOX } from '../utils/mapRoutes';
 import './AdminMapPage.css';
@@ -62,7 +62,6 @@ export function AdminMapPage() {
 
     const [startId, setStartId] = useState('');
     const [endId, setEndId] = useState('');
-    const [viewerValue, setViewerValue] = useState(INITIAL_VALUE);
     const mapFrameRef = useRef<HTMLDivElement | null>(null);
     const viewerRef = useRef<PanZoomViewerHandle | null>(null);
     const viewerSize = useElementSize(mapFrameRef);
@@ -116,8 +115,6 @@ export function AdminMapPage() {
                         ref={viewerRef}
                         width={viewerSize.width}
                         height={viewerSize.height}
-                        value={viewerValue}
-                        onChangeValue={setViewerValue}
                         tool={TOOL_AUTO}
                         detectWheel
                         detectPinchGesture
