@@ -12,8 +12,10 @@
 .map-controls {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+    max-width: calc(100vw - 32px);
 }
 
 .map-field {
@@ -24,7 +26,8 @@
 }
 
 .map-input {
-    min-width: 200px;
+    width: min(42vw, 240px);
+    min-width: 140px;
     padding: 8px 12px;
     border-radius: 999px;
     border: 1px solid rgba(0, 0, 0, 0.15);
