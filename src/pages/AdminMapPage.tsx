@@ -60,11 +60,8 @@ export function AdminMapPage() {
     const mapGraph = useMemo(() => buildMapGraph(), []);
     const pointIds = useMemo(() => [...mapGraph.points.keys()].sort(), [mapGraph]);
 
-    const defaultStartId = pointIds[0] ?? '';
-    const defaultEndId = pointIds[pointIds.length - 1] ?? '';
-
-    const [startId, setStartId] = useState(defaultStartId);
-    const [endId, setEndId] = useState(defaultEndId);
+    const [startId, setStartId] = useState('');
+    const [endId, setEndId] = useState('');
     const [viewerValue, setViewerValue] = useState(INITIAL_VALUE);
     const mapFrameRef = useRef<HTMLDivElement | null>(null);
     const viewerRef = useRef<PanZoomViewerHandle | null>(null);
