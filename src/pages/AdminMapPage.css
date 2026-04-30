@@ -8,9 +8,9 @@
 
 .map-controls {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: flex-end;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
 }
 
 .map-field {
@@ -23,37 +23,11 @@
 .map-input {
     min-width: 200px;
     padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #cfcfcf;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
     font-size: 14px;
-    background: #ffffff;
-}
-
-.map-zoom {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 14px;
-}
-
-.map-zoom-buttons {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.map-zoom-button {
-    min-width: 44px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    border: 1px solid #cfcfcf;
-    background: #ffffff;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.map-zoom-button:hover {
-    border-color: #9aa4b2;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 12px rgba(24, 24, 24, 0.12);
 }
 
 .map-frame {
@@ -68,11 +42,11 @@
     top: 16px;
     left: 16px;
     z-index: 2;
-    padding: 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 8px 20px rgba(24, 24, 24, 0.12);
-    backdrop-filter: blur(6px);
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
 }
 
 .map-svg {
