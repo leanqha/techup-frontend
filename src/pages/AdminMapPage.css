@@ -9,13 +9,20 @@
     padding: 0;
 }
 
+@media (min-width: 769px) {
+    .admin-map-page {
+        left: 280px;
+        width: calc(100% - 280px);
+    }
+}
+
 .map-controls {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 8px;
     align-items: center;
-    width: min(100vw - 32px, 520px);
+    width: min(calc(100% - 32px), 520px);
 }
 
 .map-field {
