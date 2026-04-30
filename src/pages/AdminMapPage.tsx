@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useLayoutEffect } from 'react';
-import { ReactSVGPanZoom, TOOL_AUTO, POSITION_NONE } from 'react-svg-pan-zoom';
+import { ReactSVGPanZoom, TOOL_AUTO, POSITION_NONE, INITIAL_VALUE } from 'react-svg-pan-zoom';
 import TechUpMapUrl from '../assets/TechUpMap.svg';
 import { buildMapGraph, buildPolylinePoints, findShortestPath, MAP_VIEWBOX } from '../utils/mapRoutes';
 import './AdminMapPage.css';
@@ -62,19 +62,21 @@ export function AdminMapPage() {
 
     const [startId, setStartId] = useState('');
     const [endId, setEndId] = useState('');
+    const [viewerValue, setViewerValue] = useState(INITIAL_VALUE);
+    const [mapReady, setMapReady] = useState(false);
     const mapFrameRef = useRef<HTMLDivElement | null>(null);
     const viewerRef = useRef<PanZoomViewerHandle | null>(null);
     const viewerSize = useElementSize(mapFrameRef);
     const hasViewerSize = viewerSize.width > 0 && viewerSize.height > 0;
 
     useLayoutEffect(() => {
-        if (!hasViewerSize || !viewerRef.current) return;
+        if (!hasViewerSize || !viewerRef.current || !mapReady) return;
         const frame = requestAnimationFrame(() => {
             viewerRef.current?.reset();
             viewerRef.current?.fitToViewer();
         });
         return () => cancelAnimationFrame(frame);
-    }, [hasViewerSize, viewerSize.height, viewerSize.width]);
+    }, [hasViewerSize, mapReady, viewerSize.height, viewerSize.width]);
 
     const pathIds = useMemo(() => {
         if (!startId || !endId) return [];
@@ -115,6 +117,8 @@ export function AdminMapPage() {
                         ref={viewerRef}
                         width={viewerSize.width}
                         height={viewerSize.height}
+                        value={viewerValue}
+                        onChangeValue={setViewerValue}
                         tool={TOOL_AUTO}
                         detectWheel
                         detectPinchGesture
@@ -150,7 +154,14 @@ export function AdminMapPage() {
                                     <path className="map-route-arrow" d="M0 0 L6 3 L0 6 Z" />
                                 </marker>
                             </defs>
-                            <image href={TechUpMapUrl} x={MAP_VIEWBOX.minX} y={MAP_VIEWBOX.minY} width={MAP_VIEWBOX.width} height={MAP_VIEWBOX.height} />
+                            <image
+                                href={TechUpMapUrl}
+                                x={MAP_VIEWBOX.minX}
+                                y={MAP_VIEWBOX.minY}
+                                width={MAP_VIEWBOX.width}
+                                height={MAP_VIEWBOX.height}
+                                onLoad={() => setMapReady(true)}
+                            />
                             <g className="map-routes">
                                 {activeRoutePoints && <polyline className="map-route" points={activeRoutePoints} markerEnd="url(#route-arrow)" />}
                             </g>
