@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { fetchWithRefresh } from '../../api/fetchWithRefresh';
 import { AdminModal } from './AdminModal';
 import './AdminAccountsManager.css';
@@ -72,40 +72,43 @@ export function AdminAccountsManager() {
         return query.toString();
     };
 
-    const loadAccounts = async (nextFilters?: AccountFilters) => {
-        setLoading(true);
-        setError(null);
-        setMessage(null);
+    const loadAccounts = useCallback(
+        async (nextFilters?: AccountFilters) => {
+            setLoading(true);
+            setError(null);
+            setMessage(null);
 
-        try {
-            const query = buildQuery(nextFilters ?? filters);
-            const url = query ? `/api/v1/admin/accounts?${query}` : '/api/v1/admin/accounts';
-            const res = await fetchWithRefresh(url);
+            try {
+                const query = buildQuery(nextFilters ?? filters);
+                const url = query ? `/api/v1/admin/accounts?${query}` : '/api/v1/admin/accounts';
+                const res = await fetchWithRefresh(url);
 
-            if (!res.ok) {
-                if (res.status === 400) {
-                    setError('Некорректное значение фильтра');
-                } else if (res.status === 500) {
-                    setError('Ошибка сервера');
-                } else {
-                    setError('Не удалось загрузить аккаунты');
+                if (!res.ok) {
+                    if (res.status === 400) {
+                        setError('Некорректное значение фильтра');
+                    } else if (res.status === 500) {
+                        setError('Ошибка сервера');
+                    } else {
+                        setError('Не удалось загрузить аккаунты');
+                    }
+                    return;
                 }
-                return;
-            }
 
-            const data = (await res.json()) as AdminAccount[];
-            setAccounts(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error(err);
-            setError('Сетевая ошибка');
-        } finally {
-            setLoading(false);
-        }
-    };
+                const data = (await res.json()) as AdminAccount[];
+                setAccounts(Array.isArray(data) ? data : []);
+            } catch (err) {
+                console.error(err);
+                setError('Сетевая ошибка');
+            } finally {
+                setLoading(false);
+            }
+        },
+        [filters]
+    );
 
     useEffect(() => {
         void loadAccounts();
-    }, []);
+    }, [loadAccounts]);
 
     const handleSearch = () => {
         void loadAccounts();

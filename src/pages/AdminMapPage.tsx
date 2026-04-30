@@ -8,8 +8,8 @@ const formatPointId = (value: string) => value.trim();
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
-const ZOOM_STEP = 1.2;
 const WHEEL_ZOOM_STEP = 1.03;
+const ZOOM_STEP = 1.2;
 
 type ViewerSize = {
     width: number;
@@ -95,14 +95,9 @@ export function AdminMapPage() {
 
     return (
         <section className="admin-map-page">
-            <header className="map-header">
-                <h1>Карта корпуса</h1>
-                <p>Маршруты строятся на фронтенде по данным графа и соединений.</p>
-            </header>
-
             <div className="map-controls">
                 <label className="map-field">
-                    <span>Старт</span>
+                    <span>Откуда</span>
                     <input
                         className="map-input"
                         list="map-point-ids"
@@ -112,7 +107,7 @@ export function AdminMapPage() {
                     />
                 </label>
                 <label className="map-field">
-                    <span>Финиш</span>
+                    <span>Куда</span>
                     <input
                         className="map-input"
                         list="map-point-ids"
@@ -175,7 +170,7 @@ export function AdminMapPage() {
                                 <marker
                                     id="route-arrow"
                                     viewBox="0 0 6 6"
-                                    refX="-2"
+                                    refX="6"
                                     refY="3"
                                     markerWidth="4"
                                     markerHeight="4"

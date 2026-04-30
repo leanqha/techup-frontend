@@ -1,18 +1,8 @@
 .admin-map-page {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     padding: 24px;
-}
-
-.map-header h1 {
-    margin: 0 0 6px;
-    font-size: 24px;
-}
-
-.map-header p {
-    margin: 0;
-    color: #5f5f5f;
 }
 
 .map-controls {

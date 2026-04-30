@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import './HomePage.css';
 
@@ -15,8 +15,7 @@ export function HomePage() {
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const today = new Date();
-    const todayISO = format(today, 'yyyy-MM-dd');
+    const todayISO = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
 
     useEffect(() => {
         if (!profile?.group_id) return;
@@ -35,7 +34,7 @@ export function HomePage() {
         };
 
         loadToday();
-    }, [profile?.group_id]);
+    }, [profile?.group_id, todayISO]);
 
     return (
         <div
