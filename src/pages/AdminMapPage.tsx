@@ -6,7 +6,7 @@ import './AdminMapPage.css';
 
 const formatPointId = (value: string) => value.trim();
 
-const MIN_SCALE = 1;
+const MIN_SCALE = 0.1;
 const MAX_SCALE = 4;
 const WHEEL_ZOOM_STEP = 1.03;
 
