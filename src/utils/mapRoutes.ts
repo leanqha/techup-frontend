@@ -175,12 +175,37 @@ const findShortestPath = (adjacency: Map<string, string[]>, startId: string, end
     return path.reverse();
 };
 
-const buildPolylinePoints = (pathIds: string[], points: Map<string, MapPoint>): string =>
-    pathIds
+const isColinear = (first: MapPoint, middle: MapPoint, last: MapPoint, epsilon = 0.01): boolean => {
+    const cross = (middle.x - first.x) * (last.y - first.y) - (middle.y - first.y) * (last.x - first.x);
+    return Math.abs(cross) <= epsilon;
+};
+
+const simplifyPolylinePoints = (path: MapPoint[]): MapPoint[] => {
+    if (path.length <= 2) return path;
+    const simplified: MapPoint[] = [path[0]];
+
+    for (let index = 1; index < path.length - 1; index += 1) {
+        const previous = simplified[simplified.length - 1];
+        const current = path[index];
+        const next = path[index + 1];
+        if (!current || !next) continue;
+        if (previous && isColinear(previous, current, next)) continue;
+        simplified.push(current);
+    }
+
+    simplified.push(path[path.length - 1]);
+    return simplified;
+};
+
+const buildPolylinePoints = (pathIds: string[], points: Map<string, MapPoint>): string => {
+    const pathPoints = pathIds
         .map(id => points.get(id))
-        .filter((point): point is MapPoint => Boolean(point))
-        .map(point => `${point.x},${point.y}`)
-        .join(' ');
+        .filter((point): point is MapPoint => Boolean(point));
+
+    const simplified = simplifyPolylinePoints(pathPoints);
+
+    return simplified.map(point => `${point.x},${point.y}`).join(' ');
+};
 
 export type { MapEdge, MapGraph, MapPoint };
 export { MAP_VIEWBOX, buildMapGraph, buildPolylinePoints, findShortestPath };

@@ -174,15 +174,15 @@ export function AdminMapPage() {
                             <defs>
                                 <marker
                                     id="route-arrow"
-                                    viewBox="0 0 10 8"
-                                    refX="9"
-                                    refY="4"
-                                    markerWidth="6"
-                                    markerHeight="6"
+                                    viewBox="0 0 6 6"
+                                    refX="6"
+                                    refY="3"
+                                    markerWidth="4"
+                                    markerHeight="4"
                                     orient="auto"
-                                    markerUnits="strokeWidth"
+                                    markerUnits="userSpaceOnUse"
                                 >
-                                    <path className="map-route-arrow" d="M0 0 L10 4 L0 8 Z" />
+                                    <path className="map-route-arrow" d="M0 0 L6 3 L0 6 Z" />
                                 </marker>
                             </defs>
                             <image href={TechUpMapUrl} x={MAP_VIEWBOX.minX} y={MAP_VIEWBOX.minY} width={MAP_VIEWBOX.width} height={MAP_VIEWBOX.height} />
