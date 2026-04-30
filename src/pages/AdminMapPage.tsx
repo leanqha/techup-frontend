@@ -128,6 +128,7 @@ export function AdminMapPage() {
                         detectWheel
                         detectPinchGesture
                         preventPanOutside
+                        autoPan={false}
                         scaleFactorMin={MIN_SCALE}
                         scaleFactorMax={MAX_SCALE}
                         scaleFactorOnWheel={WHEEL_ZOOM_STEP}
