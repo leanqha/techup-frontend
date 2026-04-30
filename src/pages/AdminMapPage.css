@@ -37,6 +37,33 @@
     font-size: 14px;
 }
 
+.map-zoom {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.map-zoom-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.map-zoom-button {
+    min-width: 44px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #cfcfcf;
+    background: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.map-zoom-button:hover {
+    border-color: #9aa4b2;
+}
+
 .map-frame {
     width: min(100%, 900px);
     aspect-ratio: 154.05 / 174.49;
@@ -69,12 +96,18 @@
 
 .map-route {
     fill: none;
-    stroke: #ff6a00;
-    stroke-width: 1.6;
+    stroke: #4aa3e3;
+    stroke-width: 1.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.map-route-arrow {
+    fill: #4aa3e3;
 }
 
 .map-route-node {
-    fill: #ff6a00;
+    fill: #4aa3e3;
     stroke: #ffffff;
     stroke-width: 0.4;
 }
