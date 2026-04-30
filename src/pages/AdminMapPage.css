@@ -55,11 +55,13 @@
     top: calc(env(safe-area-inset-top) + 12px);
     left: 16px;
     z-index: 2;
-    padding: 0;
+    padding: 8px;
+    margin: -8px;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
     backdrop-filter: none;
+    pointer-events: auto;
 }
 
 .map-svg {

@@ -19,6 +19,7 @@ type PanZoomViewerHandle = {
     zoomOnViewerCenter: (scaleFactor: number) => void;
     fitToViewer: () => void;
     reset: () => void;
+    getValue?: () => typeof INITIAL_VALUE;
 };
 
 const useElementSize = (ref: React.RefObject<HTMLElement | null>): ViewerSize => {
@@ -74,6 +75,10 @@ export function AdminMapPage() {
         const frame = requestAnimationFrame(() => {
             viewerRef.current?.reset();
             viewerRef.current?.fitToViewer();
+            const nextValue = viewerRef.current?.getValue?.();
+            if (nextValue != null) {
+                setViewerValue(nextValue);
+            }
         });
         return () => cancelAnimationFrame(frame);
     }, [hasViewerSize, mapReady, viewerSize.height, viewerSize.width]);
