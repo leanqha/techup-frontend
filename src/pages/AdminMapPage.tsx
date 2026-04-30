@@ -1,29 +1,61 @@
-import { useMemo, useRef, useState, useCallback } from 'react';
+import { useMemo, useRef, useState, useCallback, useLayoutEffect } from 'react';
+import { ReactSVGPanZoom, TOOL_AUTO, POSITION_NONE, INITIAL_VALUE } from 'react-svg-pan-zoom';
 import TechUpMapUrl from '../assets/TechUpMap.svg';
 import { buildMapGraph, buildPolylinePoints, findShortestPath, MAP_VIEWBOX } from '../utils/mapRoutes';
 import './AdminMapPage.css';
 
 const formatPointId = (value: string) => value.trim();
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const MIN_SCALE = 1;
+const MAX_SCALE = 4;
+const ZOOM_STEP = 1.2;
+const WHEEL_ZOOM_STEP = 1.03;
 
-type ViewBoxState = {
-    x: number;
-    y: number;
+type ViewerSize = {
     width: number;
     height: number;
 };
 
-const MIN_SCALE = 1;
-const MAX_SCALE = 4;
-const ZOOM_STEP = 1.2;
+type PanZoomViewerHandle = {
+    zoomOnViewerCenter: (scaleFactor: number) => void;
+    fitToViewer: () => void;
+    reset: () => void;
+};
 
-const createDefaultViewBox = (): ViewBoxState => ({
-    x: MAP_VIEWBOX.minX,
-    y: MAP_VIEWBOX.minY,
-    width: MAP_VIEWBOX.width,
-    height: MAP_VIEWBOX.height,
-});
+const useElementSize = (ref: React.RefObject<HTMLElement | null>): ViewerSize => {
+    const [size, setSize] = useState<ViewerSize>({ width: 0, height: 0 });
+
+    useLayoutEffect(() => {
+        const element = ref.current;
+        if (!element) return undefined;
+
+        const updateSize = () => {
+            const rect = element.getBoundingClientRect();
+            setSize({ width: Math.round(rect.width), height: Math.round(rect.height) });
+        };
+
+        updateSize();
+
+        if (typeof ResizeObserver === 'undefined') {
+            window.addEventListener('resize', updateSize);
+            return () => window.removeEventListener('resize', updateSize);
+        }
+
+        const observer = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                setSize({
+                    width: Math.round(entry.contentRect.width),
+                    height: Math.round(entry.contentRect.height),
+                });
+            }
+        });
+
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, [ref]);
+
+    return size;
+};
 
 export function AdminMapPage() {
     const mapGraph = useMemo(() => buildMapGraph(), []);
@@ -34,78 +66,24 @@ export function AdminMapPage() {
 
     const [startId, setStartId] = useState(defaultStartId);
     const [endId, setEndId] = useState(defaultEndId);
-    const [viewBox, setViewBox] = useState<ViewBoxState>(() => createDefaultViewBox());
-    const svgRef = useRef<SVGSVGElement | null>(null);
-
-    const clampViewBox = useCallback((nextViewBox: ViewBoxState): ViewBoxState => {
-        const minX = MAP_VIEWBOX.minX;
-        const minY = MAP_VIEWBOX.minY;
-        const maxX = MAP_VIEWBOX.minX + MAP_VIEWBOX.width - nextViewBox.width;
-        const maxY = MAP_VIEWBOX.minY + MAP_VIEWBOX.height - nextViewBox.height;
-
-        return {
-            x: clamp(nextViewBox.x, minX, maxX),
-            y: clamp(nextViewBox.y, minY, maxY),
-            width: nextViewBox.width,
-            height: nextViewBox.height,
-        };
-    }, []);
-
-    const getViewBoxCenter = useCallback((currentViewBox: ViewBoxState) => ({
-        x: currentViewBox.x + currentViewBox.width / 2,
-        y: currentViewBox.y + currentViewBox.height / 2,
-    }), []);
-
-    const zoomTo = useCallback((nextScale: number, anchor: { x: number; y: number }) => {
-        const clampedScale = clamp(nextScale, MIN_SCALE, MAX_SCALE);
-        const nextWidth = MAP_VIEWBOX.width / clampedScale;
-        const nextHeight = MAP_VIEWBOX.height / clampedScale;
-        const ratioX = (anchor.x - viewBox.x) / viewBox.width;
-        const ratioY = (anchor.y - viewBox.y) / viewBox.height;
-
-        const nextX = anchor.x - ratioX * nextWidth;
-        const nextY = anchor.y - ratioY * nextHeight;
-
-        setViewBox(clampViewBox({
-            x: nextX,
-            y: nextY,
-            width: nextWidth,
-            height: nextHeight,
-        }));
-    }, [clampViewBox, viewBox]);
-
-    const getAnchorFromEvent = useCallback((event: React.WheelEvent<SVGSVGElement>) => {
-        if (!svgRef.current) return null;
-        const rect = svgRef.current.getBoundingClientRect();
-        const ratioX = clamp((event.clientX - rect.left) / rect.width, 0, 1);
-        const ratioY = clamp((event.clientY - rect.top) / rect.height, 0, 1);
-
-        return {
-            x: viewBox.x + viewBox.width * ratioX,
-            y: viewBox.y + viewBox.height * ratioY,
-        };
-    }, [viewBox]);
-
-    const handleWheel = useCallback((event: React.WheelEvent<SVGSVGElement>) => {
-        event.preventDefault();
-        const currentScale = MAP_VIEWBOX.width / viewBox.width;
-        const nextScale = event.deltaY > 0 ? currentScale / ZOOM_STEP : currentScale * ZOOM_STEP;
-        const anchor = getAnchorFromEvent(event) ?? getViewBoxCenter(viewBox);
-        zoomTo(nextScale, anchor);
-    }, [getAnchorFromEvent, getViewBoxCenter, viewBox, zoomTo]);
+    const [viewerValue, setViewerValue] = useState(INITIAL_VALUE);
+    const mapFrameRef = useRef<HTMLDivElement | null>(null);
+    const viewerRef = useRef<PanZoomViewerHandle | null>(null);
+    const viewerSize = useElementSize(mapFrameRef);
+    const hasViewerSize = viewerSize.width > 0 && viewerSize.height > 0;
 
     const handleZoomIn = useCallback(() => {
-        const currentScale = MAP_VIEWBOX.width / viewBox.width;
-        zoomTo(currentScale * ZOOM_STEP, getViewBoxCenter(viewBox));
-    }, [getViewBoxCenter, viewBox, zoomTo]);
+        viewerRef.current?.zoomOnViewerCenter(ZOOM_STEP);
+    }, []);
 
     const handleZoomOut = useCallback(() => {
-        const currentScale = MAP_VIEWBOX.width / viewBox.width;
-        zoomTo(currentScale / ZOOM_STEP, getViewBoxCenter(viewBox));
-    }, [getViewBoxCenter, viewBox, zoomTo]);
+        viewerRef.current?.zoomOnViewerCenter(1 / ZOOM_STEP);
+    }, []);
 
     const handleZoomReset = useCallback(() => {
-        setViewBox(createDefaultViewBox());
+        if (!viewerRef.current) return;
+        viewerRef.current.reset();
+        viewerRef.current.fitToViewer();
     }, []);
 
     const pathIds = useMemo(() => {
@@ -164,35 +142,56 @@ export function AdminMapPage() {
                 </datalist>
             </div>
 
-            <div className="map-frame">
-                <svg
-                    className="map-svg"
-                    ref={svgRef}
-                    viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-                    preserveAspectRatio="xMidYMid meet"
-                    role="img"
-                    aria-label="SVG карта корпуса"
-                    onWheel={handleWheel}
-                >
-                    <defs>
-                        <marker
-                            id="route-arrow"
-                            viewBox="0 0 10 8"
-                            refX="9"
-                            refY="4"
-                            markerWidth="6"
-                            markerHeight="6"
-                            orient="auto"
-                            markerUnits="strokeWidth"
+            <div className="map-frame" ref={mapFrameRef}>
+                {hasViewerSize && (
+                    <ReactSVGPanZoom
+                        ref={viewerRef}
+                        width={viewerSize.width}
+                        height={viewerSize.height}
+                        value={viewerValue}
+                        onChangeValue={setViewerValue}
+                        tool={TOOL_AUTO}
+                        detectWheel
+                        detectPinchGesture
+                        preventPanOutside
+                        scaleFactorMin={MIN_SCALE}
+                        scaleFactorMax={MAX_SCALE}
+                        scaleFactorOnWheel={WHEEL_ZOOM_STEP}
+                        background="transparent"
+                        SVGBackground="#ffffff"
+                        className="map-svg"
+                        toolbarProps={{ position: POSITION_NONE }}
+                        miniatureProps={{ position: POSITION_NONE }}
+                    >
+                        <svg
+                            viewBox={`${MAP_VIEWBOX.minX} ${MAP_VIEWBOX.minY} ${MAP_VIEWBOX.width} ${MAP_VIEWBOX.height}`}
+                            width={MAP_VIEWBOX.width}
+                            height={MAP_VIEWBOX.height}
+                            preserveAspectRatio="xMidYMid meet"
+                            role="img"
+                            aria-label="SVG карта корпуса"
                         >
-                            <path className="map-route-arrow" d="M0 0 L10 4 L0 8 Z" />
-                        </marker>
-                    </defs>
-                    <image href={TechUpMapUrl} x={MAP_VIEWBOX.minX} y={MAP_VIEWBOX.minY} width={MAP_VIEWBOX.width} height={MAP_VIEWBOX.height} />
-                    <g className="map-routes">
-                        {activeRoutePoints && <polyline className="map-route" points={activeRoutePoints} markerEnd="url(#route-arrow)" />}
-                    </g>
-                </svg>
+                            <defs>
+                                <marker
+                                    id="route-arrow"
+                                    viewBox="0 0 10 8"
+                                    refX="9"
+                                    refY="4"
+                                    markerWidth="6"
+                                    markerHeight="6"
+                                    orient="auto"
+                                    markerUnits="strokeWidth"
+                                >
+                                    <path className="map-route-arrow" d="M0 0 L10 4 L0 8 Z" />
+                                </marker>
+                            </defs>
+                            <image href={TechUpMapUrl} x={MAP_VIEWBOX.minX} y={MAP_VIEWBOX.minY} width={MAP_VIEWBOX.width} height={MAP_VIEWBOX.height} />
+                            <g className="map-routes">
+                                {activeRoutePoints && <polyline className="map-route" points={activeRoutePoints} markerEnd="url(#route-arrow)" />}
+                            </g>
+                        </svg>
+                    </ReactSVGPanZoom>
+                )}
             </div>
         </section>
     );
