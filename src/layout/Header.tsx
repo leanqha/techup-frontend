@@ -1,5 +1,6 @@
 // src/layout/Header.tsx
 import { useAuth } from '../context/useAuth';
+import { MenuIcon } from '../components/icons';
 
 type Props = {
     toggleSidebar?: () => void; // function to control sidebar overlay
@@ -18,22 +19,15 @@ export function Header({ toggleSidebar }: Props) {
 
     return (
         <header className="header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="headerLeft">
                 {/* Hamburger button only for mobile */}
                 {toggleSidebar && (
                     <button
                         onClick={toggleSidebar}
                         className="hamburgerButton"
-                        style={{
-                            fontSize: 22,
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#111827',
-                            cursor: 'pointer',
-                        }}
-                        aria-label="Toggle sidebar"
+                        aria-label="Открыть меню"
                     >
-                        ☰
+                        <MenuIcon size={22} />
                     </button>
                 )}
 

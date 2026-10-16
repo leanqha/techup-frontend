@@ -1,12 +1,54 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* ============================================================
+   Design tokens
+   ============================================================ */
 :root {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
     line-height: 1.5;
     font-weight: 400;
+    color: var(--text);
+    color-scheme: light;
 
-    color: #213547;
-    background-color: #ffffff;
+    /* Brand / accent */
+    --accent: #2563eb;
+    --accent-strong: #1d4ed8;
+    --accent-soft: rgba(37, 99, 235, 0.12);
+    --accent-contrast: #ffffff;
+    --gradient-accent: linear-gradient(135deg, #4f7cff 0%, #2563eb 55%, #1d4ed8 100%);
+
+    /* Status */
+    --danger: #dc2626;
+    --danger-soft: rgba(220, 38, 38, 0.12);
+    --success: #047857;
+
+    /* Text */
+    --text-strong: #0f172a;
+    --text: #1f2937;
+    --text-muted: #64748b;
+    --text-subtle: #94a3b8;
+
+    /* Glass surfaces */
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-bg-strong: rgba(255, 255, 255, 0.72);
+    --glass-bg-faint: rgba(255, 255, 255, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.65);
+    --glass-border-soft: rgba(148, 163, 184, 0.28);
+    --glass-blur: 18px;
+    --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+    --glass-shadow-sm: 0 4px 16px rgba(15, 23, 42, 0.08);
+    --glass-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.22);
+
+    /* Dark glass (sidebar) */
+    --glass-dark-bg: rgba(15, 23, 42, 0.72);
+    --glass-dark-border: rgba(148, 163, 184, 0.2);
+
+    /* Radii */
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-pill: 999px;
 
     /* Layer scale: nav/sidebar < overlays < modals < loader */
     --z-bottom-nav: 10;
@@ -20,13 +62,45 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-html, body, #root {
+/* ============================================================
+   Reset
+   ============================================================ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
+
+html,
+body,
+#root {
     height: 100%;
 }
 
 body {
-    margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    color: var(--text);
+    background: #eef2ff;
+}
+
+/* Soft aurora backdrop that the frosted-glass surfaces blur over. */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(1100px 760px at 8% -12%, rgba(99, 102, 241, 0.28), transparent 60%),
+        radial-gradient(960px 680px at 112% 6%, rgba(56, 189, 248, 0.24), transparent 55%),
+        radial-gradient(880px 880px at 50% 118%, rgba(168, 85, 247, 0.18), transparent 60%),
+        linear-gradient(180deg, #eef2ff 0%, #f6f8ff 48%, #eaf4ff 100%);
+    background-attachment: fixed;
 }
 
 /* Prevent iOS Safari focus-zoom on text fields with small font sizes. */
@@ -38,42 +112,63 @@ body {
     }
 }
 
+/* ============================================================
+   Base typography & controls
+   ============================================================ */
 a {
     font-weight: 500;
-    color: #646cff;
-    text-decoration: inherit;
+    color: var(--accent);
+    text-decoration: none;
 }
 
 a:hover {
-    color: #535bf2;
+    color: var(--accent-strong);
 }
 
-h1 {
-    font-size: 2.4rem;
+h1,
+h2,
+h3,
+h4 {
+    color: var(--text-strong);
     line-height: 1.2;
 }
 
+h1 {
+    font-size: clamp(1.6rem, 4vw, 2rem);
+}
+
 button {
-    border-radius: 8px;
-    border: 1px solid transparent;
-    padding: 0.6em 1.2em;
-    font-size: 1rem;
-    font-weight: 500;
     font-family: inherit;
-    background-color: #f3f4f6;
+    font-size: 1rem;
     cursor: pointer;
-    transition: 0.2s ease;
 }
 
-button:hover {
-    background-color: #e5e7eb;
+:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.55);
+    outline-offset: 2px;
 }
 
+/* ============================================================
+   Reusable glass surfaces
+   ============================================================ */
+.glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+}
+
+/* ============================================================
+   Loader
+   ============================================================ */
 .LoaderOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(255, 255, 255, 0.6); /* белое затемнение */
-    backdrop-filter: blur(4px); /* красивый glass-эффект */
+    background: rgba(248, 250, 255, 0.45);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -81,76 +176,79 @@ button:hover {
 }
 
 .LoaderBox {
-    width: 110px;
-    height: 110px;
-    background: #ffffff;
-    border-radius: 20px;
+    width: 104px;
+    height: 104px;
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
 }
 
 .LoaderSpinner {
     width: 42px;
     height: 42px;
-    border: 4px solid #e5e7eb;
-    border-top: 4px solid #2563eb;
+    border: 4px solid rgba(37, 99, 235, 0.18);
+    border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* ===== Bottom Navigation ===== */
+@media (prefers-reduced-motion: reduce) {
+    .LoaderSpinner { animation-duration: 1.6s; }
+}
 
+/* ============================================================
+   Bottom navigation (PWA)
+   ============================================================ */
 .bottomNav {
     position: fixed;
     bottom: calc(env(safe-area-inset-bottom) + 12px);
     left: 12px;
     right: 12px;
     height: 64px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
     display: flex;
     justify-content: space-around;
     align-items: center;
     z-index: var(--z-bottom-nav);
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
 }
 
 .bottomNavItem {
-    font-size: 24px;
     text-decoration: none;
-    color: #9ca3af;
-    transition: 0.2s ease;
+    color: var(--text-subtle);
+    transition: color 0.2s ease, transform 0.2s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: 1;
     height: 100%;
-    padding: 8px 0;
     background: transparent;
     -webkit-tap-highlight-color: transparent;
 }
 
-.bottomNavIcon {
-    width: 24px;
-    height: 24px;
-}
-
 .bottomNavItem.active {
-    color: #2563eb;
-    transform: scale(1.1);
+    color: var(--accent);
+    transform: translateY(-2px) scale(1.08);
 }
 
 .bottomNavItem:focus-visible {
     outline: 2px solid rgba(37, 99, 235, 0.35);
     outline-offset: -2px;
+    border-radius: var(--radius-md);
 }
 
 .page {

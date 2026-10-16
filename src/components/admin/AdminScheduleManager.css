@@ -6,23 +6,30 @@
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-top: 12px;
+    margin-top: 4px;
 }
 
 .admin-tab {
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid #d1d5db;
-    background: #ffffff;
-    color: #111827;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg-strong);
+    color: var(--text-strong);
     font-weight: 600;
     cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+}
+
+.admin-tab:hover {
+    transform: translateY(-1px);
 }
 
 .admin-tab.active {
-    background: #2563eb;
-    border-color: #2563eb;
-    color: #ffffff;
+    background: var(--gradient-accent);
+    border-color: transparent;
+    color: var(--accent-contrast);
 }
 
 .admin-crud-panel {
@@ -48,14 +55,16 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
 .admin-schedule-row {
     padding: 12px;
-    border-radius: 12px;
-    background: #f9fafb;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--glass-border-soft);
     font-size: 14px;
+    color: var(--text);
 }
 
 .admin-schedule-header--faculties,

@@ -8,6 +8,7 @@ import { ScheduleDay } from '../components/schedule/ScheduleDay';
 import type { Lesson } from '../api/types/schedule';
 import type { Dispatch, SetStateAction } from 'react';
 import { Loader } from '../components/Loader.tsx';
+import { ChevronLeftIcon, ChevronRightIcon } from '../components/icons';
 import './SchedulePage.css';
 
 function formatLocalDateISO(date: Date): string {
@@ -198,8 +199,8 @@ export function SchedulePage() {
     }, [hasAutoScrolledToToday, loading, preferences.autoScrollToToday, sortedDates, todayIso, weekOffset]);
 
     return (
-        <div style={{ padding: 16, minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Расписание</h1>
+        <div className="schedule-page">
+            <h1 className="schedule-page__title">Расписание</h1>
 
             <WeekControls weekOffset={weekOffset} setWeekOffset={setWeekOffset} />
 
@@ -211,12 +212,10 @@ export function SchedulePage() {
             />
 
             {loading && <Loader />}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <p className="schedule-page__error">{error}</p>}
 
             {sortedDates.length === 0 && !loading && !error && (
-                <div style={{ padding: 16, fontStyle: 'italic', color: '#6B7280' }}>
-                    Пар нет
-                </div>
+                <div className="schedule-page__empty">Пар нет</div>
             )}
 
             {sortedDates.map(date => (
@@ -241,7 +240,7 @@ function WeekControls({ setWeekOffset }: { weekOffset: number; setWeekOffset: Di
     return (
         <div className="schedule-page__week-controls">
             <button className="schedule-page__week-button schedule-page__week-button--prev" onClick={() => setWeekOffset(v => v - 1)}>
-                <span className="schedule-page__week-arrow" aria-hidden>←</span>
+                <span className="schedule-page__week-arrow"><ChevronLeftIcon size={18} /></span>
                 <span className="schedule-page__week-label">Предыдущая</span>
             </button>
             <button className="schedule-page__week-button schedule-page__week-button--today" onClick={() => setWeekOffset(0)}>
@@ -249,7 +248,7 @@ function WeekControls({ setWeekOffset }: { weekOffset: number; setWeekOffset: Di
             </button>
             <button className="schedule-page__week-button schedule-page__week-button--next" onClick={() => setWeekOffset(v => v + 1)}>
                 <span className="schedule-page__week-label">Следующая</span>
-                <span className="schedule-page__week-arrow" aria-hidden>→</span>
+                <span className="schedule-page__week-arrow"><ChevronRightIcon size={18} /></span>
             </button>
         </div>
     );

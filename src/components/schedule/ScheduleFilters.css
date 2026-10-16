@@ -5,7 +5,9 @@
 }
 
 .schedule-filters-popup__overlay {
-    background: rgba(17, 24, 39, 0.55);
+    background: rgba(15, 23, 42, 0.45);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     padding: 16px;
     z-index: var(--z-modal);
 }
@@ -13,9 +15,12 @@
 .schedule-filters-popup {
     width: min(980px, calc(100vw - 24px));
     max-height: min(90vh, 90dvh);
-    background: #ffffff;
-    border-radius: 14px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--glass-shadow-lg);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -27,7 +32,7 @@
     justify-content: space-between;
     gap: 10px;
     padding: 16px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--glass-border-soft);
 }
 
 .schedule-filters-popup__header h2 {
@@ -36,13 +41,22 @@
 }
 
 .schedule-filters-popup__close {
-    border: none;
-    background: transparent;
-    color: #6b7280;
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.schedule-filters-popup__close:hover {
+    background: var(--glass-bg-faint);
+    color: var(--text-strong);
 }
 
 .schedule-filters-popup__body {
@@ -52,10 +66,10 @@
 
 .schedule-filters-panel__toggle {
     align-items: center;
-    background: #0f172a;
-    border: 1px solid #0f172a;
-    border-radius: 10px;
-    color: #ffffff;
+    background: var(--gradient-accent);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--accent-contrast);
     cursor: pointer;
     display: inline-flex;
     font-weight: 600;
@@ -63,6 +77,12 @@
     min-height: 44px;
     padding: 10px 16px;
     gap: 8px;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.schedule-filters-panel__toggle:hover {
+    transform: translateY(-1px);
 }
 
 .schedule-filters-panel__toggle-count {
@@ -71,9 +91,9 @@
     justify-content: center;
     min-width: 22px;
     height: 22px;
-    border-radius: 999px;
-    background: #2563eb;
-    color: #ffffff;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.28);
+    color: var(--accent-contrast);
     font-size: 12px;
     font-weight: 700;
     line-height: 1;
@@ -81,11 +101,13 @@
 }
 
 .schedule-filters-panel__panel {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
     padding: 16px;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--glass-shadow-sm);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
     overflow: hidden;
 }
 
@@ -95,7 +117,6 @@
     gap: 12px;
     margin: 0;
     width: 100%;
-    box-sizing: border-box;
 }
 
 .schedule-filters__field {
@@ -108,7 +129,7 @@
     margin-bottom: 6px;
     font-size: 14px;
     font-weight: 600;
-    color: #334155;
+    color: var(--text);
 }
 
 .schedule-filters__field--wide {
@@ -117,12 +138,12 @@
 
 .schedule-filters__input,
 .schedule-filter-select__control {
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    border: 1px solid var(--glass-border-soft);
+    border-radius: var(--radius-md);
     min-height: 44px;
     font-size: 16px;
     max-width: 100%;
-    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.7);
 }
 
 .schedule-filters__input {
@@ -130,12 +151,13 @@
     width: 100%;
     display: block;
     min-width: 0;
+    color: var(--text-strong);
 }
 
 .schedule-filters__input:focus {
     outline: none;
-    border-color: #94a3b8;
-    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .schedule-filters__input[type="date"] {
@@ -149,8 +171,8 @@
 }
 
 .schedule-filter-select__control--is-focused {
-    border-color: #94a3b8;
-    box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .schedule-filter-select__input,
@@ -160,7 +182,7 @@
 }
 
 .schedule-filter-select__menu {
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     overflow: hidden;
 }
 
@@ -177,7 +199,7 @@
     width: 16px;
     height: 16px;
     margin: 0;
-    border: 1.5px solid #94a3b8;
+    border: 1.5px solid var(--text-subtle);
     border-radius: 4px;
     background: #ffffff;
     display: inline-grid;
@@ -197,8 +219,8 @@
 }
 
 .schedule-filter-select__option-checkbox input[type="checkbox"]:checked {
-    background: #2563eb;
-    border-color: #2563eb;
+    background: var(--accent);
+    border-color: var(--accent);
 }
 
 .schedule-filter-select__option-checkbox input[type="checkbox"]:checked::after {
@@ -217,7 +239,7 @@
 .schedule-filters__submit,
 .schedule-filters-panel__reset {
     align-items: center;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     display: inline-flex;
     font-weight: 600;
@@ -225,17 +247,18 @@
     min-height: 44px;
     padding: 10px 16px;
     width: 100%;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
 }
 
 .schedule-filters__submit {
-    background: #2563eb;
-    border: 1px solid #2563eb;
-    color: #ffffff;
+    background: var(--gradient-accent);
+    border: 1px solid transparent;
+    color: var(--accent-contrast);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
 }
 
 .schedule-filters__submit:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    transform: translateY(-1px);
 }
 
 .schedule-filters-panel__actions {
@@ -245,14 +268,13 @@
 }
 
 .schedule-filters-panel__reset {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    color: #0f172a;
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    color: var(--text-strong);
 }
 
 .schedule-filters-panel__reset:hover {
-    border-color: #cbd5f5;
-    background: #f8fafc;
+    background: #ffffff;
 }
 
 .schedule-filters-panel__chips {
@@ -265,11 +287,11 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 999px;
-    padding: 6px 8px 6px 10px;
-    color: #0f172a;
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    padding: 6px 8px 6px 12px;
+    color: var(--text-strong);
     font-size: 14px;
     line-height: 1.2;
     max-width: 100%;
@@ -285,14 +307,15 @@
     width: 22px;
     height: 22px;
     border: none;
-    border-radius: 999px;
-    background: #e2e8f0;
-    color: #334155;
+    border-radius: var(--radius-pill);
+    background: rgba(148, 163, 184, 0.3);
+    color: var(--text);
     cursor: pointer;
     display: inline-grid;
     place-items: center;
     padding: 0;
     flex-shrink: 0;
+    transition: background 0.15s ease;
 }
 
 .schedule-filters-panel__chip-remove svg {
@@ -300,18 +323,12 @@
 }
 
 .schedule-filters-panel__chip-remove:hover {
-    background: #cbd5e1;
+    background: rgba(148, 163, 184, 0.5);
 }
 
 @media (max-width: 900px) {
-    .schedule-filters__field {
-        width: 100%;
-    }
-
-    .schedule-filters__field--wide {
-        width: 100%;
-    }
-
+    .schedule-filters__field,
+    .schedule-filters__field--wide,
     .schedule-filters__action {
         width: 100%;
     }
@@ -322,10 +339,7 @@
         max-width: 100%;
     }
 
-    .schedule-filters-popup__header {
-        padding: 12px;
-    }
-
+    .schedule-filters-popup__header,
     .schedule-filters-popup__body {
         padding: 12px;
     }

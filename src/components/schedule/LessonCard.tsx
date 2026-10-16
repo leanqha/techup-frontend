@@ -1,35 +1,37 @@
 // src/components/schedule/LessonCard.tsx
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { Lesson, LessonType } from '../../api/types/schedule';
 import { deleteLessonNote, fetchLessonNote, saveLessonNote } from '../../api/schedule.ts';
 import { formatTime } from '../../utils/date';
 import { LessonNoteModal } from './LessonNoteModal';
+import './schedule.css';
 
 function getTypeMeta(type: LessonType) {
     switch (type) {
         case 'lecture':
             return {
                 label: 'Лекция',
-                accent: '#2563EB',
-                bg: '#EFF6FF',
+                accent: '#2563eb',
+                soft: 'rgba(37, 99, 235, 0.12)',
             };
         case 'practice':
             return {
                 label: 'Практика',
-                accent: '#DC2626',
-                bg: '#FEF2F2',
+                accent: '#dc2626',
+                soft: 'rgba(220, 38, 38, 0.12)',
             };
         case 'laboratory':
             return {
                 label: 'Лабораторная',
-                accent: '#7C3AED',
-                bg: '#F5F3FF',
+                accent: '#7c3aed',
+                soft: 'rgba(124, 58, 237, 0.12)',
             };
         default:
             return {
                 label: '',
-                accent: '#6B7280',
-                bg: '#F9FAFB',
+                accent: '#64748b',
+                soft: 'rgba(100, 116, 139, 0.12)',
             };
     }
 }
@@ -131,106 +133,36 @@ export function LessonCard({ lesson, showGroup = false }: { lesson: Lesson; show
         }
     };
 
+    const cardStyle = {
+        '--lesson-accent': typeMeta.accent,
+        '--lesson-accent-soft': typeMeta.soft,
+    } as CSSProperties;
+
     return (
         <>
-            <div
-                style={{
-                    position: 'relative',
-                    borderRadius: 16,
-                    padding: 16,
-                    paddingBottom: 44,
-                    marginBottom: 12,
-                    background: '#ffffff',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 8,
-                    borderLeft: `6px solid ${typeMeta.accent}`,
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 10,
-                    }}
-                >
-                    {/* Тип */}
+            <div className="lesson-card" style={cardStyle}>
+                <div className="lesson-card__top">
                     {typeMeta.label && (
-                        <span
-                            style={{
-                                alignSelf: 'flex-start',
-                                background: typeMeta.bg,
-                                color: typeMeta.accent,
-                                padding: '4px 10px',
-                                borderRadius: 999,
-                                fontSize: 12,
-                                fontWeight: 600,
-                                letterSpacing: 0.3,
-                            }}
-                        >
-                            {typeMeta.label}
-                        </span>
+                        <span className="lesson-card__type">{typeMeta.label}</span>
                     )}
-
-                    <div
-                        style={{
-                            marginLeft: 'auto',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                        }}
-                    >
-                        {/* Время */}
-                        <div
-                            style={{
-                                fontSize: 14,
-                                fontWeight: 500,
-                                color: '#374151',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
-                            {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
-                        </div>
+                    <div className="lesson-card__time">
+                        {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}
                     </div>
                 </div>
 
                 {/* Предмет + аудитория */}
-                <div
-                    style={{
-                        fontSize: 16,
-                        fontWeight: 600,
-                        lineHeight: 1.3,
-                        color: '#111827',
-                        wordBreak: 'break-word',
-                    }}
-                >
+                <div className="lesson-card__subject">
                     {lesson.subject}
                     {showClassroom ? ` · ${lesson.classroom}` : ''}
                 </div>
 
                 {/* Преподаватель */}
                 {showTeacher && (
-                    <div
-                        style={{
-                            fontSize: 14,
-                            color: '#6B7280',
-                        }}
-                    >
-                        {lesson.teacher.full_name}
-                    </div>
+                    <div className="lesson-card__meta">{lesson.teacher.full_name}</div>
                 )}
 
                 {showGroupName && (
-                    <div
-                        style={{
-                            fontSize: 14,
-                            color: '#6B7280',
-                        }}
-                    >
-                        Группа: {lesson.group.name}
-                    </div>
+                    <div className="lesson-card__meta">Группа: {lesson.group.name}</div>
                 )}
 
                 <button
@@ -238,27 +170,7 @@ export function LessonCard({ lesson, showGroup = false }: { lesson: Lesson; show
                     onClick={handleOpenNote}
                     aria-label="Открыть заметку"
                     title={hasExistingNote ? savedNoteText : 'Добавить заметку'}
-                    style={{
-                        position: 'absolute',
-                        right: 16,
-                        bottom: 12,
-                        maxWidth: 'calc(100% - 32px)',
-                        border: 'none',
-                        borderRadius: 0,
-                        background: 'transparent',
-                        padding: 0,
-                        margin: 0,
-                        color: hasExistingNote ? '#374151' : '#2563EB',
-                        fontSize: 12,
-                        lineHeight: '16px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        textAlign: 'right',
-                        appearance: 'none',
-                        WebkitAppearance: 'none',
-                    }}
+                    className={`lesson-card__note${hasExistingNote ? ' lesson-card__note--filled' : ''}`}
                 >
                     {hasExistingNote ? savedNoteText : 'Добавить заметку'}
                 </button>
