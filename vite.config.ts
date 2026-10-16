@@ -18,12 +18,19 @@ export default defineConfig(({ mode }) => {
         ],
         server: {
             // Proxy API calls to the local Go backend. Only used when the mock
-            // is disabled (VITE_MOCK_API=false); `changeOrigin` makes the
-            // request look same-origin so the backend CORS allowlist is a no-op.
+            // is disabled (VITE_MOCK_API=false). `changeOrigin` rewrites Host,
+            // and we drop the browser Origin so the request reaches the backend
+            // as same-origin — otherwise its CORS allowlist (production origin
+            // only) rejects local POSTs with 403.
             proxy: {
                 '/api': {
                     target: apiTarget,
                     changeOrigin: true,
+                    configure: (proxy) => {
+                        proxy.on('proxyReq', (proxyReq) => {
+                            proxyReq.removeHeader('origin')
+                        })
+                    },
                 },
             },
         },
