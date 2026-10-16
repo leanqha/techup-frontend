@@ -2,9 +2,13 @@
 // route with in-memory sample data, so the whole app is usable locally
 // without the Go backend running. Enabled from main.tsx in dev (or when
 // VITE_MOCK_API === 'true'); never touches requests outside /api/v1.
+//
+// Admin writes (faculties / groups / lessons / accounts) mutate the in-memory
+// data so full CRUD can be exercised and verified without a backend.
 import {
     CURRENT_USER,
     TEACHER_PROFILES,
+    TEACHERS,
     GROUPS,
     FACULTIES,
     CLASSROOMS,
@@ -42,8 +46,14 @@ const json = (data: unknown, status = 200): Response =>
 
 const noContent = (): Response => new Response(null, { status: 204 });
 const unauthorized = (): Response => json({ error: 'unauthorized' }, 401);
+const notFound = (): Response => json({ error: 'not found' }, 404);
 
 const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
+const nextId = (items: Array<{ id: number }>): number =>
+    items.reduce((max, item) => Math.max(max, item.id), 0) + 1;
+
+type Body = Record<string, unknown>;
 
 function filterLessons(params: URLSearchParams): Lesson[] {
     const groupId = params.get('group_id');
@@ -66,14 +76,33 @@ function filterLessons(params: URLSearchParams): Lesson[] {
     });
 }
 
-function route(method: string, path: string, params: URLSearchParams, body: unknown): Response {
+function lessonFromBody(body: Body, id: number): Lesson {
+    const group = GROUPS.find(g => g.id === Number(body.group)) ?? GROUPS[0];
+    const teacher =
+        TEACHERS.find(t => t.id === Number(body.teacher_id)) ??
+        { id: Number(body.teacher_id) || 0, first_name: '', last_name: '', middle_name: '', full_name: '' };
+    return {
+        id,
+        date: String(body.date ?? ''),
+        start_time: String(body.start_time ?? ''),
+        end_time: String(body.end_time ?? ''),
+        subject: String(body.subject ?? ''),
+        type: (String(body.type ?? 'other') as Lesson['type']),
+        classroom: String(body.classroom ?? ''),
+        group,
+        teacher,
+    };
+}
+
+function idFromPath(path: string): number | null {
+    const m = path.match(/\/(\d+)$/);
+    return m ? Number(m[1]) : null;
+}
+
+function route(method: string, path: string, params: URLSearchParams, body: Body): Response {
     // ---- Account / auth ----
-    if (path === '/account/secure/profile') {
-        return isAuthed() ? json(CURRENT_USER) : unauthorized();
-    }
-    if (path === '/account/refresh') {
-        return isAuthed() ? json({ ok: true }) : unauthorized();
-    }
+    if (path === '/account/secure/profile') return isAuthed() ? json(CURRENT_USER) : unauthorized();
+    if (path === '/account/refresh') return isAuthed() ? json({ ok: true }) : unauthorized();
     if (path === '/account/login' || path === '/account/register') {
         setAuthed(true);
         return json({ ok: true });
@@ -82,17 +111,13 @@ function route(method: string, path: string, params: URLSearchParams, body: unkn
         setAuthed(false);
         return noContent();
     }
-    if (path === '/account/forgot-password') {
+    if (path === '/account/forgot-password')
         return json({ message: 'Ссылка для восстановления отправлена на почту (демо-режим).' });
-    }
-    if (path === '/account/reset-password') {
+    if (path === '/account/reset-password')
         return json({ message: 'Пароль успешно обновлён (демо-режим).' });
-    }
 
     // ---- Schedule (reads) ----
-    if (path === '/schedule/lessons' || path === '/schedule/search') {
-        return json(filterLessons(params));
-    }
+    if (path === '/schedule/lessons' || path === '/schedule/search') return json(filterLessons(params));
     if (path === '/schedule/teachers') return json(TEACHER_PROFILES);
     if (path === '/schedule/groups') return json(GROUPS);
     if (path === '/schedule/faculties') return json(FACULTIES);
@@ -109,10 +134,8 @@ function route(method: string, path: string, params: URLSearchParams, body: unkn
             return json({ id: lessonId, lesson_id: lessonId, text, created_at: now, updated_at: now });
         }
         if (method === 'POST') {
-            const text = (body as { text?: string } | undefined)?.text ?? '';
-            NOTES.set(lessonId, text);
-            const now = new Date().toISOString();
-            return json({ id: lessonId, lesson_id: lessonId, text, created_at: now, updated_at: now });
+            NOTES.set(lessonId, String(body.text ?? ''));
+            return json({ ok: true });
         }
         if (method === 'DELETE') {
             NOTES.delete(lessonId);
@@ -120,24 +143,110 @@ function route(method: string, path: string, params: URLSearchParams, body: unkn
         }
     }
 
-    // ---- Admin accounts ----
-    if (path === '/admin/accounts') return json(ADMIN_ACCOUNTS);
-    if (/^\/admin\/account\/\d+$/.test(path)) {
-        return method === 'DELETE' ? noContent() : json({ ok: true });
+    // ---- Admin: faculties ----
+    if (path === '/admin/faculty' && method === 'POST') {
+        const faculty = { id: nextId(FACULTIES), name: String(body.name ?? '') };
+        FACULTIES.push(faculty);
+        return json(faculty, 201);
+    }
+    if (path.startsWith('/admin/faculty/')) {
+        const id = idFromPath(path);
+        const idx = FACULTIES.findIndex(f => f.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            FACULTIES.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            FACULTIES[idx] = { ...FACULTIES[idx], name: String(body.name ?? FACULTIES[idx].name) };
+            return json(FACULTIES[idx]);
+        }
     }
 
-    // ---- Admin schedule CRUD (writes succeed in the demo) ----
-    if (path === '/admin/schedule/import') return json({ imported: true }, 201);
-    if (/^\/admin\/(faculty|group|lesson|room|connection)(\/\d+)?$/.test(path)) {
-        return method === 'DELETE' ? noContent() : json({ ok: true }, method === 'POST' ? 201 : 200);
+    // ---- Admin: groups ----
+    if (path === '/admin/group' && method === 'POST') {
+        const group = {
+            id: nextId(GROUPS),
+            faculty_id: Number(body.faculty_id ?? 0),
+            name: String(body.name ?? ''),
+            course: Number(body.course ?? 0),
+            degree: String(body.degree ?? ''),
+            year_start: Number(body.year_start ?? 0),
+            specialization: String(body.specialization ?? ''),
+            is_active: Boolean(body.is_active ?? true),
+        };
+        GROUPS.push(group);
+        return json(group, 201);
     }
+    if (path.startsWith('/admin/group/')) {
+        const id = idFromPath(path);
+        const idx = GROUPS.findIndex(g => g.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            GROUPS.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            GROUPS[idx] = {
+                ...GROUPS[idx],
+                faculty_id: Number(body.faculty_id ?? GROUPS[idx].faculty_id),
+                name: String(body.name ?? GROUPS[idx].name),
+                course: Number(body.course ?? GROUPS[idx].course),
+                degree: String(body.degree ?? GROUPS[idx].degree),
+                year_start: Number(body.year_start ?? GROUPS[idx].year_start),
+                specialization: String(body.specialization ?? GROUPS[idx].specialization),
+                is_active: Boolean(body.is_active ?? GROUPS[idx].is_active),
+            };
+            return json(GROUPS[idx]);
+        }
+    }
+
+    // ---- Admin: lessons ----
+    if (path === '/admin/lesson' && method === 'POST') {
+        const lesson = lessonFromBody(body, nextId(LESSONS));
+        LESSONS.push(lesson);
+        return json({ ok: true }, 201);
+    }
+    if (path.startsWith('/admin/lesson/')) {
+        const id = idFromPath(path);
+        const idx = LESSONS.findIndex(l => l.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            LESSONS.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            LESSONS[idx] = lessonFromBody(body, id as number);
+            return json({ ok: true });
+        }
+    }
+
+    // ---- Admin: accounts ----
+    if (path === '/admin/accounts') return json(ADMIN_ACCOUNTS);
+    if (path.startsWith('/admin/account/')) {
+        const id = idFromPath(path);
+        const idx = ADMIN_ACCOUNTS.findIndex(a => a.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            ADMIN_ACCOUNTS.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            ADMIN_ACCOUNTS[idx] = { ...ADMIN_ACCOUNTS[idx], ...(body as Partial<(typeof ADMIN_ACCOUNTS)[number]>) };
+            return json(ADMIN_ACCOUNTS[idx]);
+        }
+    }
+    if (path === '/admin/set-role') return json({ ok: true });
+    if (path === '/admin/schedule/import') return json({ imported: true }, 201);
 
     // ---- Map (AdminMapPage uses static data; these are only fallbacks) ----
+    if (/^\/admin\/(building|room|connection)/.test(path)) {
+        return method === 'DELETE' ? noContent() : json({ ok: true }, method === 'POST' ? 201 : 200);
+    }
     if (path.startsWith('/map/') || path === '/buildings' || path === '/rooms' || path === '/connections') {
         return json([]);
     }
 
-    // ---- Unknown /api/v1 route ----
     console.warn(`[mock] Unhandled ${method} ${API_PREFIX}${path} — returning empty response`);
     return method === 'GET' ? json([]) : json({ ok: true });
 }
@@ -154,11 +263,7 @@ export function installMockApi() {
 
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
         const url =
-            typeof input === 'string'
-                ? input
-                : input instanceof URL
-                    ? input.href
-                    : input.url;
+            typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
         const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
 
         let pathname: string;
@@ -176,12 +281,13 @@ export function installMockApi() {
             return originalFetch(input, init);
         }
 
-        let body: unknown;
+        let body: Body = {};
         if (init?.body && typeof init.body === 'string') {
             try {
-                body = JSON.parse(init.body);
+                const parsed = JSON.parse(init.body);
+                if (parsed && typeof parsed === 'object') body = parsed as Body;
             } catch {
-                body = init.body;
+                /* non-JSON body */
             }
         }
 

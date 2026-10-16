@@ -19,10 +19,17 @@ import {
     type LessonRecord,
     type LessonSearchFilters,
 } from '../../api/adminSchedule';
+import { fetchTeachers } from '../../api/schedule';
+import type { Profile as AccountProfile } from '../../api/types/types';
 import { AdminModal } from './AdminModal';
 import './AdminScheduleManager.css';
 
 type TabKey = 'faculties' | 'groups' | 'lessons';
+
+function formatTeacherName(t: AccountProfile): string {
+    const parts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
+    return parts.length ? parts.join(' ') : t.email || `#${t.id}`;
+}
 
 type GroupFormState = {
     name: string;
@@ -99,6 +106,8 @@ export function AdminScheduleManager() {
     const [editingLesson, setEditingLesson] = useState<LessonRecord | null>(null);
     const [lessonFilters, setLessonFilters] = useState<LessonSearchFilters>(emptyLessonFilters);
 
+    const [teachers, setTeachers] = useState<AccountProfile[]>([]);
+
     const [facultyModalOpen, setFacultyModalOpen] = useState(false);
     const [groupModalOpen, setGroupModalOpen] = useState(false);
     const [lessonModalOpen, setLessonModalOpen] = useState(false);
@@ -106,6 +115,10 @@ export function AdminScheduleManager() {
     const facultyNames = useMemo(() => {
         return new Map(faculties.map(item => [item.id, item.name]));
     }, [faculties]);
+
+    const teacherNames = useMemo(() => {
+        return new Map(teachers.map(item => [item.id, formatTeacherName(item)]));
+    }, [teachers]);
 
     const visibleFaculties = useMemo(() => {
         const q = facultySearch.trim().toLowerCase();
@@ -152,9 +165,14 @@ export function AdminScheduleManager() {
         setLessons(data);
     };
 
+    const loadTeachersData = async () => {
+        const data = await fetchTeachers();
+        setTeachers(Array.isArray(data) ? data : []);
+    };
+
     useEffect(() => {
         void runAction(async () => {
-            await Promise.all([loadFacultiesData(), loadGroupsData()]);
+            await Promise.all([loadFacultiesData(), loadGroupsData(), loadTeachersData()]);
             const initialLessons = await searchAdminLessons(emptyLessonFilters);
             setLessons(initialLessons);
         });
@@ -424,14 +442,7 @@ export function AdminScheduleManager() {
 
     return (
         <section className="admin-section admin-schedule-manager">
-            <div className="admin-section-header">
-                <div>
-                    <h2>CRUD расписания</h2>
-                    <p className="admin-section-subtitle">Управление факультетами, группами и занятиями</p>
-                </div>
-            </div>
-
-            <div className="admin-tabs" role="tablist" aria-label="Разделы CRUD">
+            <div className="admin-tabs" role="tablist" aria-label="Разделы редактора расписания">
                 <button
                     type="button"
                     className={`admin-tab ${tab === 'faculties' ? 'active' : ''}`}
@@ -644,20 +655,23 @@ export function AdminScheduleManager() {
                             </select>
                         </label>
                         <label className="admin-field">
-                            Teacher ID
-                            <input
-                                type="number"
-                                value={lessonFilters.teacherId ?? ''}
+                            Преподаватель
+                            <select
+                                value={lessonFilters.teacherId ? String(lessonFilters.teacherId) : ''}
                                 onChange={event =>
                                     setLessonFilters({
                                         ...lessonFilters,
-                                        teacherId: event.target.value
-                                            ? Number(event.target.value)
-                                            : undefined,
+                                        teacherId: event.target.value ? Number(event.target.value) : undefined,
                                     })
                                 }
-                                placeholder="7"
-                            />
+                            >
+                                <option value="">Все</option>
+                                {teachers.map(teacher => (
+                                    <option key={teacher.id} value={teacher.id}>
+                                        {formatTeacherName(teacher)}
+                                    </option>
+                                ))}
+                            </select>
                         </label>
                         <label className="admin-field">
                             Аудитория
@@ -712,7 +726,7 @@ export function AdminScheduleManager() {
                             <span>Тип</span>
                             <span>Аудитория</span>
                             <span>Группа</span>
-                            <span>Teacher ID</span>
+                            <span>Преподаватель</span>
                             <span>Действия</span>
                         </div>
                         {lessons.map(lesson => (
@@ -725,7 +739,7 @@ export function AdminScheduleManager() {
                                 <span>{lesson.type || '—'}</span>
                                 <span>{lesson.classroom || '—'}</span>
                                 <span>{groups.find(group => group.id === lesson.group)?.name ?? `#${lesson.group}`}</span>
-                                <span>{lesson.teacher_id ?? '—'}</span>
+                                <span>{lesson.teacher_id ? (teacherNames.get(lesson.teacher_id) ?? `#${lesson.teacher_id}`) : '—'}</span>
                                 <span className="admin-accounts-actions">
                                     <button
                                         type="button"
@@ -953,14 +967,20 @@ export function AdminScheduleManager() {
                         </select>
                     </label>
                     <label className="admin-field">
-                        ID преподавателя
-                        <input
-                            type="number"
+                        Преподаватель
+                        <select
                             value={lessonForm.teacher_id}
                             onChange={event =>
                                 setLessonForm({ ...lessonForm, teacher_id: event.target.value })
                             }
-                        />
+                        >
+                            <option value="">Не указан</option>
+                            {teachers.map(teacher => (
+                                <option key={teacher.id} value={teacher.id}>
+                                    {formatTeacherName(teacher)}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     <div className="admin-edit-actions">
                         <button

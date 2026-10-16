@@ -88,15 +88,15 @@ function normalizeGroup(raw: unknown): GroupRecord {
 }
 
 function toGroupPayload(group: GroupPayload | GroupRecord) {
+    // The backend binds/serializes Group with snake_case json tags.
     return {
-        id: 'id' in group ? group.id : undefined,
         name: group.name,
         course: group.course,
         degree: group.degree,
-        facultyID: group.facultyID,
-        yearStart: group.yearStart,
+        faculty_id: group.facultyID,
+        year_start: group.yearStart,
         specialization: group.specialization,
-        isActive: group.isActive,
+        is_active: group.isActive,
     };
 }
 
