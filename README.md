@@ -16,6 +16,17 @@ welcome/auth flow; any valid-looking email + 8-char password logs you back in.
 Toggle it with `VITE_MOCK_API` (see `.env.example`): unset/`true` = on in dev,
 `false` = use a real backend, `true` in a production build = static demo.
 
+## Run against the local backend
+
+Start the Go backend + local Postgres first (see
+[`../techup`](../techup/README.md) → *Quick start*), then run the frontend with
+the mock off. Vite proxies `/api` to the backend (`VITE_API_URL`, default
+`http://localhost:3000`):
+
+```bash
+VITE_MOCK_API=false npm run dev
+```
+
 ---
 
 ## React + TypeScript + Vite
