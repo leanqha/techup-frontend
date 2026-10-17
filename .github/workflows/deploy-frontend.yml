@@ -1,6 +1,7 @@
 name: Deploy Frontend
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,17 +9,38 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install and build
+        # Production build: the mock is off and the app calls /api, which nginx
+        # on the server proxies to the backend.
+        run: |
+          npm ci
+          npm run build
 
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
-      - name: Deploy frontend
+      - name: Trust the server host key
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-          "cd ~/techup-frontend && ./deploy-frontend.sh"
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.SERVER_PORT || 22 }}" -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy static build to the server
+        # FRONTEND_DEPLOY_PATH is the nginx web root for the site, e.g.
+        # /var/www/techup (must be writable by SERVER_USER). nginx serves it
+        # with SPA fallback and proxies /api to the backend — see nginx.conf.example.
+        run: |
+          rsync -az --delete -e "ssh -p ${{ secrets.SERVER_PORT || 22 }}" \
+            dist/ \
+            "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.FRONTEND_DEPLOY_PATH }}/"
