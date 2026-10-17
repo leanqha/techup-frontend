@@ -20,6 +20,7 @@ import type { Lesson } from '../api/types/schedule';
 
 const API_PREFIX = '/api/v1';
 const AUTH_KEY = 'techup:mock-auth';
+const ROLE_KEY = 'techup:mock-role';
 const LATENCY_MS = 160;
 
 function isAuthed(): boolean {
@@ -110,6 +111,18 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
     if (path === '/account/secure/logout') {
         setAuthed(false);
         return noContent();
+    }
+    if (path === '/account/secure/dev/role' && method === 'POST') {
+        const role = String(body.role ?? '');
+        if (['student', 'teacher', 'admin'].includes(role)) {
+            CURRENT_USER.role = role;
+            try {
+                localStorage.setItem(ROLE_KEY, role);
+            } catch {
+                /* ignore */
+            }
+        }
+        return json(CURRENT_USER);
     }
     if (path === '/account/forgot-password')
         return json({ message: 'Ссылка для восстановления отправлена на почту (демо-режим).' });
@@ -257,6 +270,8 @@ export function installMockApi() {
     // Seed as authenticated on first run so the demo opens straight into the app.
     try {
         if (localStorage.getItem(AUTH_KEY) === null) setAuthed(true);
+        const savedRole = localStorage.getItem(ROLE_KEY);
+        if (savedRole) CURRENT_USER.role = savedRole;
     } catch {
         /* ignore */
     }

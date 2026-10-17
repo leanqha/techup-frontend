@@ -1,12 +1,29 @@
 // src/pages/ProfilePage.tsx
 import { useAuth } from '../context/useAuth.ts';
 import { useSchedulePreferences, type WeekStart } from '../context/useSchedulePreferences.ts';
-import type { ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
+import { setDevRole } from '../api/account.ts';
 import './ProfilePage.css';
 
 export function ProfilePage() {
-    const { profile, logout } = useAuth();
+    const { profile, logout, refreshProfile } = useAuth();
     const { preferences, updatePreferences } = useSchedulePreferences();
+    const [roleSaving, setRoleSaving] = useState(false);
+    const [roleError, setRoleError] = useState<string | null>(null);
+
+    const handleDevRoleChange = async (event: ChangeEvent<HTMLSelectElement>) => {
+        const role = event.target.value;
+        setRoleSaving(true);
+        setRoleError(null);
+        try {
+            await setDevRole(role);
+            await refreshProfile();
+        } catch (error) {
+            setRoleError(error instanceof Error ? error.message : 'Не удалось сменить роль');
+        } finally {
+            setRoleSaving(false);
+        }
+    };
 
     if (!profile) return null;
 
@@ -100,6 +117,34 @@ export function ProfilePage() {
                     </div>
                 </div>
             </section>
+
+            {import.meta.env.DEV && (
+                <section className="profile-card">
+                    <h2 className="profile-card-title">Разработка</h2>
+                    <div className="profile-settings">
+                        <div className="profile-setting-row profile-setting-row--stack">
+                            <div className="profile-setting-text">
+                                <span className="profile-setting-title">Роль (dev)</span>
+                                <span className="profile-setting-hint">
+                                    Переключение собственной роли — доступно только в dev-окружении.
+                                </span>
+                            </div>
+                            <select
+                                className="profile-select"
+                                value={profile.role}
+                                onChange={handleDevRoleChange}
+                                disabled={roleSaving}
+                                aria-label="Роль в dev-окружении"
+                            >
+                                <option value="student">Студент</option>
+                                <option value="teacher">Преподаватель</option>
+                                <option value="admin">Администратор</option>
+                            </select>
+                            {roleError && <span className="profile-dev-error">{roleError}</span>}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             <div className="profile-actions">
                 <button className="profile-button profile-button--primary" onClick={() => void logout()}>

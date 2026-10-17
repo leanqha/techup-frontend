@@ -4,6 +4,22 @@ import type {
     ResetPasswordRequest,
     ResetPasswordResponse,
 } from './types/types.ts';
+import { fetchWithRefresh } from './fetchWithRefresh.ts';
+
+// Development-only: change the current user's own role. The backend exposes
+// this route only when running in development mode.
+export async function setDevRole(role: string): Promise<void> {
+    const res = await fetchWithRefresh('/api/v1/account/secure/dev/role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+    });
+
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Не удалось сменить роль');
+    }
+}
 
 export async function forgotPassword(
     payload: ForgotPasswordRequest
