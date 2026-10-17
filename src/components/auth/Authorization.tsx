@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './Authorization.css';
 import { forgotPassword, resetPassword } from '../../api/account.ts';
+import { CloseIcon } from '../icons';
 
 type Props = {
     onClose?: () => void;
@@ -185,8 +186,13 @@ export function Authorization({
             <div className="auth-header">
                 <h2>{title}</h2>
                 {variant === 'modal' && (
-                    <button className="close-btn" type="button" onClick={() => onClose?.()}>
-                        ✕
+                    <button
+                        className="close-btn"
+                        type="button"
+                        onClick={() => onClose?.()}
+                        aria-label="Закрыть"
+                    >
+                        <CloseIcon size={20} />
                     </button>
                 )}
             </div>

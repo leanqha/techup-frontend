@@ -1,0 +1,127 @@
+/* Shared schedule styles (day sections, lesson cards, empty states). */
+
+.schedule-day {
+    margin-bottom: 32px;
+    padding: 18px;
+    border-radius: var(--radius-xl);
+    background: var(--glass-bg-faint);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow-sm);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+}
+
+.schedule-day__title {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-strong);
+    text-transform: capitalize;
+}
+
+.schedule-day__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Empty-state tile (reused on Home + day sections) */
+.schedule-empty {
+    padding: 20px;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow-sm);
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+}
+
+/* Lesson card */
+.lesson-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 16px 44px;
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-left: 5px solid var(--lesson-accent, var(--accent));
+    box-shadow: var(--glass-shadow-sm);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lesson-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow);
+}
+
+.lesson-card__top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.lesson-card__type {
+    align-self: flex-start;
+    background: var(--lesson-accent-soft, var(--accent-soft));
+    color: var(--lesson-accent, var(--accent));
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.lesson-card__time {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.lesson-card__subject {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-strong);
+    word-break: break-word;
+}
+
+.lesson-card__meta {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.lesson-card__note {
+    position: absolute;
+    right: 16px;
+    bottom: 12px;
+    max-width: calc(100% - 32px);
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+    appearance: none;
+    -webkit-appearance: none;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.lesson-card__note--filled {
+    color: var(--text-muted);
+    font-weight: 500;
+}

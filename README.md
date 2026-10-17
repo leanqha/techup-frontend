@@ -1,4 +1,35 @@
-# React + TypeScript + Vite  
+# TechUp Frontend
+
+## Run locally without a backend
+
+`npm run dev` serves the app with an in-memory **mock API** by default, so every
+page (schedule, profile, teachers, admin) works with no Go backend running:
+
+```bash
+npm install
+npm run dev   # opens http://localhost:5173 — you start logged in (demo admin)
+```
+
+The mock intercepts all `/api/v1/*` calls (`src/mocks/`). Log out to see the
+welcome/auth flow; any valid-looking email + 8-char password logs you back in.
+
+Toggle it with `VITE_MOCK_API` (see `.env.example`): unset/`true` = on in dev,
+`false` = use a real backend, `true` in a production build = static demo.
+
+## Run against the local backend
+
+Start the Go backend + local Postgres first (see
+[`../techup`](../techup/README.md) → *Quick start*), then run the frontend with
+the mock off. Vite proxies `/api` to the backend (`VITE_API_URL`, default
+`http://localhost:3000`):
+
+```bash
+VITE_MOCK_API=false npm run dev
+```
+
+---
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

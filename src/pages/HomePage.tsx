@@ -37,44 +37,16 @@ export function HomePage() {
     }, [profile?.group_id, todayISO]);
 
     return (
-        <div
-            style={{
-                padding: 16,
-                maxWidth: 1200,
-                margin: '0 auto',
-                overflowX: 'hidden',
-            }}
-        >
-            <h2 style={{ marginTop: 16, fontSize: 20, fontWeight: 600 }}>Сегодня</h2>
+        <div className="home-page">
+            <h2 className="home-page__title">Сегодня</h2>
 
             {loading ? (
                 <Loader />
             ) : lessons.length > 0 ? (
                 <ScheduleDay date={todayISO} lessons={lessons} />
             ) : (
-                <div
-                    style={{
-                        padding: 16,
-                        borderRadius: 12,
-                        background: '#F3F4F6',
-                        textAlign: 'center',
-                        fontSize: 14,
-                        color: '#6B7280',
-                    }}
-                >
-                    Пар сегодня нет 🎉
-                </div>
+                <div className="schedule-empty">Пар сегодня нет 🎉</div>
             )}
-
-            <div
-                style={{
-                    marginTop: 32,
-                    display: 'grid',
-                    gap: 12,
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                }}
-            >
-            </div>
         </div>
     );
 }

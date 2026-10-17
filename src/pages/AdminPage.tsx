@@ -173,7 +173,7 @@ export function AdminPage() {
 
             <AdminModal
                 open={isScheduleCrudOpen}
-                title="CRUD расписания"
+                title="Редактор расписания"
                 size="wide"
                 onClose={() => setIsScheduleCrudOpen(false)}
             >

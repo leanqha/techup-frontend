@@ -1,12 +1,15 @@
 .admin-accounts {
-    margin-top: 24px;
+    margin-top: 0;
 }
 
 .admin-section {
-    background: #fff;
-    border-radius: 16px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
     padding: 20px;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--glass-shadow-sm);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
 }
 
 .admin-section-header {
@@ -19,7 +22,7 @@
 
 .admin-section-subtitle {
     margin: 4px 0 0;
-    color: #6b7280;
+    color: var(--text-muted);
     font-size: 13px;
 }
 
@@ -31,11 +34,11 @@
 }
 
 .admin-section-error {
-    color: #b91c1c;
+    color: var(--danger);
 }
 
 .admin-section-message {
-    color: #047857;
+    color: var(--success);
 }
 
 .admin-accounts-filters {
@@ -50,20 +53,25 @@
     flex-direction: column;
     gap: 6px;
     font-size: 13px;
+    color: var(--text-strong);
 }
 
 .admin-field input,
 .admin-field select {
     padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border-soft);
+    background: rgba(255, 255, 255, 0.7);
     font-size: 14px;
+    color: var(--text-strong);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .admin-field input:focus,
 .admin-field select:focus {
     outline: none;
-    border-color: #111;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .admin-filters-actions {
@@ -91,18 +99,20 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
 .admin-accounts-row {
     padding: 12px;
-    border-radius: 12px;
-    background: #f9fafb;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--glass-border-soft);
     font-size: 14px;
+    color: var(--text);
 }
 
 .admin-accounts-uid {
-    font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 12px;
 }
 
@@ -126,12 +136,17 @@
 
 .admin-danger-button {
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     border: none;
-    background: #dc2626;
+    background: var(--danger);
     color: #fff;
     cursor: pointer;
     font-weight: 600;
+    transition: transform 0.15s ease, opacity 0.2s ease;
+}
+
+.admin-danger-button:hover:not(:disabled) {
+    transform: translateY(-1px);
 }
 
 .admin-danger-button:disabled {
@@ -139,3 +154,13 @@
     cursor: not-allowed;
 }
 
+@media (max-width: 860px) {
+    .admin-accounts-header {
+        display: none;
+    }
+
+    .admin-accounts-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+}
