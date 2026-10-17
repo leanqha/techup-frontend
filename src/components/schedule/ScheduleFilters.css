@@ -136,17 +136,13 @@
     width: 100%;
 }
 
-.schedule-filters__input,
-.schedule-filter-select__control {
+.schedule-filters__input {
     border: 1px solid var(--glass-border-soft);
     border-radius: var(--radius-md);
     min-height: 44px;
     font-size: 16px;
     max-width: 100%;
     background: rgba(255, 255, 255, 0.7);
-}
-
-.schedule-filters__input {
     padding: 8px 12px;
     width: 100%;
     display: block;
@@ -166,24 +162,118 @@
     min-width: 0;
 }
 
-.schedule-filter-select__control {
-    box-shadow: none;
+/* One consistent placeholder / empty-text tone across every field. */
+.schedule-filters__input::placeholder {
+    color: var(--text-subtle);
+    opacity: 1;
 }
 
-.schedule-filter-select__control--is-focused {
+.schedule-filters__input[type="date"]::-webkit-datetime-edit {
+    color: var(--text-subtle);
+}
+
+/* react-select fields — match the glass inputs. Scoped under the container
+   class so these win over react-select's own (single-class) emotion styles. */
+.schedule-filter-select .schedule-filter-select__control {
+    min-height: 44px;
+    border: 1px solid var(--glass-border-soft);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: none;
+    font-size: 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.schedule-filter-select .schedule-filter-select__control:hover {
+    border-color: var(--text-subtle);
+}
+
+.schedule-filter-select .schedule-filter-select__control--is-focused {
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.schedule-filter-select__input,
-.schedule-filter-select__single-value,
-.schedule-filter-select__placeholder {
+.schedule-filter-select .schedule-filter-select__control--is-disabled {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: var(--glass-border-soft);
+    opacity: 0.65;
+}
+
+.schedule-filter-select .schedule-filter-select__value-container {
+    padding: 2px 12px;
+    gap: 4px;
+}
+
+.schedule-filter-select .schedule-filter-select__placeholder {
+    color: var(--text-subtle);
     font-size: 16px;
 }
 
+.schedule-filter-select .schedule-filter-select__input-container,
+.schedule-filter-select .schedule-filter-select__single-value {
+    color: var(--text-strong);
+    font-size: 16px;
+}
+
+.schedule-filter-select .schedule-filter-select__indicator {
+    color: var(--text-subtle);
+    padding: 8px;
+}
+
+.schedule-filter-select .schedule-filter-select__indicator:hover {
+    color: var(--text-muted);
+}
+
+/* Drop react-select's divider so the control reads like a plain input. */
+.schedule-filter-select .schedule-filter-select__indicator-separator {
+    display: none;
+}
+
+/* selected chips */
+.schedule-filter-select .schedule-filter-select__multi-value {
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.schedule-filter-select .schedule-filter-select__multi-value__label {
+    color: var(--accent-strong);
+    font-weight: 600;
+}
+
+.schedule-filter-select .schedule-filter-select__multi-value__remove {
+    color: var(--accent);
+}
+
+.schedule-filter-select .schedule-filter-select__multi-value__remove:hover {
+    background: rgba(37, 99, 235, 0.18);
+    color: var(--accent-strong);
+}
+
+/* dropdown menu (portaled to document.body) */
 .schedule-filter-select__menu {
     border-radius: var(--radius-md);
     overflow: hidden;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg-strong);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+}
+
+.schedule-filter-select__option {
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.schedule-filter-select__option--is-focused {
+    background: var(--accent-soft);
+}
+
+.schedule-filter-select__option--is-selected {
+    background: rgba(37, 99, 235, 0.16);
+    color: var(--text-strong);
 }
 
 .schedule-filter-select__option-checkbox {

@@ -51,6 +51,10 @@ export function useScheduleFilterOptions(): ScheduleFilterOptionsState {
     }, []);
 
     useEffect(() => {
+        // Reset on every (re)mount — React 18 StrictMode mounts, cleans up, then
+        // remounts; without this the ref stays false and reloadOptions bails,
+        // leaving the filters stuck on "loading".
+        isMountedRef.current = true;
         void reloadOptions();
 
         return () => {
