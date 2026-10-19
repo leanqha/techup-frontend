@@ -1,4 +1,7 @@
-let isRefreshing = false;
+// Single in-flight refresh shared by every caller: parallel 401s (e.g. several
+// requests firing on page load) must trigger exactly one /refresh, then all
+// retry. The promise itself is the lock — it's cleared once settled so the next
+// expiry starts a fresh refresh.
 let refreshPromise: Promise<Response> | null = null;
 
 export async function fetchWithRefresh(
@@ -14,25 +17,22 @@ export async function fetchWithRefresh(
         return res; // access token валиден
     }
 
-    // Если уже идёт refresh — ждём его
-    if (!isRefreshing) {
-        isRefreshing = true;
-
+    if (!refreshPromise) {
         refreshPromise = fetch('/api/v1/account/refresh', {
             method: 'POST',
             credentials: 'include',
         }).finally(() => {
-            isRefreshing = false;
+            refreshPromise = null;
         });
     }
 
-    const refreshRes = await refreshPromise!;
+    const refreshRes = await refreshPromise;
 
     if (!refreshRes.ok) {
         throw new Error('Сессия истекла');
     }
 
-    // Повторяем исходный запрос
+    // Повторяем исходный запрос с обновлёнными куками
     return fetch(input, {
         ...init,
         credentials: 'include',

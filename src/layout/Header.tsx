@@ -1,6 +1,7 @@
 // src/layout/Header.tsx
 import { useAuth } from '../context/useAuth';
-import { MenuIcon } from '../components/icons';
+import { MenuIcon, DownloadIcon } from '../components/icons';
+import { usePwaInstall } from '../hooks/usePwaInstall';
 
 type Props = {
     toggleSidebar?: () => void; // function to control sidebar overlay
@@ -8,6 +9,7 @@ type Props = {
 
 export function Header({ toggleSidebar }: Props) {
     const { profile } = useAuth();
+    const { canInstall, promptInstall } = usePwaInstall();
 
     if (!profile) return null;
 
@@ -35,6 +37,17 @@ export function Header({ toggleSidebar }: Props) {
                     {greeting}, {profile.first_name} 👋
                 </span>
             </div>
+
+            {canInstall && (
+                <button
+                    onClick={() => void promptInstall()}
+                    className="installButton"
+                    aria-label="Установить приложение"
+                >
+                    <DownloadIcon size={18} />
+                    <span className="installButtonLabel">Установить</span>
+                </button>
+            )}
         </header>
     );
 }

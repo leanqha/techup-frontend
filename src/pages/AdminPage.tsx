@@ -7,6 +7,7 @@ import { AdminModal } from '../components/admin/AdminModal';
 import { AdminPageHeader } from '../components/admin/AdminPageHeader';
 import { AdminAccountsManager } from '../components/admin/AdminAccountsManager';
 import { AdminScheduleManager } from '../components/admin/AdminScheduleManager';
+import { fetchWithRefresh } from '../api/fetchWithRefresh';
 import './AdminPage.css';
 
 type Lesson = {
@@ -127,9 +128,8 @@ export function AdminPage() {
                 return;
             }
 
-            const res = await fetch('/api/v1/admin/schedule/import', {
+            const res = await fetchWithRefresh('/api/v1/admin/schedule/import', {
                 method: 'POST',
-                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(lessons),
             });

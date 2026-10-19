@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import { AuthProvider } from './context/AuthProvider';
+import { registerServiceWorker } from './registerSW';
 
 // Run the app against an in-memory mock API when there is no backend.
 // On by default in local dev; force on/off anywhere with VITE_MOCK_API=true|false.
@@ -26,6 +27,8 @@ async function bootstrap() {
             </BrowserRouter>
         </React.StrictMode>
     );
+
+    registerServiceWorker();
 }
 
 void bootstrap();

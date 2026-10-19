@@ -7,11 +7,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const clearCookie = (name: string) => {
-        document.cookie = `${name}=; Max-Age=0; path=/`;
-        document.cookie = `${name}=; Max-Age=0; path=/; domain=${window.location.hostname}`;
-    };
-
     useEffect(() => {
         let cancelled = false;
 
@@ -57,13 +52,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = async () => {
-        await fetch('/api/v1/account/secure/logout', {
-            method: 'POST',
-            credentials: 'include',
-        });
-        clearCookie('access_token');
-        clearCookie('refresh_token');
-        setProfile(null);
+        // The auth cookies are HttpOnly, so JS can't clear them — the backend
+        // clears them via Set-Cookie on this request. Clear local state
+        // regardless so the UI logs out even if the request fails.
+        try {
+            await fetch('/api/v1/account/secure/logout', {
+                method: 'POST',
+                credentials: 'include',
+            });
+        } finally {
+            setProfile(null);
+        }
     };
 
     const value: AuthContextType = { profile, loading, refreshProfile, logout };
