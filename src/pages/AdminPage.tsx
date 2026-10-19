@@ -7,6 +7,7 @@ import { AdminModal } from '../components/admin/AdminModal';
 import { AdminPageHeader } from '../components/admin/AdminPageHeader';
 import { AdminAccountsManager } from '../components/admin/AdminAccountsManager';
 import { AdminScheduleManager } from '../components/admin/AdminScheduleManager';
+import { AdminTeacherImport } from '../components/admin/AdminTeacherImport';
 import { fetchWithRefresh } from '../api/fetchWithRefresh';
 import './AdminPage.css';
 
@@ -32,6 +33,7 @@ export function AdminPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isAccountsOpen, setIsAccountsOpen] = useState(false);
     const [isScheduleCrudOpen, setIsScheduleCrudOpen] = useState(false);
+    const [isTeacherImportOpen, setIsTeacherImportOpen] = useState(false);
 
     if (profile?.role !== 'admin') {
         return <p>У вас нет доступа к админке</p>;
@@ -154,6 +156,7 @@ export function AdminPage() {
                 onOpenImport={() => setIsModalOpen(true)}
                 onOpenAccounts={() => setIsAccountsOpen(true)}
                 onOpenScheduleCrud={() => setIsScheduleCrudOpen(true)}
+                onOpenTeacherImport={() => setIsTeacherImportOpen(true)}
             />
 
             <AdminModal
@@ -178,6 +181,14 @@ export function AdminPage() {
                 onClose={() => setIsScheduleCrudOpen(false)}
             >
                 <AdminScheduleManager />
+            </AdminModal>
+
+            <AdminModal
+                open={isTeacherImportOpen}
+                title="Импорт преподавателей"
+                onClose={() => setIsTeacherImportOpen(false)}
+            >
+                <AdminTeacherImport />
             </AdminModal>
 
             <AdminModal

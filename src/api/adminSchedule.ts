@@ -205,3 +205,23 @@ export async function deleteLesson(id: number) {
     await request(`/admin/lesson/${id}`, { method: 'DELETE' });
 }
 
+export type TeacherImportResult = {
+    fetched: number;
+    created: number;
+    updated: number;
+    skipped: number;
+};
+
+// Fetches the teaching-staff roster from spbti.ru on the server and syncs it
+// into the accounts table: existing teachers keep their id, new ones are
+// appended. Returns a summary of what changed.
+export async function importTeachers() {
+    const data = (await request('/admin/teachers/import', { method: 'POST' })) as Record<string, unknown>;
+    return {
+        fetched: Number(data.fetched ?? 0),
+        created: Number(data.created ?? 0),
+        updated: Number(data.updated ?? 0),
+        skipped: Number(data.skipped ?? 0),
+    } as TeacherImportResult;
+}
+

@@ -1,9 +1,10 @@
-import { UsersIcon, CalendarIcon, UploadIcon, ChevronRightIcon } from '../icons';
+import { UsersIcon, CalendarIcon, UploadIcon, DownloadIcon, ChevronRightIcon } from '../icons';
 
 type AdminPageHeaderProps = {
     onOpenImport: () => void;
     onOpenAccounts: () => void;
     onOpenScheduleCrud: () => void;
+    onOpenTeacherImport: () => void;
 };
 
 type Card = {
@@ -19,6 +20,7 @@ export function AdminPageHeader({
     onOpenImport,
     onOpenAccounts,
     onOpenScheduleCrud,
+    onOpenTeacherImport,
 }: AdminPageHeaderProps) {
     const cards: Card[] = [
         {
@@ -44,6 +46,14 @@ export function AdminPageHeader({
             icon: <UploadIcon size={22} />,
             action: 'Импортировать',
             onClick: onOpenImport,
+        },
+        {
+            key: 'teachers',
+            title: 'Преподаватели',
+            description: 'Загрузка и синхронизация списка преподавателей с сайта СПбГТИ(ТУ).',
+            icon: <DownloadIcon size={22} />,
+            action: 'Загрузить с сайта',
+            onClick: onOpenTeacherImport,
         },
     ];
 
