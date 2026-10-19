@@ -19,7 +19,7 @@ import {
     type LessonRecord,
     type LessonSearchFilters,
 } from '../../api/adminSchedule';
-import { fetchTeachers } from '../../api/schedule';
+import { fetchRooms, fetchTeachers, type Room } from '../../api/schedule';
 import type { Profile as AccountProfile } from '../../api/types/types';
 import { AdminModal } from './AdminModal';
 import './AdminScheduleManager.css';
@@ -29,6 +29,10 @@ type TabKey = 'faculties' | 'groups' | 'lessons';
 function formatTeacherName(t: AccountProfile): string {
     const parts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
     return parts.length ? parts.join(' ') : t.email || `#${t.id}`;
+}
+
+function formatRoomName(r: Room): string {
+    return r.title ? `${r.name} — ${r.title}` : r.name;
 }
 
 type GroupFormState = {
@@ -47,7 +51,7 @@ type LessonFormState = {
     end_time: string;
     subject: string;
     type: string;
-    classroom: string;
+    room_id: string;
     group: string;
     teacher_id: string;
 };
@@ -68,7 +72,7 @@ const emptyLessonForm: LessonFormState = {
     end_time: '10:30',
     subject: '',
     type: 'lecture',
-    classroom: '',
+    room_id: '',
     group: '',
     teacher_id: '',
 };
@@ -107,6 +111,7 @@ export function AdminScheduleManager() {
     const [lessonFilters, setLessonFilters] = useState<LessonSearchFilters>(emptyLessonFilters);
 
     const [teachers, setTeachers] = useState<AccountProfile[]>([]);
+    const [rooms, setRooms] = useState<Room[]>([]);
 
     const [facultyModalOpen, setFacultyModalOpen] = useState(false);
     const [groupModalOpen, setGroupModalOpen] = useState(false);
@@ -170,9 +175,14 @@ export function AdminScheduleManager() {
         setTeachers(Array.isArray(data) ? data : []);
     };
 
+    const loadRoomsData = async () => {
+        const data = await fetchRooms();
+        setRooms(Array.isArray(data) ? data : []);
+    };
+
     useEffect(() => {
         void runAction(async () => {
-            await Promise.all([loadFacultiesData(), loadGroupsData(), loadTeachersData()]);
+            await Promise.all([loadFacultiesData(), loadGroupsData(), loadTeachersData(), loadRoomsData()]);
             const initialLessons = await searchAdminLessons(emptyLessonFilters);
             setLessons(initialLessons);
         });
@@ -348,7 +358,7 @@ export function AdminScheduleManager() {
             end_time: lesson.end_time,
             subject: lesson.subject,
             type: lesson.type,
-            classroom: lesson.classroom,
+            room_id: lesson.room_id ? String(lesson.room_id) : '',
             group: String(lesson.group),
             teacher_id: lesson.teacher_id ? String(lesson.teacher_id) : '',
         });
@@ -361,16 +371,21 @@ export function AdminScheduleManager() {
         setLessonForm(emptyLessonForm);
     };
 
-    const toLessonPayload = (): LessonPayload => ({
-        date: lessonForm.date,
-        start_time: lessonForm.start_time,
-        end_time: lessonForm.end_time,
-        subject: lessonForm.subject.trim(),
-        type: lessonForm.type.trim(),
-        classroom: lessonForm.classroom.trim(),
-        group: Number(lessonForm.group),
-        teacher_id: lessonForm.teacher_id ? Number(lessonForm.teacher_id) : null,
-    });
+    const toLessonPayload = (): LessonPayload => {
+        const roomId = lessonForm.room_id ? Number(lessonForm.room_id) : null;
+        const room = rooms.find(item => item.id === roomId);
+        return {
+            date: lessonForm.date,
+            start_time: lessonForm.start_time,
+            end_time: lessonForm.end_time,
+            subject: lessonForm.subject.trim(),
+            type: lessonForm.type.trim(),
+            room_id: roomId,
+            classroom: room ? room.name : '',
+            group: Number(lessonForm.group),
+            teacher_id: lessonForm.teacher_id ? Number(lessonForm.teacher_id) : null,
+        };
+    };
 
     const handleSaveLesson = async () => {
         if (!lessonForm.group) {
@@ -380,6 +395,11 @@ export function AdminScheduleManager() {
 
         if (!lessonForm.date || !lessonForm.subject.trim()) {
             setError('Заполните дату и предмет');
+            return;
+        }
+
+        if (!lessonForm.room_id) {
+            setError('Выберите аудиторию');
             return;
         }
 
@@ -675,14 +695,19 @@ export function AdminScheduleManager() {
                         </label>
                         <label className="admin-field">
                             Аудитория
-                            <input
-                                type="text"
+                            <select
                                 value={lessonFilters.classroom || ''}
                                 onChange={event =>
                                     setLessonFilters({ ...lessonFilters, classroom: event.target.value })
                                 }
-                                placeholder="A-101"
-                            />
+                            >
+                                <option value="">Все</option>
+                                {rooms.map(room => (
+                                    <option key={room.id} value={room.name}>
+                                        {formatRoomName(room)}
+                                    </option>
+                                ))}
+                            </select>
                         </label>
                         <label className="admin-field">
                             Предмет
@@ -944,13 +969,19 @@ export function AdminScheduleManager() {
                     </label>
                     <label className="admin-field">
                         Аудитория
-                        <input
-                            type="text"
-                            value={lessonForm.classroom}
+                        <select
+                            value={lessonForm.room_id}
                             onChange={event =>
-                                setLessonForm({ ...lessonForm, classroom: event.target.value })
+                                setLessonForm({ ...lessonForm, room_id: event.target.value })
                             }
-                        />
+                        >
+                            <option value="">Выберите</option>
+                            {rooms.map(room => (
+                                <option key={room.id} value={room.id}>
+                                    {formatRoomName(room)}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     <label className="admin-field">
                         Группа

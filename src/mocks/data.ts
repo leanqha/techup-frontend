@@ -60,6 +60,14 @@ export const TEACHER_PROFILES: Profile[] = TEACHER_SEED.map(t => ({
 
 export const CLASSROOMS = ['А-101', 'Б-204', 'В-305', 'Лаб-1', 'Г-410'];
 
+// Rooms table analogue (id + name) so the admin lesson form's classroom
+// dropdown works in no-backend dev mode and lessons can reference a room id.
+export const ROOMS = CLASSROOMS.map((name, index) => ({
+    id: index + 1,
+    name,
+    title: '',
+}));
+
 const SUBJECTS = [
     'Математический анализ',
     'Программирование',
@@ -119,6 +127,7 @@ function buildLessons(): Lesson[] {
                     subject: SUBJECTS[pick % SUBJECTS.length],
                     type: TYPES[pick % TYPES.length],
                     classroom: CLASSROOMS[pick % CLASSROOMS.length],
+                    room_id: (pick % CLASSROOMS.length) + 1,
                     group,
                     teacher: TEACHERS[pick % TEACHERS.length],
                 });
