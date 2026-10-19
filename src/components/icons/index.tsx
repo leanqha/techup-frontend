@@ -107,6 +107,15 @@ export function UploadIcon(props: IconProps) {
     );
 }
 
+export function DownloadIcon(props: IconProps) {
+    return (
+        <Icon {...props}>
+            <path d="M12 4v11M8 11l4 4 4-4" />
+            <path d="M4 19h16" />
+        </Icon>
+    );
+}
+
 export function SearchIcon(props: IconProps) {
     return (
         <Icon {...props}>

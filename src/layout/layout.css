@@ -194,6 +194,43 @@
     justify-content: center;
 }
 
+/* "Install app" pill — only rendered when the browser offers A2HS. */
+.installButton {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border: 1px solid rgba(129, 160, 255, 0.5);
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-weight: 600;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.installButton:hover {
+    background: rgba(37, 99, 235, 0.18);
+    transform: translateY(-1px);
+}
+
+.installButton:active {
+    transform: translateY(0);
+}
+
+.installButtonLabel {
+    font-size: 14px;
+}
+
+@media (max-width: 420px) {
+    .installButtonLabel {
+        display: none;
+    }
+}
+
 /* Scrollable page region */
 .page {
     flex: 1;
@@ -235,5 +272,14 @@
 
     .page {
         padding: 16px;
+        /* Clear the floating liquid-glass bottom nav. */
+        padding-bottom: calc(env(safe-area-inset-bottom) + 92px);
+    }
+}
+
+/* Installed PWA (any width): the bottom nav is always present. */
+@media (display-mode: standalone) {
+    .page {
+        padding-bottom: calc(env(safe-area-inset-bottom) + 92px);
     }
 }
