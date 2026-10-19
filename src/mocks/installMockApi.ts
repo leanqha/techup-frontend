@@ -12,6 +12,7 @@ import {
     GROUPS,
     FACULTIES,
     CLASSROOMS,
+    ROOMS,
     LESSONS,
     ADMIN_ACCOUNTS,
     NOTES,
@@ -82,6 +83,8 @@ function lessonFromBody(body: Body, id: number): Lesson {
     const teacher =
         TEACHERS.find(t => t.id === Number(body.teacher_id)) ??
         { id: Number(body.teacher_id) || 0, first_name: '', last_name: '', middle_name: '', full_name: '' };
+    const roomId = body.room_id != null ? Number(body.room_id) : undefined;
+    const room = ROOMS.find(r => r.id === roomId);
     return {
         id,
         date: String(body.date ?? ''),
@@ -89,7 +92,8 @@ function lessonFromBody(body: Body, id: number): Lesson {
         end_time: String(body.end_time ?? ''),
         subject: String(body.subject ?? ''),
         type: (String(body.type ?? 'other') as Lesson['type']),
-        classroom: String(body.classroom ?? ''),
+        room_id: roomId,
+        classroom: room ? room.name : String(body.classroom ?? ''),
         group,
         teacher,
     };
@@ -135,6 +139,7 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
     if (path === '/schedule/groups') return json(GROUPS);
     if (path === '/schedule/faculties') return json(FACULTIES);
     if (path === '/schedule/classrooms') return json(CLASSROOMS);
+    if (path === '/schedule/rooms') return json(ROOMS);
 
     // ---- Lesson notes ----
     const noteMatch = path.match(/^\/schedule\/lessons\/(\d+)\/note$/);

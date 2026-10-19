@@ -25,7 +25,8 @@ export type LessonRecord = {
     end_time: string;
     subject: string;
     type: string;
-    classroom: string;
+    room_id: number | null;
+    classroom: string; // room name, for display
     group: number;
     teacher_id: number | null;
 };
@@ -112,6 +113,7 @@ function normalizeLesson(raw: unknown): LessonRecord {
         end_time: String(data.end_time ?? ''),
         subject: String(data.subject ?? ''),
         type: String(data.type ?? ''),
+        room_id: data.room_id != null ? Number(data.room_id) : null,
         classroom: String(data.classroom ?? ''),
         group:
             typeof group === 'number'

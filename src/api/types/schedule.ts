@@ -31,7 +31,8 @@ export type Lesson = {
     end_time: string;   // HH:MM
     subject: string;
     type: LessonType;
-    classroom: string;
+    room_id?: number;
+    classroom: string; // room name, for display
     group: Group;
     teacher: Teacher;
 };

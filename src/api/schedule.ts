@@ -47,6 +47,21 @@ export async function fetchClassrooms(): Promise<string[]> {
     return res.json();
 }
 
+export type Room = {
+    id: number;
+    name: string;
+    title: string;
+};
+
+// Rooms (with ids) from the rooms table — used to populate the admin
+// lesson form's classroom dropdown so lessons reference an existing room.
+export async function fetchRooms(): Promise<Room[]> {
+    const res = await fetch('/api/v1/schedule/rooms', { credentials: 'include' });
+    if (!res.ok) throw new Error('Ошибка получения аудиторий');
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+}
+
 function normalizeGroup(raw: unknown): Group {
     const data = raw as Record<string, unknown>;
 
