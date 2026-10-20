@@ -3,28 +3,33 @@ import {
     createFaculty,
     createGroup,
     createLesson,
+    createSubject,
     deleteFaculty,
     deleteGroup,
     deleteLesson,
+    deleteSubject,
     listFaculties,
     listGroups,
+    listSubjects,
     searchAdminLessons,
     updateFaculty,
     updateGroup,
     updateLesson,
+    updateSubject,
     type Faculty,
     type GroupPayload,
     type GroupRecord,
     type LessonPayload,
     type LessonRecord,
     type LessonSearchFilters,
+    type Subject,
 } from '../../api/adminSchedule';
 import { fetchRooms, fetchTeachers, type Room } from '../../api/schedule';
 import type { Profile as AccountProfile } from '../../api/types/types';
 import { AdminModal } from './AdminModal';
 import './AdminScheduleManager.css';
 
-type TabKey = 'faculties' | 'groups' | 'lessons';
+type TabKey = 'faculties' | 'groups' | 'subjects' | 'lessons';
 
 function formatTeacherName(t: AccountProfile): string {
     const parts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
@@ -105,6 +110,12 @@ export function AdminScheduleManager() {
     const [groupForm, setGroupForm] = useState<GroupFormState>(emptyGroupForm);
     const [editingGroup, setEditingGroup] = useState<GroupRecord | null>(null);
 
+    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [subjectSearch, setSubjectSearch] = useState('');
+    const [subjectFormName, setSubjectFormName] = useState('');
+    const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+    const [subjectModalOpen, setSubjectModalOpen] = useState(false);
+
     const [lessons, setLessons] = useState<LessonRecord[]>([]);
     const [lessonForm, setLessonForm] = useState<LessonFormState>(emptyLessonForm);
     const [editingLesson, setEditingLesson] = useState<LessonRecord | null>(null);
@@ -141,6 +152,12 @@ export function AdminScheduleManager() {
         });
     }, [groupFacultyFilter, groupSearch, groups]);
 
+    const visibleSubjects = useMemo(() => {
+        const q = subjectSearch.trim().toLowerCase();
+        if (!q) return subjects;
+        return subjects.filter(item => item.name.toLowerCase().includes(q));
+    }, [subjectSearch, subjects]);
+
     const runAction = async (action: () => Promise<void>) => {
         setLoading(true);
         setError(null);
@@ -165,6 +182,11 @@ export function AdminScheduleManager() {
         setGroups(data);
     };
 
+    const loadSubjectsData = async () => {
+        const data = await listSubjects();
+        setSubjects(data);
+    };
+
     const loadLessonsData = async (filters: LessonSearchFilters = lessonFilters) => {
         const data = await searchAdminLessons(filters);
         setLessons(data);
@@ -182,7 +204,13 @@ export function AdminScheduleManager() {
 
     useEffect(() => {
         void runAction(async () => {
-            await Promise.all([loadFacultiesData(), loadGroupsData(), loadTeachersData(), loadRoomsData()]);
+            await Promise.all([
+                loadFacultiesData(),
+                loadGroupsData(),
+                loadSubjectsData(),
+                loadTeachersData(),
+                loadRoomsData(),
+            ]);
             const initialLessons = await searchAdminLessons(emptyLessonFilters);
             setLessons(initialLessons);
         });
@@ -344,6 +372,72 @@ export function AdminScheduleManager() {
         }
     };
 
+    const openCreateSubject = () => {
+        setEditingSubject(null);
+        setSubjectFormName('');
+        setSubjectModalOpen(true);
+    };
+
+    const openEditSubject = (subject: Subject) => {
+        setEditingSubject(subject);
+        setSubjectFormName(subject.name);
+        setSubjectModalOpen(true);
+    };
+
+    const closeSubjectModal = () => {
+        setSubjectModalOpen(false);
+        setEditingSubject(null);
+        setSubjectFormName('');
+    };
+
+    const handleSaveSubject = async () => {
+        const name = subjectFormName.trim();
+        if (!name) {
+            setError('Введите название предмета');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            if (editingSubject) {
+                await updateSubject(editingSubject.id, { name });
+                setMessage('Предмет обновлён');
+            } else {
+                await createSubject({ name });
+                setMessage('Предмет создан');
+            }
+
+            await loadSubjectsData();
+            closeSubjectModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteSubject = async (subject: Subject) => {
+        if (!window.confirm(`Удалить предмет "${subject.name}"?`)) return;
+
+        setDeletingId(subject.id);
+        setError(null);
+        setMessage(null);
+
+        try {
+            await deleteSubject(subject.id);
+            await loadSubjectsData();
+            setMessage('Предмет удалён');
+            if (editingSubject?.id === subject.id) closeSubjectModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     const openCreateLesson = () => {
         setEditingLesson(null);
         setLessonForm(emptyLessonForm);
@@ -476,6 +570,13 @@ export function AdminScheduleManager() {
                     onClick={() => setTab('groups')}
                 >
                     Группы
+                </button>
+                <button
+                    type="button"
+                    className={`admin-tab ${tab === 'subjects' ? 'active' : ''}`}
+                    onClick={() => setTab('subjects')}
+                >
+                    Предметы
                 </button>
                 <button
                     type="button"
@@ -637,6 +738,73 @@ export function AdminScheduleManager() {
                         ))}
                         {!visibleGroups.length && !loading && (
                             <p className="admin-section-status">Группы не найдены</p>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {tab === 'subjects' && (
+                <div className="admin-crud-panel">
+                    <div className="admin-accounts-filters">
+                        <label className="admin-field">
+                            Поиск предмета
+                            <input
+                                type="text"
+                                value={subjectSearch}
+                                onChange={event => setSubjectSearch(event.target.value)}
+                                placeholder="Название"
+                            />
+                        </label>
+                        <div className="admin-filters-actions">
+                            <button
+                                type="button"
+                                className="admin-secondary-button"
+                                onClick={() => void runAction(loadSubjectsData)}
+                                disabled={loading}
+                            >
+                                Обновить список
+                            </button>
+                            <button
+                                type="button"
+                                className="admin-primary-button"
+                                onClick={openCreateSubject}
+                            >
+                                Добавить предмет
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-schedule-table">
+                        <div className="admin-schedule-header admin-schedule-header--faculties">
+                            <span>ID</span>
+                            <span>Название</span>
+                            <span>Действия</span>
+                        </div>
+                        {visibleSubjects.map(subject => (
+                            <div key={subject.id} className="admin-schedule-row admin-schedule-row--faculties">
+                                <span>{subject.id}</span>
+                                <span>{subject.name}</span>
+                                <span className="admin-accounts-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-secondary-button"
+                                        onClick={() => openEditSubject(subject)}
+                                    >
+                                        Изменить
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-danger-button"
+                                        onClick={() => void handleDeleteSubject(subject)}
+                                        disabled={deletingId === subject.id}
+                                    >
+                                        Удалить
+                                    </button>
+                                </span>
+                            </div>
+                        ))}
+                        {!visibleSubjects.length && !loading && (
+                            <p className="admin-section-status">Предметы не найдены</p>
                         )}
                     </div>
                 </div>
@@ -827,6 +995,41 @@ export function AdminScheduleManager() {
             </AdminModal>
 
             <AdminModal
+                open={subjectModalOpen}
+                title={editingSubject ? 'Редактирование предмета' : 'Новый предмет'}
+                onClose={closeSubjectModal}
+            >
+                <div className="admin-edit-form">
+                    <label className="admin-field">
+                        Название
+                        <input
+                            type="text"
+                            value={subjectFormName}
+                            onChange={event => setSubjectFormName(event.target.value)}
+                        />
+                    </label>
+                    <div className="admin-edit-actions">
+                        <button
+                            type="button"
+                            className="admin-secondary-button"
+                            onClick={closeSubjectModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-primary-button"
+                            onClick={() => void handleSaveSubject()}
+                            disabled={saving}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
                 open={groupModalOpen}
                 title={editingGroup ? `Редактирование группы: ${editingGroup.name}` : 'Новая группа'}
                 size="wide"
@@ -953,11 +1156,23 @@ export function AdminScheduleManager() {
                     </label>
                     <label className="admin-field">
                         Предмет
-                        <input
-                            type="text"
+                        <select
                             value={lessonForm.subject}
                             onChange={event => setLessonForm({ ...lessonForm, subject: event.target.value })}
-                        />
+                        >
+                            <option value="">Выберите</option>
+                            {lessonForm.subject &&
+                                !subjects.some(subject => subject.name === lessonForm.subject) && (
+                                    <option value={lessonForm.subject}>
+                                        {lessonForm.subject} (вне справочника)
+                                    </option>
+                                )}
+                            {subjects.map(subject => (
+                                <option key={subject.id} value={subject.name}>
+                                    {subject.name}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     <label className="admin-field">
                         Тип

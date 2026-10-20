@@ -11,6 +11,7 @@ import {
     TEACHERS,
     GROUPS,
     FACULTIES,
+    SUBJECTS,
     CLASSROOMS,
     ROOMS,
     LESSONS,
@@ -138,6 +139,7 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
     if (path === '/schedule/teachers') return json(TEACHER_PROFILES);
     if (path === '/schedule/groups') return json(GROUPS);
     if (path === '/schedule/faculties') return json(FACULTIES);
+    if (path === '/schedule/subjects') return json(SUBJECTS);
     if (path === '/schedule/classrooms') return json(CLASSROOMS);
     if (path === '/schedule/rooms') return json(ROOMS);
 
@@ -216,6 +218,34 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
                 is_active: Boolean(body.is_active ?? GROUPS[idx].is_active),
             };
             return json(GROUPS[idx]);
+        }
+    }
+
+    // ---- Admin: subjects ----
+    if (path === '/admin/subject' && method === 'POST') {
+        const name = String(body.name ?? '').trim();
+        if (SUBJECTS.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+            return json({ error: 'subject already exists' }, 409);
+        }
+        const subject = { id: nextId(SUBJECTS), name };
+        SUBJECTS.push(subject);
+        return json(subject, 201);
+    }
+    if (path.startsWith('/admin/subject/')) {
+        const id = idFromPath(path);
+        const idx = SUBJECTS.findIndex(s => s.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            SUBJECTS.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            const name = String(body.name ?? SUBJECTS[idx].name).trim();
+            if (SUBJECTS.some(s => s.id !== id && s.name.toLowerCase() === name.toLowerCase())) {
+                return json({ error: 'subject already exists' }, 409);
+            }
+            SUBJECTS[idx] = { ...SUBJECTS[idx], name };
+            return json(SUBJECTS[idx]);
         }
     }
 

@@ -18,6 +18,11 @@ export type GroupRecord = {
 
 export type GroupPayload = Omit<GroupRecord, 'id'>;
 
+export type Subject = {
+    id: number;
+    name: string;
+};
+
 export type LessonRecord = {
     id: number;
     date: string;
@@ -171,6 +176,34 @@ export async function updateGroup(id: number, payload: GroupRecord) {
 
 export async function deleteGroup(id: number) {
     await request(`/admin/group/${id}`, { method: 'DELETE' });
+}
+
+export async function listSubjects() {
+    const data = (await request('/schedule/subjects')) as unknown[];
+    return (Array.isArray(data) ? data : []).map(item => {
+        const record = item as Record<string, unknown>;
+        return { id: Number(record.id ?? 0), name: String(record.name ?? '') } as Subject;
+    });
+}
+
+export async function createSubject(payload: Pick<Subject, 'name'>) {
+    return (await request('/admin/subject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })) as Subject;
+}
+
+export async function updateSubject(id: number, payload: Pick<Subject, 'name'>) {
+    return (await request(`/admin/subject/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })) as Subject;
+}
+
+export async function deleteSubject(id: number) {
+    await request(`/admin/subject/${id}`, { method: 'DELETE' });
 }
 
 export async function searchAdminLessons(filters: LessonSearchFilters) {
