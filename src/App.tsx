@@ -8,6 +8,7 @@ import { WelcomePage } from './pages/WelcomePage';
 import { useAuth } from './context/useAuth.ts';
 import { SchedulePage } from './pages/SchedulePage.tsx';
 import { AdminPage } from './pages/AdminPage.tsx';
+import { SchedulePlannerPage } from './pages/SchedulePlannerPage.tsx';
 import { AdminMapPage } from './pages/AdminMapPage.tsx';
 import { TeachersPage } from './pages/TeachersPage.tsx';
 
@@ -98,6 +99,17 @@ function App() {
                     <ProtectedRoute>
                         <Layout>
                             <AdminPage />
+                        </Layout>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin/schedule-builder"
+                element={
+                    <ProtectedRoute>
+                        <Layout>
+                            <SchedulePlannerPage />
                         </Layout>
                     </ProtectedRoute>
                 }

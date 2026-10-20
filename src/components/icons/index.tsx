@@ -140,3 +140,13 @@ export function ChevronRightIcon(props: IconProps) {
         </Icon>
     );
 }
+
+export function GridIcon(props: IconProps) {
+    return (
+        <Icon {...props}>
+            <rect x="3" y="3" width="7" height="18" rx="1.5" />
+            <rect x="14" y="3" width="7" height="18" rx="1.5" />
+            <path d="M3 9h7M14 9h7" />
+        </Icon>
+    );
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 import Papa from 'papaparse';
 import { addDays, format } from 'date-fns';
@@ -25,6 +26,7 @@ type Lesson = {
 
 export function AdminPage() {
     const { profile } = useAuth();
+    const navigate = useNavigate();
 
     const [file, setFile] = useState<File | null>(null);
     const [semesterEnd, setSemesterEnd] = useState('');
@@ -157,6 +159,7 @@ export function AdminPage() {
                 onOpenAccounts={() => setIsAccountsOpen(true)}
                 onOpenScheduleCrud={() => setIsScheduleCrudOpen(true)}
                 onOpenTeacherImport={() => setIsTeacherImportOpen(true)}
+                onOpenPlanner={() => navigate('/admin/schedule-builder')}
             />
 
             <AdminModal

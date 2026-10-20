@@ -220,5 +220,63 @@ function buildGroupSubjects(): GroupSubjectSeed[] {
 
 export const GROUP_SUBJECTS: GroupSubjectSeed[] = buildGroupSubjects();
 
+// Schedule composer slots (two-week template). Seeded for ИС-21 (semester 3),
+// plus one slot for ПИ-22 sharing teacher #11 at the same odd-Monday 09:00 time
+// so the cross-group teacher-clash warning is visible out of the box.
+export type SlotSeed = {
+    id: number;
+    group_id: number;
+    group_name: string;
+    semester: number;
+    week_parity: 'odd' | 'even';
+    weekday: number;
+    start_time: string;
+    end_time: string;
+    subject: string;
+    type: string;
+    teacher_id: number | null;
+    teacher_name: string;
+    classroom: string;
+};
+
+function makeSlot(
+    id: number,
+    groupId: number,
+    semester: number,
+    parity: 'odd' | 'even',
+    weekday: number,
+    start: string,
+    end: string,
+    subject: string,
+    type: string,
+    teacherId: number | null,
+    classroom: string,
+): SlotSeed {
+    const group = GROUPS.find(g => g.id === groupId);
+    const teacher = teacherId ? TEACHERS.find(t => t.id === teacherId) : undefined;
+    return {
+        id,
+        group_id: groupId,
+        group_name: group ? group.name : '',
+        semester,
+        week_parity: parity,
+        weekday,
+        start_time: start,
+        end_time: end,
+        subject,
+        type,
+        teacher_id: teacherId,
+        teacher_name: teacher ? teacher.full_name : '',
+        classroom,
+    };
+}
+
+export const SLOTS: SlotSeed[] = [
+    makeSlot(1, 101, 3, 'odd', 1, '09:00', '10:30', 'Математический анализ', 'Лекция', 11, 'А-101'),
+    makeSlot(2, 101, 3, 'odd', 1, '10:45', '12:15', 'Программирование', 'Практика', 12, 'Б-204'),
+    makeSlot(3, 101, 3, 'even', 3, '09:00', '10:30', 'Базы данных', 'Лабораторная', 13, 'В-305'),
+    makeSlot(4, 102, 3, 'odd', 1, '09:00', '10:30', 'Веб-разработка', 'Лекция', 11, 'Г-410'),
+];
+
 // In-memory lesson notes, seeded with one example.
 export const NOTES = new Map<number, string>([[1, 'Повторить примеры из лекции перед семинаром.']]);

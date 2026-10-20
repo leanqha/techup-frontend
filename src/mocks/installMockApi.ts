@@ -17,10 +17,11 @@ import {
     CLASSROOMS,
     ROOMS,
     LESSONS,
+    SLOTS,
     ADMIN_ACCOUNTS,
     NOTES,
 } from './data';
-import type { GroupSubjectSeed } from './data';
+import type { GroupSubjectSeed, SlotSeed } from './data';
 import type { Lesson } from '../api/types/schedule';
 
 const API_PREFIX = '/api/v1';
@@ -125,6 +126,97 @@ function groupSubjectFromBody(body: Body, id: number): GroupSubjectSeed {
     };
 }
 
+function slotFromBody(body: Body, id: number): SlotSeed {
+    const group = GROUPS.find(g => g.id === Number(body.group_id));
+    const teacherId = body.teacher_id != null ? Number(body.teacher_id) : null;
+    const teacher = teacherId ? TEACHERS.find(t => t.id === teacherId) : undefined;
+    return {
+        id,
+        group_id: Number(body.group_id ?? 0),
+        group_name: group ? group.name : '',
+        semester: Number(body.semester ?? 0),
+        week_parity: body.week_parity === 'even' ? 'even' : 'odd',
+        weekday: Number(body.weekday ?? 1),
+        start_time: String(body.start_time ?? ''),
+        end_time: String(body.end_time ?? ''),
+        subject: String(body.subject ?? ''),
+        type: String(body.type ?? 'Другое'),
+        teacher_id: teacherId && teacherId > 0 ? teacherId : null,
+        teacher_name: teacher ? teacher.full_name : '',
+        classroom: String(body.classroom ?? ''),
+    };
+}
+
+// --- date helpers for lesson generation (local time, matching the app) ---
+function parseLocalDate(s: string): Date {
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y || 1970, (m || 1) - 1, d || 1);
+}
+function addDaysLocal(d: Date, n: number): Date {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+function isoLocal(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+function mondayOfLocal(d: Date): Date {
+    const wd = (d.getDay() + 6) % 7; // Mon=0..Sun=6
+    return addDaysLocal(d, -wd);
+}
+
+// Expand a group's semester slots into dated lessons, replacing that group's
+// lessons in range — mirrors the Go service's expandSlots.
+function generateLessonsFromSlots(body: Body): { generated: number; skipped: number } {
+    const groupId = Number(body.group_id);
+    const semester = Number(body.semester);
+    const start = parseLocalDate(String(body.start_date ?? ''));
+    const end = parseLocalDate(String(body.end_date ?? ''));
+    const firstParity = body.first_week_parity === 'even' ? 'even' : 'odd';
+
+    const group = GROUPS.find(g => g.id === groupId) ?? GROUPS[0];
+    const groupSlots = SLOTS.filter(s => s.group_id === groupId && s.semester === semester);
+    const skipped = groupSlots.filter(s => s.teacher_id == null).length;
+
+    const startIso = isoLocal(start);
+    const endIso = isoLocal(end);
+    for (let i = LESSONS.length - 1; i >= 0; i--) {
+        const l = LESSONS[i];
+        if (l.group.id === groupId && l.date >= startIso && l.date <= endIso) LESSONS.splice(i, 1);
+    }
+
+    const monday = mondayOfLocal(start);
+    let nextId = LESSONS.reduce((max, l) => Math.max(max, l.id), 0) + 1;
+    let generated = 0;
+    for (let week = 0; ; week++) {
+        const weekMonday = addDaysLocal(monday, week * 7);
+        if (weekMonday > end) break;
+        const parity = week % 2 === 0 ? firstParity : firstParity === 'odd' ? 'even' : 'odd';
+        for (const slot of groupSlots) {
+            if (slot.week_parity !== parity || slot.teacher_id == null) continue;
+            const date = addDaysLocal(weekMonday, slot.weekday - 1);
+            if (date < start || date > end) continue;
+            const teacher =
+                TEACHERS.find(t => t.id === slot.teacher_id) ??
+                { id: slot.teacher_id ?? 0, first_name: '', last_name: '', middle_name: '', full_name: slot.teacher_name };
+            LESSONS.push({
+                id: nextId++,
+                date: isoLocal(date),
+                start_time: slot.start_time,
+                end_time: slot.end_time,
+                subject: slot.subject,
+                type: slot.type as Lesson['type'],
+                classroom: slot.classroom,
+                group,
+                teacher,
+            });
+            generated++;
+        }
+    }
+    return { generated, skipped };
+}
+
 function route(method: string, path: string, params: URLSearchParams, body: Body): Response {
     // ---- Account / auth ----
     if (path === '/account/secure/profile') return isAuthed() ? json(CURRENT_USER) : unauthorized();
@@ -168,6 +260,19 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
             GROUP_SUBJECTS.filter(item => {
                 if (groupId && item.group_id !== Number(groupId)) return false;
                 if (semester && item.semester !== Number(semester)) return false;
+                return true;
+            }),
+        );
+    }
+    if (path === '/schedule/slots') {
+        const groupId = params.get('group_id');
+        const semester = params.get('semester');
+        const teacherId = params.get('teacher_id');
+        return json(
+            SLOTS.filter(s => {
+                if (groupId && s.group_id !== Number(groupId)) return false;
+                if (semester && s.semester !== Number(semester)) return false;
+                if (teacherId && s.teacher_id !== Number(teacherId)) return false;
                 return true;
             }),
         );
@@ -373,6 +478,29 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
             LESSONS[idx] = lessonFromBody(body, id as number);
             return json({ ok: true });
         }
+    }
+
+    // ---- Admin: schedule composer slots ----
+    if (path === '/admin/slot' && method === 'POST') {
+        const slot = slotFromBody(body, nextId(SLOTS));
+        SLOTS.push(slot);
+        return json(slot, 201);
+    }
+    if (path.startsWith('/admin/slot/')) {
+        const id = idFromPath(path);
+        const idx = SLOTS.findIndex(s => s.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            SLOTS.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            SLOTS[idx] = slotFromBody(body, id as number);
+            return json(SLOTS[idx]);
+        }
+    }
+    if (path === '/admin/schedule/generate' && method === 'POST') {
+        return json(generateLessonsFromSlots(body));
     }
 
     // ---- Admin: accounts ----
