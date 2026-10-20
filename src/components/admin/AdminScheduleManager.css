@@ -82,15 +82,117 @@
     grid-template-columns: 0.9fr 1fr 1.4fr 0.9fr 0.9fr 1fr 0.9fr 220px;
 }
 
-.admin-schedule-header--group-subjects,
-.admin-schedule-row--group-subjects {
-    grid-template-columns: 0.6fr 1.8fr 1.4fr 220px;
-}
-
 .admin-plan-title {
-    margin: 0 0 4px;
+    margin: 0 0 10px;
     font-size: 15px;
     font-weight: 600;
+    color: var(--text-strong);
+}
+
+/* Учебный план — карточки предметов */
+.plan-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.plan-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border-soft);
+    box-shadow: var(--glass-shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--glass-shadow);
+    border-color: var(--accent);
+}
+
+.plan-card__semester {
+    flex: 0 0 auto;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    line-height: 1;
+}
+
+.plan-card__semester-num {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.plan-card__semester-label {
+    margin-top: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.plan-card__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.plan-card__subject {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.plan-card__teacher {
+    margin: 5px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.plan-card__teacher-label {
+    color: var(--text-subtle);
+}
+
+.plan-card__teacher--empty {
+    font-style: italic;
+    color: var(--text-subtle);
+}
+
+.plan-card__actions {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+}
+
+.plan-card__actions button {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+@media (max-width: 640px) {
+    .plan-card {
+        flex-wrap: wrap;
+    }
+
+    .plan-card__body {
+        flex: 1 1 calc(100% - 76px);
+    }
+
+    .plan-card__actions {
+        flex-basis: 100%;
+        justify-content: flex-end;
+    }
 }
 
 .admin-field-checkbox {
@@ -106,7 +208,6 @@
 
     .admin-schedule-row--faculties,
     .admin-schedule-row--groups,
-    .admin-schedule-row--group-subjects,
     .admin-schedule-row--lessons {
         grid-template-columns: 1fr;
         gap: 6px;

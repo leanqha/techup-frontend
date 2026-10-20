@@ -1212,38 +1212,57 @@ export function AdminScheduleManager() {
                     )}
 
                     {selectedPlanGroup && (
-                        <div className="admin-schedule-table">
+                        <div className="plan-list">
                             <h3 className="admin-plan-title">Учебный план группы {selectedPlanGroup.name}</h3>
-                            <div className="admin-schedule-header admin-schedule-header--group-subjects">
-                                <span>Семестр</span>
-                                <span>Предмет</span>
-                                <span>Преподаватель</span>
-                                <span>Действия</span>
+                            <div className="plan-cards">
+                                {visibleGroupSubjects.map(item => (
+                                    <article key={item.id} className="plan-card">
+                                        <div
+                                            className="plan-card__semester"
+                                            aria-label={`${item.semester} семестр`}
+                                        >
+                                            <span className="plan-card__semester-num">{item.semester}</span>
+                                            <span className="plan-card__semester-label">семестр</span>
+                                        </div>
+                                        <div className="plan-card__body">
+                                            <h4 className="plan-card__subject">
+                                                {item.subject_name || `#${item.subject_id}`}
+                                            </h4>
+                                            <p className="plan-card__teacher">
+                                                {item.teacher_name ? (
+                                                    <>
+                                                        <span className="plan-card__teacher-label">
+                                                            Преподаватель:
+                                                        </span>{' '}
+                                                        {item.teacher_name}
+                                                    </>
+                                                ) : (
+                                                    <span className="plan-card__teacher--empty">
+                                                        Преподаватель не назначен
+                                                    </span>
+                                                )}
+                                            </p>
+                                        </div>
+                                        <div className="plan-card__actions">
+                                            <button
+                                                type="button"
+                                                className="admin-secondary-button"
+                                                onClick={() => openEditGroupSubject(item)}
+                                            >
+                                                Изменить
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="admin-danger-button"
+                                                onClick={() => void handleDeleteGroupSubject(item)}
+                                                disabled={deletingId === item.id}
+                                            >
+                                                Удалить
+                                            </button>
+                                        </div>
+                                    </article>
+                                ))}
                             </div>
-                            {visibleGroupSubjects.map(item => (
-                                <div key={item.id} className="admin-schedule-row admin-schedule-row--group-subjects">
-                                    <span>{item.semester}</span>
-                                    <span>{item.subject_name || `#${item.subject_id}`}</span>
-                                    <span>{item.teacher_name || '—'}</span>
-                                    <span className="admin-accounts-actions">
-                                        <button
-                                            type="button"
-                                            className="admin-secondary-button"
-                                            onClick={() => openEditGroupSubject(item)}
-                                        >
-                                            Изменить
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="admin-danger-button"
-                                            onClick={() => void handleDeleteGroupSubject(item)}
-                                            disabled={deletingId === item.id}
-                                        >
-                                            Удалить
-                                        </button>
-                                    </span>
-                                </div>
-                            ))}
                             {!visibleGroupSubjects.length && !loading && (
                                 <p className="admin-section-status">
                                     В учебном плане этой группы пока нет предметов.
