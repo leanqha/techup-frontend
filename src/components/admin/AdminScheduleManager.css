@@ -82,6 +82,17 @@
     grid-template-columns: 0.9fr 1fr 1.4fr 0.9fr 0.9fr 1fr 0.9fr 220px;
 }
 
+.admin-schedule-header--group-subjects,
+.admin-schedule-row--group-subjects {
+    grid-template-columns: 0.6fr 1.8fr 1.4fr 220px;
+}
+
+.admin-plan-title {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
 .admin-field-checkbox {
     flex-direction: row;
     align-items: center;
@@ -95,6 +106,7 @@
 
     .admin-schedule-row--faculties,
     .admin-schedule-row--groups,
+    .admin-schedule-row--group-subjects,
     .admin-schedule-row--lessons {
         grid-template-columns: 1fr;
         gap: 6px;

@@ -2,27 +2,33 @@ import { useEffect, useMemo, useState } from 'react';
 import {
     createFaculty,
     createGroup,
+    createGroupSubject,
     createLesson,
     createLessonType,
     createSubject,
     deleteFaculty,
     deleteGroup,
+    deleteGroupSubject,
     deleteLesson,
     deleteLessonType,
     deleteSubject,
     listFaculties,
     listGroups,
+    listGroupSubjects,
     listLessonTypes,
     listSubjects,
     searchAdminLessons,
     updateFaculty,
     updateGroup,
+    updateGroupSubject,
     updateLesson,
     updateLessonType,
     updateSubject,
     type Faculty,
     type GroupPayload,
     type GroupRecord,
+    type GroupSubjectPayload,
+    type GroupSubjectRecord,
     type LessonPayload,
     type LessonRecord,
     type LessonSearchFilters,
@@ -34,7 +40,7 @@ import type { Profile as AccountProfile } from '../../api/types/types';
 import { AdminModal } from './AdminModal';
 import './AdminScheduleManager.css';
 
-type TabKey = 'faculties' | 'groups' | 'subjects' | 'lessonTypes' | 'lessons';
+type TabKey = 'faculties' | 'groups' | 'subjects' | 'lessonTypes' | 'groupSubjects' | 'lessons';
 
 const DEFAULT_TYPE_COLOR = '#2563eb';
 
@@ -66,6 +72,20 @@ type LessonFormState = {
     room_id: string;
     group: string;
     teacher_id: string;
+};
+
+type GroupSubjectFormState = {
+    group_id: string;
+    subject_id: string;
+    semester: string;
+    teacher_id: string;
+};
+
+const emptyGroupSubjectForm: GroupSubjectFormState = {
+    group_id: '',
+    subject_id: '',
+    semester: '1',
+    teacher_id: '',
 };
 
 const emptyGroupForm: GroupFormState = {
@@ -129,6 +149,13 @@ export function AdminScheduleManager() {
     const [editingLessonType, setEditingLessonType] = useState<LessonTypeRecord | null>(null);
     const [lessonTypeModalOpen, setLessonTypeModalOpen] = useState(false);
 
+    const [groupSubjects, setGroupSubjects] = useState<GroupSubjectRecord[]>([]);
+    const [gsGroupFilter, setGsGroupFilter] = useState('');
+    const [gsSemesterFilter, setGsSemesterFilter] = useState('');
+    const [groupSubjectForm, setGroupSubjectForm] = useState<GroupSubjectFormState>(emptyGroupSubjectForm);
+    const [editingGroupSubject, setEditingGroupSubject] = useState<GroupSubjectRecord | null>(null);
+    const [groupSubjectModalOpen, setGroupSubjectModalOpen] = useState(false);
+
     const [lessons, setLessons] = useState<LessonRecord[]>([]);
     const [lessonForm, setLessonForm] = useState<LessonFormState>(emptyLessonForm);
     const [editingLesson, setEditingLesson] = useState<LessonRecord | null>(null);
@@ -177,6 +204,35 @@ export function AdminScheduleManager() {
         return lessonTypes.filter(item => item.name.toLowerCase().includes(q));
     }, [lessonTypeSearch, lessonTypes]);
 
+    const selectedPlanGroup = useMemo(
+        () => groups.find(group => String(group.id) === gsGroupFilter) ?? null,
+        [groups, gsGroupFilter],
+    );
+
+    // Semesters offered in the filter are scoped to the chosen group's plan.
+    const groupSubjectSemesters = useMemo(() => {
+        const scoped = groupSubjects.filter(item => String(item.group_id) === gsGroupFilter);
+        const unique = new Set(scoped.map(item => item.semester));
+        return Array.from(unique).sort((a, b) => a - b);
+    }, [groupSubjects, gsGroupFilter]);
+
+    // The plan is shown per group, so entries are filtered to the selected group
+    // (and, optionally, a single semester within it).
+    const visibleGroupSubjects = useMemo(() => {
+        if (!gsGroupFilter) return [];
+        return groupSubjects.filter(item => {
+            const matchesGroup = String(item.group_id) === gsGroupFilter;
+            const matchesSemester = !gsSemesterFilter || String(item.semester) === gsSemesterFilter;
+            return matchesGroup && matchesSemester;
+        });
+    }, [groupSubjects, gsGroupFilter, gsSemesterFilter]);
+
+    // Switching groups drops a semester filter that may not exist in the new one.
+    const handleSelectPlanGroup = (groupId: string) => {
+        setGsGroupFilter(groupId);
+        setGsSemesterFilter('');
+    };
+
     const runAction = async (action: () => Promise<void>) => {
         setLoading(true);
         setError(null);
@@ -211,6 +267,11 @@ export function AdminScheduleManager() {
         setLessonTypes(data);
     };
 
+    const loadGroupSubjectsData = async () => {
+        const data = await listGroupSubjects();
+        setGroupSubjects(data);
+    };
+
     const loadLessonsData = async (filters: LessonSearchFilters = lessonFilters) => {
         const data = await searchAdminLessons(filters);
         setLessons(data);
@@ -233,6 +294,7 @@ export function AdminScheduleManager() {
                 loadGroupsData(),
                 loadSubjectsData(),
                 loadLessonTypesData(),
+                loadGroupSubjectsData(),
                 loadTeachersData(),
                 loadRoomsData(),
             ]);
@@ -530,6 +592,100 @@ export function AdminScheduleManager() {
         }
     };
 
+    const openCreateGroupSubject = () => {
+        setEditingGroupSubject(null);
+        setGroupSubjectForm({
+            ...emptyGroupSubjectForm,
+            group_id: gsGroupFilter || '',
+            semester: gsSemesterFilter || emptyGroupSubjectForm.semester,
+        });
+        setGroupSubjectModalOpen(true);
+    };
+
+    const openEditGroupSubject = (item: GroupSubjectRecord) => {
+        setEditingGroupSubject(item);
+        setGroupSubjectForm({
+            group_id: String(item.group_id),
+            subject_id: String(item.subject_id),
+            semester: String(item.semester),
+            teacher_id: item.teacher_id ? String(item.teacher_id) : '',
+        });
+        setGroupSubjectModalOpen(true);
+    };
+
+    const closeGroupSubjectModal = () => {
+        setGroupSubjectModalOpen(false);
+        setEditingGroupSubject(null);
+        setGroupSubjectForm(emptyGroupSubjectForm);
+    };
+
+    const toGroupSubjectPayload = (): GroupSubjectPayload => ({
+        group_id: Number(groupSubjectForm.group_id),
+        subject_id: Number(groupSubjectForm.subject_id),
+        semester: Number(groupSubjectForm.semester),
+        teacher_id: groupSubjectForm.teacher_id ? Number(groupSubjectForm.teacher_id) : null,
+    });
+
+    const handleSaveGroupSubject = async () => {
+        if (!groupSubjectForm.group_id) {
+            setError('Выберите группу');
+            return;
+        }
+        if (!groupSubjectForm.subject_id) {
+            setError('Выберите предмет');
+            return;
+        }
+
+        const semester = Number(groupSubjectForm.semester);
+        if (!Number.isInteger(semester) || semester < 1) {
+            setError('Укажите семестр (целое положительное число)');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            const payload = toGroupSubjectPayload();
+            if (editingGroupSubject) {
+                await updateGroupSubject(editingGroupSubject.id, payload);
+                setMessage('Предмет учебного плана обновлён');
+            } else {
+                await createGroupSubject(payload);
+                setMessage('Предмет добавлен в учебный план');
+            }
+
+            await loadGroupSubjectsData();
+            closeGroupSubjectModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteGroupSubject = async (item: GroupSubjectRecord) => {
+        if (!window.confirm(`Убрать «${item.subject_name}» из плана группы ${item.group_name} (семестр ${item.semester})?`)) {
+            return;
+        }
+
+        setDeletingId(item.id);
+        setError(null);
+        setMessage(null);
+
+        try {
+            await deleteGroupSubject(item.id);
+            await loadGroupSubjectsData();
+            setMessage('Предмет удалён из учебного плана');
+            if (editingGroupSubject?.id === item.id) closeGroupSubjectModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     const openCreateLesson = () => {
         setEditingLesson(null);
         setLessonForm(emptyLessonForm);
@@ -681,6 +837,13 @@ export function AdminScheduleManager() {
                     onClick={() => setTab('lessonTypes')}
                 >
                     Типы занятий
+                </button>
+                <button
+                    type="button"
+                    className={`admin-tab ${tab === 'groupSubjects' ? 'active' : ''}`}
+                    onClick={() => setTab('groupSubjects')}
+                >
+                    Учебный план
                 </button>
                 <button
                     type="button"
@@ -988,6 +1151,109 @@ export function AdminScheduleManager() {
                 </div>
             )}
 
+            {tab === 'groupSubjects' && (
+                <div className="admin-crud-panel">
+                    <div className="admin-accounts-filters">
+                        <label className="admin-field">
+                            Группа
+                            <select
+                                value={gsGroupFilter}
+                                onChange={event => handleSelectPlanGroup(event.target.value)}
+                            >
+                                <option value="">Выберите группу</option>
+                                {groups.map(group => (
+                                    <option key={group.id} value={group.id}>
+                                        {group.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        {selectedPlanGroup && (
+                            <>
+                                <label className="admin-field">
+                                    Семестр
+                                    <select
+                                        value={gsSemesterFilter}
+                                        onChange={event => setGsSemesterFilter(event.target.value)}
+                                    >
+                                        <option value="">Все</option>
+                                        {groupSubjectSemesters.map(semester => (
+                                            <option key={semester} value={semester}>
+                                                {semester}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <div className="admin-filters-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-secondary-button"
+                                        onClick={() => void runAction(loadGroupSubjectsData)}
+                                        disabled={loading}
+                                    >
+                                        Обновить список
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-primary-button"
+                                        onClick={openCreateGroupSubject}
+                                    >
+                                        Добавить предмет
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {!selectedPlanGroup && (
+                        <p className="admin-section-status">
+                            Выберите группу, чтобы увидеть и редактировать её учебный план.
+                        </p>
+                    )}
+
+                    {selectedPlanGroup && (
+                        <div className="admin-schedule-table">
+                            <h3 className="admin-plan-title">Учебный план группы {selectedPlanGroup.name}</h3>
+                            <div className="admin-schedule-header admin-schedule-header--group-subjects">
+                                <span>Семестр</span>
+                                <span>Предмет</span>
+                                <span>Преподаватель</span>
+                                <span>Действия</span>
+                            </div>
+                            {visibleGroupSubjects.map(item => (
+                                <div key={item.id} className="admin-schedule-row admin-schedule-row--group-subjects">
+                                    <span>{item.semester}</span>
+                                    <span>{item.subject_name || `#${item.subject_id}`}</span>
+                                    <span>{item.teacher_name || '—'}</span>
+                                    <span className="admin-accounts-actions">
+                                        <button
+                                            type="button"
+                                            className="admin-secondary-button"
+                                            onClick={() => openEditGroupSubject(item)}
+                                        >
+                                            Изменить
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="admin-danger-button"
+                                            onClick={() => void handleDeleteGroupSubject(item)}
+                                            disabled={deletingId === item.id}
+                                        >
+                                            Удалить
+                                        </button>
+                                    </span>
+                                </div>
+                            ))}
+                            {!visibleGroupSubjects.length && !loading && (
+                                <p className="admin-section-status">
+                                    В учебном плане этой группы пока нет предметов.
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {tab === 'lessons' && (
                 <div className="admin-crud-panel">
                     <div className="admin-accounts-filters">
@@ -1256,6 +1522,92 @@ export function AdminScheduleManager() {
                             type="button"
                             className="admin-primary-button"
                             onClick={() => void handleSaveLessonType()}
+                            disabled={saving}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
+                open={groupSubjectModalOpen}
+                title={editingGroupSubject ? 'Редактирование предмета плана' : 'Предмет в учебный план'}
+                onClose={closeGroupSubjectModal}
+            >
+                <div className="admin-edit-form">
+                    <label className="admin-field">
+                        Группа
+                        <select
+                            value={groupSubjectForm.group_id}
+                            onChange={event =>
+                                setGroupSubjectForm({ ...groupSubjectForm, group_id: event.target.value })
+                            }
+                        >
+                            <option value="">Выберите</option>
+                            {groups.map(group => (
+                                <option key={group.id} value={group.id}>
+                                    {group.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="admin-field">
+                        Семестр
+                        <input
+                            type="number"
+                            min={1}
+                            value={groupSubjectForm.semester}
+                            onChange={event =>
+                                setGroupSubjectForm({ ...groupSubjectForm, semester: event.target.value })
+                            }
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Предмет
+                        <select
+                            value={groupSubjectForm.subject_id}
+                            onChange={event =>
+                                setGroupSubjectForm({ ...groupSubjectForm, subject_id: event.target.value })
+                            }
+                        >
+                            <option value="">Выберите</option>
+                            {subjects.map(subject => (
+                                <option key={subject.id} value={subject.id}>
+                                    {subject.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="admin-field">
+                        Преподаватель
+                        <select
+                            value={groupSubjectForm.teacher_id}
+                            onChange={event =>
+                                setGroupSubjectForm({ ...groupSubjectForm, teacher_id: event.target.value })
+                            }
+                        >
+                            <option value="">Не указан</option>
+                            {teachers.map(teacher => (
+                                <option key={teacher.id} value={teacher.id}>
+                                    {formatTeacherName(teacher)}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <div className="admin-edit-actions">
+                        <button
+                            type="button"
+                            className="admin-secondary-button"
+                            onClick={closeGroupSubjectModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-primary-button"
+                            onClick={() => void handleSaveGroupSubject()}
                             disabled={saving}
                         >
                             {saving ? 'Сохранение...' : 'Сохранить'}

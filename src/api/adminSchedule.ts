@@ -29,6 +29,29 @@ export type LessonTypeRecord = {
     color: string;
 };
 
+export type GroupSubjectRecord = {
+    id: number;
+    group_id: number;
+    group_name: string;
+    subject_id: number;
+    subject_name: string;
+    semester: number;
+    teacher_id: number | null;
+    teacher_name: string;
+};
+
+export type GroupSubjectPayload = {
+    group_id: number;
+    subject_id: number;
+    semester: number;
+    teacher_id: number | null;
+};
+
+export type GroupSubjectFilters = {
+    groupId?: number;
+    semester?: number;
+};
+
 export type LessonRecord = {
     id: number;
     date: string;
@@ -131,6 +154,20 @@ function normalizeLesson(raw: unknown): LessonRecord {
                 ? group
                 : Number((group as Record<string, unknown> | undefined)?.id ?? data.group_id ?? 0),
         teacher_id: teacher?.id ? Number(teacher.id) : (data.teacher_id as number | null | undefined) ?? null,
+    };
+}
+
+function normalizeGroupSubject(raw: unknown): GroupSubjectRecord {
+    const data = raw as Record<string, unknown>;
+    return {
+        id: Number(data.id ?? 0),
+        group_id: Number(data.group_id ?? 0),
+        group_name: String(data.group_name ?? ''),
+        subject_id: Number(data.subject_id ?? 0),
+        subject_name: String(data.subject_name ?? ''),
+        semester: Number(data.semester ?? 0),
+        teacher_id: data.teacher_id != null ? Number(data.teacher_id) : null,
+        teacher_name: String(data.teacher_name ?? ''),
     };
 }
 
@@ -242,6 +279,39 @@ export async function updateLessonType(id: number, payload: Pick<LessonTypeRecor
 
 export async function deleteLessonType(id: number) {
     await request(`/admin/lesson-type/${id}`, { method: 'DELETE' });
+}
+
+export async function listGroupSubjects(filters: GroupSubjectFilters = {}) {
+    const query = new URLSearchParams();
+    if (filters.groupId) query.append('group_id', String(filters.groupId));
+    if (filters.semester) query.append('semester', String(filters.semester));
+
+    const path = query.toString()
+        ? `/schedule/group-subjects?${query.toString()}`
+        : '/schedule/group-subjects';
+    const data = (await request(path)) as unknown[];
+
+    return (Array.isArray(data) ? data : []).map(normalizeGroupSubject);
+}
+
+export async function createGroupSubject(payload: GroupSubjectPayload) {
+    await request('/admin/group-subject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function updateGroupSubject(id: number, payload: GroupSubjectPayload) {
+    await request(`/admin/group-subject/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function deleteGroupSubject(id: number) {
+    await request(`/admin/group-subject/${id}`, { method: 'DELETE' });
 }
 
 export async function searchAdminLessons(filters: LessonSearchFilters) {

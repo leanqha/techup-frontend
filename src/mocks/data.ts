@@ -177,5 +177,48 @@ export const ADMIN_ACCOUNTS: AdminAccount[] = [
     },
 ];
 
+// Group semester plan analogue (учебный план): which subjects a group studies
+// in a given semester, with an optional teacher. Mirrors the backend
+// GroupSubjectResponse shape so the admin CRUD works in no-backend dev mode.
+export type GroupSubjectSeed = {
+    id: number;
+    group_id: number;
+    group_name: string;
+    subject_id: number;
+    subject_name: string;
+    semester: number;
+    teacher_id: number | null;
+    teacher_name: string;
+};
+
+function buildGroupSubjects(): GroupSubjectSeed[] {
+    const group = GROUPS[0]; // ИС-21
+    // [subjectIndex, semester, teacherId]
+    const plan: Array<[number, number, number | null]> = [
+        [0, 3, 11],
+        [1, 3, 12],
+        [2, 3, 13],
+        [3, 4, 11],
+        [4, 4, null],
+    ];
+
+    return plan.map(([subjectIndex, semester, teacherId], i) => {
+        const subject = SUBJECTS[subjectIndex];
+        const teacher = teacherId ? TEACHERS.find(t => t.id === teacherId) : undefined;
+        return {
+            id: i + 1,
+            group_id: group.id,
+            group_name: group.name,
+            subject_id: subject.id,
+            subject_name: subject.name,
+            semester,
+            teacher_id: teacherId,
+            teacher_name: teacher ? teacher.full_name : '',
+        };
+    });
+}
+
+export const GROUP_SUBJECTS: GroupSubjectSeed[] = buildGroupSubjects();
+
 // In-memory lesson notes, seeded with one example.
 export const NOTES = new Map<number, string>([[1, 'Повторить примеры из лекции перед семинаром.']]);
