@@ -23,6 +23,12 @@ export type Subject = {
     name: string;
 };
 
+export type LessonTypeRecord = {
+    id: number;
+    name: string;
+    color: string;
+};
+
 export type LessonRecord = {
     id: number;
     date: string;
@@ -204,6 +210,38 @@ export async function updateSubject(id: number, payload: Pick<Subject, 'name'>) 
 
 export async function deleteSubject(id: number) {
     await request(`/admin/subject/${id}`, { method: 'DELETE' });
+}
+
+export async function listLessonTypes() {
+    const data = (await request('/schedule/lesson-types')) as unknown[];
+    return (Array.isArray(data) ? data : []).map(item => {
+        const record = item as Record<string, unknown>;
+        return {
+            id: Number(record.id ?? 0),
+            name: String(record.name ?? ''),
+            color: String(record.color ?? '#64748b'),
+        } as LessonTypeRecord;
+    });
+}
+
+export async function createLessonType(payload: Pick<LessonTypeRecord, 'name' | 'color'>) {
+    return (await request('/admin/lesson-type', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })) as LessonTypeRecord;
+}
+
+export async function updateLessonType(id: number, payload: Pick<LessonTypeRecord, 'name' | 'color'>) {
+    return (await request(`/admin/lesson-type/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })) as LessonTypeRecord;
+}
+
+export async function deleteLessonType(id: number) {
+    await request(`/admin/lesson-type/${id}`, { method: 'DELETE' });
 }
 
 export async function searchAdminLessons(filters: LessonSearchFilters) {

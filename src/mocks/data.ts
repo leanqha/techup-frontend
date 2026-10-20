@@ -81,7 +81,19 @@ export const SUBJECTS = [
     'Компьютерные сети',
 ].map((name, index) => ({ id: index + 1, name }));
 
-const TYPES: LessonType[] = ['lecture', 'practice', 'laboratory'];
+// Lesson types catalog analogue (id + name + accent color), mirroring the
+// backend seed, so the types admin CRUD and the lesson form's type dropdown
+// work in no-backend dev mode.
+export const LESSON_TYPES = [
+    { id: 1, name: 'Лекция', color: '#2563eb' },
+    { id: 2, name: 'Практика', color: '#dc2626' },
+    { id: 3, name: 'Лабораторная', color: '#7c3aed' },
+    { id: 4, name: 'Экзамен', color: '#ea580c' },
+    { id: 5, name: 'Зачет', color: '#059669' },
+    { id: 6, name: 'Другое', color: '#64748b' },
+];
+
+const TYPES: LessonType[] = LESSON_TYPES.slice(0, 5).map(t => t.name);
 const TIMES: Array<[string, string]> = [
     ['09:00', '10:30'],
     ['10:45', '12:15'],

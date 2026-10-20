@@ -1,39 +1,40 @@
 // src/components/schedule/LessonCard.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
-import type { Lesson, LessonType } from '../../api/types/schedule';
+import type { Lesson, LessonTypeMeta } from '../../api/types/schedule';
 import { deleteLessonNote, fetchLessonNote, saveLessonNote } from '../../api/schedule.ts';
 import { formatTime } from '../../utils/date';
 import { LessonNoteModal } from './LessonNoteModal';
+import { useLessonTypes } from './useLessonTypes';
 import './schedule.css';
 
-function getTypeMeta(type: LessonType) {
-    switch (type) {
-        case 'lecture':
-            return {
-                label: 'Лекция',
-                accent: '#2563eb',
-                soft: 'rgba(37, 99, 235, 0.12)',
-            };
-        case 'practice':
-            return {
-                label: 'Практика',
-                accent: '#dc2626',
-                soft: 'rgba(220, 38, 38, 0.12)',
-            };
-        case 'laboratory':
-            return {
-                label: 'Лабораторная',
-                accent: '#7c3aed',
-                soft: 'rgba(124, 58, 237, 0.12)',
-            };
-        default:
-            return {
-                label: '',
-                accent: '#64748b',
-                soft: 'rgba(100, 116, 139, 0.12)',
-            };
+const NEUTRAL_ACCENT = '#64748b';
+
+// Build a translucent variant of a hex color for the type chip / card tint.
+function toSoft(hex: string, alpha = 0.12): string {
+    const match = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex.trim());
+    if (!match) return `rgba(100, 116, 139, ${alpha})`;
+
+    let value = match[1];
+    if (value.length === 3) {
+        value = value.split('').map(ch => ch + ch).join('');
     }
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Resolve a lesson's type to its label + accent from the catalog, falling back
+// to a neutral accent and the raw value for types not (or no longer) in it.
+function getTypeMeta(type: string, catalog: Map<string, LessonTypeMeta>) {
+    const meta = catalog.get(type);
+    const accent = meta?.color || NEUTRAL_ACCENT;
+    return {
+        label: meta?.name ?? '',
+        accent,
+        soft: toSoft(accent),
+    };
 }
 
 function toNoteText(text: string) {
@@ -56,7 +57,12 @@ export function LessonCard({ lesson, showGroup = false }: { lesson: Lesson; show
         lesson.classroom.trim() !== '';
     const showGroupName = showGroup && Boolean(lesson.group?.name);
 
-    const typeMeta = getTypeMeta(lesson.type);
+    const lessonTypes = useLessonTypes();
+    const typeCatalog = useMemo(
+        () => new Map(lessonTypes.map(item => [item.name, item])),
+        [lessonTypes],
+    );
+    const typeMeta = getTypeMeta(lesson.type, typeCatalog);
 
     useEffect(() => {
         let cancelled = false;

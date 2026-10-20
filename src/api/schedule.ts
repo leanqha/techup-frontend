@@ -1,4 +1,4 @@
-import type {Lesson, LessonNote, Group} from "./types/schedule.ts";
+import type {Lesson, LessonNote, Group, LessonTypeMeta} from "./types/schedule.ts";
 import type {Profile} from "./types/types.ts";
 import { fetchWithRefresh } from './fetchWithRefresh.ts';
 
@@ -45,6 +45,22 @@ export async function fetchClassrooms(): Promise<string[]> {
     const res = await fetch('/api/v1/schedule/classrooms', { credentials: 'include' });
     if (!res.ok) throw new Error('Ошибка получения аудиторий');
     return res.json();
+}
+
+// Lesson types catalog (name + accent color) used to color lesson cards and to
+// populate the admin lesson form's type dropdown.
+export async function fetchLessonTypes(): Promise<LessonTypeMeta[]> {
+    const res = await fetch('/api/v1/schedule/lesson-types', { credentials: 'include' });
+    if (!res.ok) throw new Error('Ошибка получения типов занятий');
+    const data = await res.json();
+    return (Array.isArray(data) ? data : []).map((item: unknown) => {
+        const record = item as Record<string, unknown>;
+        return {
+            id: Number(record.id ?? 0),
+            name: String(record.name ?? ''),
+            color: String(record.color ?? '#64748b'),
+        } as LessonTypeMeta;
+    });
 }
 
 export type Room = {

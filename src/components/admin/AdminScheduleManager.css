@@ -100,3 +100,36 @@
         gap: 6px;
     }
 }
+
+.admin-type-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-type-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex: 0 0 auto;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.admin-color-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-color-field input[type='color'] {
+    width: 44px;
+    height: 38px;
+    padding: 2px;
+    border-radius: var(--radius-sm, 8px);
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.admin-color-field input[type='text'] {
+    flex: 1 1 auto;
+}
