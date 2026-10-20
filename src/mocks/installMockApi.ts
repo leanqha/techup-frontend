@@ -13,12 +13,14 @@ import {
     FACULTIES,
     SUBJECTS,
     LESSON_TYPES,
+    GROUP_SUBJECTS,
     CLASSROOMS,
     ROOMS,
     LESSONS,
     ADMIN_ACCOUNTS,
     NOTES,
 } from './data';
+import type { GroupSubjectSeed } from './data';
 import type { Lesson } from '../api/types/schedule';
 
 const API_PREFIX = '/api/v1';
@@ -106,6 +108,23 @@ function idFromPath(path: string): number | null {
     return m ? Number(m[1]) : null;
 }
 
+function groupSubjectFromBody(body: Body, id: number): GroupSubjectSeed {
+    const group = GROUPS.find(g => g.id === Number(body.group_id));
+    const subject = SUBJECTS.find(s => s.id === Number(body.subject_id));
+    const teacherId = body.teacher_id != null ? Number(body.teacher_id) : null;
+    const teacher = teacherId ? TEACHERS.find(t => t.id === teacherId) : undefined;
+    return {
+        id,
+        group_id: Number(body.group_id ?? 0),
+        group_name: group ? group.name : '',
+        subject_id: Number(body.subject_id ?? 0),
+        subject_name: subject ? subject.name : '',
+        semester: Number(body.semester ?? 0),
+        teacher_id: teacherId && teacherId > 0 ? teacherId : null,
+        teacher_name: teacher ? teacher.full_name : '',
+    };
+}
+
 function route(method: string, path: string, params: URLSearchParams, body: Body): Response {
     // ---- Account / auth ----
     if (path === '/account/secure/profile') return isAuthed() ? json(CURRENT_USER) : unauthorized();
@@ -142,6 +161,17 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
     if (path === '/schedule/faculties') return json(FACULTIES);
     if (path === '/schedule/subjects') return json(SUBJECTS);
     if (path === '/schedule/lesson-types') return json(LESSON_TYPES);
+    if (path === '/schedule/group-subjects') {
+        const groupId = params.get('group_id');
+        const semester = params.get('semester');
+        return json(
+            GROUP_SUBJECTS.filter(item => {
+                if (groupId && item.group_id !== Number(groupId)) return false;
+                if (semester && item.semester !== Number(semester)) return false;
+                return true;
+            }),
+        );
+    }
     if (path === '/schedule/classrooms') return json(CLASSROOMS);
     if (path === '/schedule/rooms') return json(ROOMS);
 
@@ -280,6 +310,48 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
                 color: String(body.color ?? LESSON_TYPES[idx].color),
             };
             return json(LESSON_TYPES[idx]);
+        }
+    }
+
+    // ---- Admin: group semester plan (учебный план) ----
+    if (path === '/admin/group-subject' && method === 'POST') {
+        const record = groupSubjectFromBody(body, nextId(GROUP_SUBJECTS));
+        if (
+            GROUP_SUBJECTS.some(
+                gs =>
+                    gs.group_id === record.group_id &&
+                    gs.subject_id === record.subject_id &&
+                    gs.semester === record.semester,
+            )
+        ) {
+            return json({ error: "subject already in this group's semester plan" }, 409);
+        }
+        GROUP_SUBJECTS.push(record);
+        return json(record, 201);
+    }
+    if (path.startsWith('/admin/group-subject/')) {
+        const id = idFromPath(path);
+        const idx = GROUP_SUBJECTS.findIndex(gs => gs.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            GROUP_SUBJECTS.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            const record = groupSubjectFromBody(body, id as number);
+            if (
+                GROUP_SUBJECTS.some(
+                    gs =>
+                        gs.id !== id &&
+                        gs.group_id === record.group_id &&
+                        gs.subject_id === record.subject_id &&
+                        gs.semester === record.semester,
+                )
+            ) {
+                return json({ error: "subject already in this group's semester plan" }, 409);
+            }
+            GROUP_SUBJECTS[idx] = record;
+            return json(record);
         }
     }
 
