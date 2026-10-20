@@ -68,7 +68,9 @@ export const ROOMS = CLASSROOMS.map((name, index) => ({
     title: '',
 }));
 
-const SUBJECTS = [
+// Subjects catalog analogue (id + name) so the admin subjects CRUD and the
+// lesson form's subject dropdown work in no-backend dev mode.
+export const SUBJECTS = [
     'Математический анализ',
     'Программирование',
     'Базы данных',
@@ -77,7 +79,7 @@ const SUBJECTS = [
     'Дискретная математика',
     'Английский язык',
     'Компьютерные сети',
-];
+].map((name, index) => ({ id: index + 1, name }));
 
 const TYPES: LessonType[] = ['lecture', 'practice', 'laboratory'];
 const TIMES: Array<[string, string]> = [
@@ -124,7 +126,7 @@ function buildLessons(): Lesson[] {
                     date: isoDate(date),
                     start_time: start,
                     end_time: end,
-                    subject: SUBJECTS[pick % SUBJECTS.length],
+                    subject: SUBJECTS[pick % SUBJECTS.length].name,
                     type: TYPES[pick % TYPES.length],
                     classroom: CLASSROOMS[pick % CLASSROOMS.length],
                     room_id: (pick % CLASSROOMS.length) + 1,
