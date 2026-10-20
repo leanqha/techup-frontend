@@ -12,6 +12,7 @@ import {
     GROUPS,
     FACULTIES,
     SUBJECTS,
+    LESSON_TYPES,
     CLASSROOMS,
     ROOMS,
     LESSONS,
@@ -140,6 +141,7 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
     if (path === '/schedule/groups') return json(GROUPS);
     if (path === '/schedule/faculties') return json(FACULTIES);
     if (path === '/schedule/subjects') return json(SUBJECTS);
+    if (path === '/schedule/lesson-types') return json(LESSON_TYPES);
     if (path === '/schedule/classrooms') return json(CLASSROOMS);
     if (path === '/schedule/rooms') return json(ROOMS);
 
@@ -246,6 +248,38 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
             }
             SUBJECTS[idx] = { ...SUBJECTS[idx], name };
             return json(SUBJECTS[idx]);
+        }
+    }
+
+    // ---- Admin: lesson types ----
+    if (path === '/admin/lesson-type' && method === 'POST') {
+        const name = String(body.name ?? '').trim();
+        if (LESSON_TYPES.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+            return json({ error: 'lesson type already exists' }, 409);
+        }
+        const lessonType = { id: nextId(LESSON_TYPES), name, color: String(body.color ?? '#64748b') };
+        LESSON_TYPES.push(lessonType);
+        return json(lessonType, 201);
+    }
+    if (path.startsWith('/admin/lesson-type/')) {
+        const id = idFromPath(path);
+        const idx = LESSON_TYPES.findIndex(t => t.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            LESSON_TYPES.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            const name = String(body.name ?? LESSON_TYPES[idx].name).trim();
+            if (LESSON_TYPES.some(t => t.id !== id && t.name.toLowerCase() === name.toLowerCase())) {
+                return json({ error: 'lesson type already exists' }, 409);
+            }
+            LESSON_TYPES[idx] = {
+                ...LESSON_TYPES[idx],
+                name,
+                color: String(body.color ?? LESSON_TYPES[idx].color),
+            };
+            return json(LESSON_TYPES[idx]);
         }
     }
 

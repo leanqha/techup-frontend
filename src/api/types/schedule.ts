@@ -22,7 +22,16 @@ export type Teacher = {
     full_name: string;
 };
 
-export type LessonType = 'lecture' | 'practice' | 'laboratory' | 'other';
+// Lesson types are a server-managed catalog now, so a lesson's type is just the
+// catalog entry's name (e.g. "Лекция", "Экзамен").
+export type LessonType = string;
+
+// A lesson type from the catalog, with the accent color used on lesson cards.
+export type LessonTypeMeta = {
+    id: number;
+    name: string;
+    color: string;
+};
 
 export type Lesson = {
     id: number;

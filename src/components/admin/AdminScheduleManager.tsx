@@ -3,18 +3,22 @@ import {
     createFaculty,
     createGroup,
     createLesson,
+    createLessonType,
     createSubject,
     deleteFaculty,
     deleteGroup,
     deleteLesson,
+    deleteLessonType,
     deleteSubject,
     listFaculties,
     listGroups,
+    listLessonTypes,
     listSubjects,
     searchAdminLessons,
     updateFaculty,
     updateGroup,
     updateLesson,
+    updateLessonType,
     updateSubject,
     type Faculty,
     type GroupPayload,
@@ -22,6 +26,7 @@ import {
     type LessonPayload,
     type LessonRecord,
     type LessonSearchFilters,
+    type LessonTypeRecord,
     type Subject,
 } from '../../api/adminSchedule';
 import { fetchRooms, fetchTeachers, type Room } from '../../api/schedule';
@@ -29,7 +34,9 @@ import type { Profile as AccountProfile } from '../../api/types/types';
 import { AdminModal } from './AdminModal';
 import './AdminScheduleManager.css';
 
-type TabKey = 'faculties' | 'groups' | 'subjects' | 'lessons';
+type TabKey = 'faculties' | 'groups' | 'subjects' | 'lessonTypes' | 'lessons';
+
+const DEFAULT_TYPE_COLOR = '#2563eb';
 
 function formatTeacherName(t: AccountProfile): string {
     const parts = [t.last_name, t.first_name, t.middle_name].filter(Boolean);
@@ -76,7 +83,7 @@ const emptyLessonForm: LessonFormState = {
     start_time: '09:00',
     end_time: '10:30',
     subject: '',
-    type: 'lecture',
+    type: '',
     room_id: '',
     group: '',
     teacher_id: '',
@@ -115,6 +122,12 @@ export function AdminScheduleManager() {
     const [subjectFormName, setSubjectFormName] = useState('');
     const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
     const [subjectModalOpen, setSubjectModalOpen] = useState(false);
+
+    const [lessonTypes, setLessonTypes] = useState<LessonTypeRecord[]>([]);
+    const [lessonTypeSearch, setLessonTypeSearch] = useState('');
+    const [lessonTypeForm, setLessonTypeForm] = useState({ name: '', color: DEFAULT_TYPE_COLOR });
+    const [editingLessonType, setEditingLessonType] = useState<LessonTypeRecord | null>(null);
+    const [lessonTypeModalOpen, setLessonTypeModalOpen] = useState(false);
 
     const [lessons, setLessons] = useState<LessonRecord[]>([]);
     const [lessonForm, setLessonForm] = useState<LessonFormState>(emptyLessonForm);
@@ -158,6 +171,12 @@ export function AdminScheduleManager() {
         return subjects.filter(item => item.name.toLowerCase().includes(q));
     }, [subjectSearch, subjects]);
 
+    const visibleLessonTypes = useMemo(() => {
+        const q = lessonTypeSearch.trim().toLowerCase();
+        if (!q) return lessonTypes;
+        return lessonTypes.filter(item => item.name.toLowerCase().includes(q));
+    }, [lessonTypeSearch, lessonTypes]);
+
     const runAction = async (action: () => Promise<void>) => {
         setLoading(true);
         setError(null);
@@ -187,6 +206,11 @@ export function AdminScheduleManager() {
         setSubjects(data);
     };
 
+    const loadLessonTypesData = async () => {
+        const data = await listLessonTypes();
+        setLessonTypes(data);
+    };
+
     const loadLessonsData = async (filters: LessonSearchFilters = lessonFilters) => {
         const data = await searchAdminLessons(filters);
         setLessons(data);
@@ -208,6 +232,7 @@ export function AdminScheduleManager() {
                 loadFacultiesData(),
                 loadGroupsData(),
                 loadSubjectsData(),
+                loadLessonTypesData(),
                 loadTeachersData(),
                 loadRoomsData(),
             ]);
@@ -438,6 +463,73 @@ export function AdminScheduleManager() {
         }
     };
 
+    const openCreateLessonType = () => {
+        setEditingLessonType(null);
+        setLessonTypeForm({ name: '', color: DEFAULT_TYPE_COLOR });
+        setLessonTypeModalOpen(true);
+    };
+
+    const openEditLessonType = (lessonType: LessonTypeRecord) => {
+        setEditingLessonType(lessonType);
+        setLessonTypeForm({ name: lessonType.name, color: lessonType.color || DEFAULT_TYPE_COLOR });
+        setLessonTypeModalOpen(true);
+    };
+
+    const closeLessonTypeModal = () => {
+        setLessonTypeModalOpen(false);
+        setEditingLessonType(null);
+        setLessonTypeForm({ name: '', color: DEFAULT_TYPE_COLOR });
+    };
+
+    const handleSaveLessonType = async () => {
+        const name = lessonTypeForm.name.trim();
+        if (!name) {
+            setError('Введите название типа занятия');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            const payload = { name, color: lessonTypeForm.color };
+            if (editingLessonType) {
+                await updateLessonType(editingLessonType.id, payload);
+                setMessage('Тип занятия обновлён');
+            } else {
+                await createLessonType(payload);
+                setMessage('Тип занятия создан');
+            }
+
+            await loadLessonTypesData();
+            closeLessonTypeModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteLessonType = async (lessonType: LessonTypeRecord) => {
+        if (!window.confirm(`Удалить тип занятия "${lessonType.name}"?`)) return;
+
+        setDeletingId(lessonType.id);
+        setError(null);
+        setMessage(null);
+
+        try {
+            await deleteLessonType(lessonType.id);
+            await loadLessonTypesData();
+            setMessage('Тип занятия удалён');
+            if (editingLessonType?.id === lessonType.id) closeLessonTypeModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     const openCreateLesson = () => {
         setEditingLesson(null);
         setLessonForm(emptyLessonForm);
@@ -489,6 +581,11 @@ export function AdminScheduleManager() {
 
         if (!lessonForm.date || !lessonForm.subject.trim()) {
             setError('Заполните дату и предмет');
+            return;
+        }
+
+        if (!lessonForm.type.trim()) {
+            setError('Выберите тип занятия');
             return;
         }
 
@@ -577,6 +674,13 @@ export function AdminScheduleManager() {
                     onClick={() => setTab('subjects')}
                 >
                     Предметы
+                </button>
+                <button
+                    type="button"
+                    className={`admin-tab ${tab === 'lessonTypes' ? 'active' : ''}`}
+                    onClick={() => setTab('lessonTypes')}
+                >
+                    Типы занятий
                 </button>
                 <button
                     type="button"
@@ -810,6 +914,80 @@ export function AdminScheduleManager() {
                 </div>
             )}
 
+            {tab === 'lessonTypes' && (
+                <div className="admin-crud-panel">
+                    <div className="admin-accounts-filters">
+                        <label className="admin-field">
+                            Поиск типа
+                            <input
+                                type="text"
+                                value={lessonTypeSearch}
+                                onChange={event => setLessonTypeSearch(event.target.value)}
+                                placeholder="Название"
+                            />
+                        </label>
+                        <div className="admin-filters-actions">
+                            <button
+                                type="button"
+                                className="admin-secondary-button"
+                                onClick={() => void runAction(loadLessonTypesData)}
+                                disabled={loading}
+                            >
+                                Обновить список
+                            </button>
+                            <button
+                                type="button"
+                                className="admin-primary-button"
+                                onClick={openCreateLessonType}
+                            >
+                                Добавить тип
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-schedule-table">
+                        <div className="admin-schedule-header admin-schedule-header--faculties">
+                            <span>ID</span>
+                            <span>Название</span>
+                            <span>Действия</span>
+                        </div>
+                        {visibleLessonTypes.map(lessonType => (
+                            <div key={lessonType.id} className="admin-schedule-row admin-schedule-row--faculties">
+                                <span>{lessonType.id}</span>
+                                <span className="admin-type-name">
+                                    <span
+                                        className="admin-type-swatch"
+                                        style={{ backgroundColor: lessonType.color }}
+                                        aria-hidden="true"
+                                    />
+                                    {lessonType.name}
+                                </span>
+                                <span className="admin-accounts-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-secondary-button"
+                                        onClick={() => openEditLessonType(lessonType)}
+                                    >
+                                        Изменить
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-danger-button"
+                                        onClick={() => void handleDeleteLessonType(lessonType)}
+                                        disabled={deletingId === lessonType.id}
+                                    >
+                                        Удалить
+                                    </button>
+                                </span>
+                            </div>
+                        ))}
+                        {!visibleLessonTypes.length && !loading && (
+                            <p className="admin-section-status">Типы занятий не найдены</p>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {tab === 'lessons' && (
                 <div className="admin-crud-panel">
                     <div className="admin-accounts-filters">
@@ -1030,6 +1208,63 @@ export function AdminScheduleManager() {
             </AdminModal>
 
             <AdminModal
+                open={lessonTypeModalOpen}
+                title={editingLessonType ? 'Редактирование типа занятия' : 'Новый тип занятия'}
+                onClose={closeLessonTypeModal}
+            >
+                <div className="admin-edit-form">
+                    <label className="admin-field">
+                        Название
+                        <input
+                            type="text"
+                            value={lessonTypeForm.name}
+                            onChange={event =>
+                                setLessonTypeForm({ ...lessonTypeForm, name: event.target.value })
+                            }
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Цвет
+                        <span className="admin-color-field">
+                            <input
+                                type="color"
+                                value={lessonTypeForm.color}
+                                onChange={event =>
+                                    setLessonTypeForm({ ...lessonTypeForm, color: event.target.value })
+                                }
+                            />
+                            <input
+                                type="text"
+                                value={lessonTypeForm.color}
+                                onChange={event =>
+                                    setLessonTypeForm({ ...lessonTypeForm, color: event.target.value })
+                                }
+                                placeholder="#2563eb"
+                            />
+                        </span>
+                    </label>
+                    <div className="admin-edit-actions">
+                        <button
+                            type="button"
+                            className="admin-secondary-button"
+                            onClick={closeLessonTypeModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-primary-button"
+                            onClick={() => void handleSaveLessonType()}
+                            disabled={saving}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
                 open={groupModalOpen}
                 title={editingGroup ? `Редактирование группы: ${editingGroup.name}` : 'Новая группа'}
                 size="wide"
@@ -1176,11 +1411,23 @@ export function AdminScheduleManager() {
                     </label>
                     <label className="admin-field">
                         Тип
-                        <input
-                            type="text"
+                        <select
                             value={lessonForm.type}
                             onChange={event => setLessonForm({ ...lessonForm, type: event.target.value })}
-                        />
+                        >
+                            <option value="">Выберите</option>
+                            {lessonForm.type &&
+                                !lessonTypes.some(lessonType => lessonType.name === lessonForm.type) && (
+                                    <option value={lessonForm.type}>
+                                        {lessonForm.type} (вне справочника)
+                                    </option>
+                                )}
+                            {lessonTypes.map(lessonType => (
+                                <option key={lessonType.id} value={lessonType.name}>
+                                    {lessonType.name}
+                                </option>
+                            ))}
+                        </select>
                     </label>
                     <label className="admin-field">
                         Аудитория
