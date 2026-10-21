@@ -16,11 +16,17 @@
     --accent-soft: rgba(37, 99, 235, 0.12);
     --accent-contrast: #ffffff;
     --gradient-accent: linear-gradient(135deg, #4f7cff 0%, #2563eb 55%, #1d4ed8 100%);
+    /* Blue "glow" lift under primary (gradient) buttons; -strong is the hover. */
+    --accent-glow: 0 8px 20px rgba(37, 99, 235, 0.28);
+    --accent-glow-strong: 0 12px 26px rgba(37, 99, 235, 0.32);
 
     /* Status */
     --danger: #dc2626;
     --danger-soft: rgba(220, 38, 38, 0.12);
     --success: #047857;
+    --warning: #ea580c;
+    --warning-soft: rgba(234, 88, 12, 0.12);
+    --warning-strong: #b45309; /* darker amber for warning text — AA on warning-soft */
 
     /* Text */
     --text-strong: #0f172a;
@@ -35,6 +41,7 @@
     --glass-border: rgba(255, 255, 255, 0.65);
     --glass-border-soft: rgba(148, 163, 184, 0.28);
     --glass-blur: 18px;
+    --glass-blur-strong: 24px;
     --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
     --glass-shadow-sm: 0 4px 16px rgba(15, 23, 42, 0.08);
     --glass-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.22);
@@ -233,8 +240,8 @@ button {
     overflow: hidden;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.3));
     border: 1px solid rgba(255, 255, 255, 0.6);
-    -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.05);
-    backdrop-filter: blur(24px) saturate(180%) brightness(1.05);
+    -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) brightness(1.05);
+    backdrop-filter: blur(var(--glass-blur-strong)) saturate(180%) brightness(1.05);
     box-shadow:
         0 18px 50px rgba(15, 23, 42, 0.26),
         0 2px 10px rgba(15, 23, 42, 0.12),
@@ -306,5 +313,25 @@ button {
 @media (prefers-reduced-motion: reduce) {
     .liquidNavItem {
         transition: none;
+    }
+}
+
+/* On phones the bar stretches almost edge-to-edge instead of a small centered
+   island: the capsule fills the width (minus a slim gutter) and the tabs share
+   it evenly. The gliding pill still fills whichever tab is active. */
+@media (max-width: 768px) {
+    .liquidNav {
+        left: 12px;
+        right: 12px;
+        transform: none;
+    }
+
+    .liquidNavInner {
+        width: 100%;
+    }
+
+    .liquidNavItem {
+        flex: 1 1 0;
+        width: auto;
     }
 }

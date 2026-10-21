@@ -37,7 +37,7 @@
     border: none;
     background: var(--gradient-accent);
     color: var(--accent-contrast);
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+    box-shadow: var(--accent-glow);
 }
 
 .admin-primary-button:hover:not(:disabled) {

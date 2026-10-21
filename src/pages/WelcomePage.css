@@ -64,7 +64,7 @@
     border: none;
     background: var(--gradient-accent);
     color: var(--accent-contrast);
-    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+    box-shadow: var(--accent-glow);
 }
 
 .welcome-secondary-btn {

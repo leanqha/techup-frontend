@@ -24,7 +24,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+    box-shadow: var(--accent-glow);
 }
 
 .profile-header-text h1 {
@@ -189,7 +189,7 @@
 .profile-button--primary {
     background: var(--gradient-accent);
     color: var(--accent-contrast);
-    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.28);
+    box-shadow: var(--accent-glow);
 }
 
 .profile-button--secondary {

@@ -112,7 +112,7 @@
 .lesson-note-modal__button--primary {
     background: var(--gradient-accent);
     color: var(--accent-contrast);
-    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.26);
+    box-shadow: var(--accent-glow);
 }
 
 .lesson-note-modal__error {
