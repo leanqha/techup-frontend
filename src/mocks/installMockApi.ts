@@ -451,7 +451,8 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
                 gs =>
                     gs.group_id === record.group_id &&
                     gs.subject_id === record.subject_id &&
-                    gs.semester === record.semester,
+                    gs.semester === record.semester &&
+                    gs.lesson_type_id === record.lesson_type_id,
             )
         ) {
             return json({ error: "subject already in this group's semester plan" }, 409);
@@ -475,7 +476,8 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
                         gs.id !== id &&
                         gs.group_id === record.group_id &&
                         gs.subject_id === record.subject_id &&
-                        gs.semester === record.semester,
+                        gs.semester === record.semester &&
+                        gs.lesson_type_id === record.lesson_type_id,
                 )
             ) {
                 return json({ error: "subject already in this group's semester plan" }, 409);
