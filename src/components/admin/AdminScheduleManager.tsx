@@ -92,6 +92,7 @@ type GroupSubjectFormState = {
     subject_id: string;
     semester: string;
     teacher_id: string;
+    lesson_type_id: string;
 };
 
 const emptyGroupSubjectForm: GroupSubjectFormState = {
@@ -99,6 +100,7 @@ const emptyGroupSubjectForm: GroupSubjectFormState = {
     subject_id: '',
     semester: '1',
     teacher_id: '',
+    lesson_type_id: '',
 };
 
 type FacultySessionFormState = {
@@ -653,6 +655,7 @@ export function AdminScheduleManager() {
             subject_id: String(item.subject_id),
             semester: String(item.semester),
             teacher_id: item.teacher_id ? String(item.teacher_id) : '',
+            lesson_type_id: item.lesson_type_id ? String(item.lesson_type_id) : '',
         });
         setGroupSubjectModalOpen(true);
     };
@@ -668,6 +671,9 @@ export function AdminScheduleManager() {
         subject_id: Number(groupSubjectForm.subject_id),
         semester: Number(groupSubjectForm.semester),
         teacher_id: groupSubjectForm.teacher_id ? Number(groupSubjectForm.teacher_id) : null,
+        lesson_type_id: groupSubjectForm.lesson_type_id
+            ? Number(groupSubjectForm.lesson_type_id)
+            : null,
     });
 
     const handleSaveGroupSubject = async () => {
@@ -1367,6 +1373,17 @@ export function AdminScheduleManager() {
                                             <h4 className="plan-card__subject">
                                                 {item.subject_name || `#${item.subject_id}`}
                                             </h4>
+                                            {item.lesson_type_name && (
+                                                <span
+                                                    className="plan-card__type"
+                                                    style={{
+                                                        backgroundColor:
+                                                            item.lesson_type_color || '#64748b',
+                                                    }}
+                                                >
+                                                    {item.lesson_type_name}
+                                                </span>
+                                            )}
                                             <p className="plan-card__teacher">
                                                 {item.teacher_name ? (
                                                     <>
@@ -1825,6 +1842,25 @@ export function AdminScheduleManager() {
                             {teachers.map(teacher => (
                                 <option key={teacher.id} value={teacher.id}>
                                     {formatTeacherName(teacher)}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="admin-field">
+                        Тип занятия
+                        <select
+                            value={groupSubjectForm.lesson_type_id}
+                            onChange={event =>
+                                setGroupSubjectForm({
+                                    ...groupSubjectForm,
+                                    lesson_type_id: event.target.value,
+                                })
+                            }
+                        >
+                            <option value="">Не указан</option>
+                            {lessonTypes.map(lessonType => (
+                                <option key={lessonType.id} value={lessonType.id}>
+                                    {lessonType.name}
                                 </option>
                             ))}
                         </select>

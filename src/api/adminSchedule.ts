@@ -38,6 +38,9 @@ export type GroupSubjectRecord = {
     semester: number;
     teacher_id: number | null;
     teacher_name: string;
+    lesson_type_id: number | null;
+    lesson_type_name: string;
+    lesson_type_color: string;
 };
 
 export type GroupSubjectPayload = {
@@ -45,6 +48,7 @@ export type GroupSubjectPayload = {
     subject_id: number;
     semester: number;
     teacher_id: number | null;
+    lesson_type_id: number | null;
 };
 
 export type GroupSubjectFilters = {
@@ -184,6 +188,9 @@ function normalizeGroupSubject(raw: unknown): GroupSubjectRecord {
         semester: Number(data.semester ?? 0),
         teacher_id: data.teacher_id != null ? Number(data.teacher_id) : null,
         teacher_name: String(data.teacher_name ?? ''),
+        lesson_type_id: data.lesson_type_id != null ? Number(data.lesson_type_id) : null,
+        lesson_type_name: String(data.lesson_type_name ?? ''),
+        lesson_type_color: String(data.lesson_type_color ?? ''),
     };
 }
 

@@ -159,6 +159,17 @@
     color: var(--text-strong);
 }
 
+.plan-card__type {
+    display: inline-block;
+    margin: 6px 0 0;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #fff;
+}
+
 .plan-card__teacher {
     margin: 5px 0 0;
     font-size: 13px;
