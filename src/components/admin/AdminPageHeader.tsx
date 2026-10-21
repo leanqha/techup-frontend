@@ -5,6 +5,7 @@ type AdminPageHeaderProps = {
     onOpenAccounts: () => void;
     onOpenScheduleCrud: () => void;
     onOpenTeacherImport: () => void;
+    onOpenScheduleImport: () => void;
     onOpenPlanner: () => void;
 };
 
@@ -22,6 +23,7 @@ export function AdminPageHeader({
     onOpenAccounts,
     onOpenScheduleCrud,
     onOpenTeacherImport,
+    onOpenScheduleImport,
     onOpenPlanner,
 }: AdminPageHeaderProps) {
     const cards: Card[] = [
@@ -64,6 +66,14 @@ export function AdminPageHeader({
             icon: <DownloadIcon size={22} />,
             action: 'Загрузить с сайта',
             onClick: onOpenTeacherImport,
+        },
+        {
+            key: 'schedule-import',
+            title: 'Расписание с сайта',
+            description: 'Загрузка расписания группы с сайта СПбГТИ(ТУ) в базу занятий.',
+            icon: <DownloadIcon size={22} />,
+            action: 'Загрузить с сайта',
+            onClick: onOpenScheduleImport,
         },
     ];
 

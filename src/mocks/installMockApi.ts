@@ -529,6 +529,25 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
     if (path === '/admin/schedule/generate' && method === 'POST') {
         return json(generateLessonsFromSlots(body));
     }
+    if (path === '/admin/schedule/import-spbti' && method === 'POST') {
+        const req = (body ?? {}) as { group?: string; weeks?: number };
+        const weeks = req.weeks && req.weeks > 0 ? Math.min(req.weeks, 8) : 2;
+        const parsed = weeks * 18; // a plausible number of lessons per week
+        const skipped = Math.round(parsed * 0.1);
+        const today = new Date();
+        const to = new Date(today);
+        to.setDate(to.getDate() + weeks * 7 - 1);
+        const fmt = (d: Date) => d.toISOString().slice(0, 10);
+        return json({
+            group: req.group ?? '',
+            weeks,
+            parsed,
+            imported: parsed - skipped,
+            skipped_no_teacher: skipped,
+            from_date: fmt(today),
+            to_date: fmt(to),
+        });
+    }
 
     // ---- Admin: faculty exam sessions (экзаменационные сессии) ----
     if (path === '/admin/faculty-session' && method === 'POST') {
