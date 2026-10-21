@@ -10,21 +10,17 @@ import {
     type GroupSubjectRecord,
     type LessonTypeRecord,
 } from '../../../api/adminSchedule';
-import { fetchClassrooms, fetchTeachers } from '../../../api/schedule';
 import {
     createSlot,
     deleteSlot as apiDeleteSlot,
     generateSchedule,
     listSlots,
-    updateSlot,
     type SlotPayload,
     type SlotRecord,
     type WeekParity,
 } from '../../../api/schedulePlanner';
-import type { Profile } from '../../../api/types/types';
 import { PlannerCalendar } from './PlannerCalendar';
 import { PlannerSidebar } from './PlannerSidebar';
-import { PlannerSlotEditor, type SlotPatch } from './PlannerSlotEditor';
 import { usePlannerDrag, type NewSlotSeed } from './usePlannerDrag';
 import {
     detectSemester,
@@ -55,9 +51,7 @@ function slotToPayload(s: SlotRecord): SlotPayload {
 
 export function SchedulePlanner() {
     const [groups, setGroups] = useState<GroupRecord[]>([]);
-    const [teachers, setTeachers] = useState<Profile[]>([]);
     const [lessonTypes, setLessonTypes] = useState<LessonTypeRecord[]>([]);
-    const [classrooms, setClassrooms] = useState<string[]>([]);
 
     const [groupId, setGroupId] = useState<number | null>(null);
     const [semester, setSemester] = useState<number | null>(null);
@@ -65,7 +59,6 @@ export function SchedulePlanner() {
     const [allSlots, setAllSlots] = useState<SlotRecord[]>([]);
     const [conflicts, setConflicts] = useState<Map<number, string[]>>(new Map());
 
-    const [editingSlot, setEditingSlot] = useState<SlotRecord | null>(null);
     const [mobileParity, setMobileParity] = useState<WeekParity>('odd');
 
     const [startDate, setStartDate] = useState(() => isoDate(mondayOfThisWeek()));
@@ -113,23 +106,36 @@ export function SchedulePlanner() {
 
     const slots = useMemo(() => allSlots.filter(s => s.semester === semester), [allSlots, semester]);
 
+    // A subject chip leaves the rail once it has a slot on the board (matched by
+    // subject + teacher); deleting that slot returns the chip. Greedy per key so
+    // a subject listed more than once in the plan can be placed that many times.
+    const availableSubjects = useMemo(() => {
+        const used = new Map<string, number>();
+        for (const s of slots) {
+            const key = `${s.subject}__${s.teacher_id ?? ''}`;
+            used.set(key, (used.get(key) ?? 0) + 1);
+        }
+        return subjects.filter(sub => {
+            const key = `${sub.subject_name}__${sub.teacher_id ?? ''}`;
+            const n = used.get(key) ?? 0;
+            if (n > 0) {
+                used.set(key, n - 1);
+                return false;
+            }
+            return true;
+        });
+    }, [subjects, slots]);
+
     // ---- initial reference data ----
     useEffect(() => {
         let cancelled = false;
         setLoading(true);
         (async () => {
             try {
-                const [groupsData, teachersData, typesData, roomsData] = await Promise.all([
-                    listGroups(),
-                    fetchTeachers(),
-                    listLessonTypes(),
-                    fetchClassrooms(),
-                ]);
+                const [groupsData, typesData] = await Promise.all([listGroups(), listLessonTypes()]);
                 if (cancelled) return;
                 setGroups(groupsData);
-                setTeachers(Array.isArray(teachersData) ? teachersData : []);
                 setLessonTypes(typesData);
-                setClassrooms(Array.isArray(roomsData) ? roomsData : []);
                 const initial = groupsData.find(g => g.isActive) ?? groupsData[0] ?? null;
                 setGroupId(initial ? initial.id : null);
             } catch (err) {
@@ -297,43 +303,8 @@ export function SchedulePlanner() {
         [group?.name, groupId, semester],
     );
 
-    const persistSlot = useCallback(
-        async (next: SlotRecord) => {
-            setAllSlots(prev => prev.map(s => (s.id === next.id ? next : s)));
-            if (next.id < 0) return; // optimistic temp not yet persisted
-            try {
-                await updateSlot(next.id, slotToPayload(next));
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Не удалось сохранить занятие');
-                void reloadSlots();
-            }
-        },
-        [reloadSlots],
-    );
-
-    const handleMove = useCallback(
-        (slot: SlotRecord, parity: WeekParity, weekday: number, startMin: number, endMin: number) => {
-            void persistSlot({
-                ...slot,
-                week_parity: parity,
-                weekday,
-                start_time: minToTime(startMin),
-                end_time: minToTime(endMin),
-            });
-        },
-        [persistSlot],
-    );
-
-    const handleResize = useCallback(
-        (slot: SlotRecord, startMin: number, endMin: number) => {
-            void persistSlot({ ...slot, start_time: minToTime(startMin), end_time: minToTime(endMin) });
-        },
-        [persistSlot],
-    );
-
     const handleDelete = useCallback(
         async (slot: SlotRecord) => {
-            setEditingSlot(cur => (cur?.id === slot.id ? null : cur));
             setAllSlots(prev => prev.filter(s => s.id !== slot.id));
             if (slot.id < 0) return;
             try {
@@ -346,24 +317,10 @@ export function SchedulePlanner() {
         [reloadSlots],
     );
 
-    const handleEditorChange = useCallback(
-        (patch: SlotPatch) => {
-            setEditingSlot(cur => {
-                if (!cur) return cur;
-                const next = { ...cur, ...patch };
-                void persistSlot(next);
-                return next;
-            });
-        },
-        [persistSlot],
-    );
-
-    const { preview, startCreate, startMove, startResize } = usePlannerDrag({
+    const { preview, ghost, railActive, startCreate, startRemove } = usePlannerDrag({
         hasGroupOverlap,
         onCreate: handleCreate,
-        onMove: handleMove,
-        onResize: handleResize,
-        onClick: slot => setEditingSlot(slot),
+        onRemove: slot => void handleDelete(slot),
     });
 
     const handleGenerate = async () => {
@@ -473,7 +430,9 @@ export function SchedulePlanner() {
 
             <div className="planner-body">
                 <PlannerSidebar
-                    subjects={subjects}
+                    subjects={availableSubjects}
+                    planHasSubjects={subjects.length > 0}
+                    dropActive={railActive}
                     defaultType={defaultType}
                     typeColor={typeColor}
                     onStartCreate={startCreate}
@@ -485,29 +444,22 @@ export function SchedulePlanner() {
                     conflicts={conflicts}
                     typeColor={typeColor}
                     mobileParity={mobileParity}
+                    removingSlotId={ghost?.kind === 'remove' ? ghost.slotId : null}
                     onMobileParityChange={setMobileParity}
-                    onStartMove={startMove}
-                    onStartResize={startResize}
-                    onDelete={slot => void handleDelete(slot)}
+                    onStartRemove={startRemove}
                 />
             </div>
 
-            {editingSlot &&
-                (() => {
-                    const resolved = slots.find(s => s.id === editingSlot.id) ?? editingSlot;
-                    return (
-                        <PlannerSlotEditor
-                            key={`${resolved.id}-${resolved.start_time}-${resolved.end_time}`}
-                            slot={resolved}
-                            lessonTypes={lessonTypes}
-                            teachers={teachers}
-                            classrooms={classrooms}
-                            onChange={handleEditorChange}
-                            onDelete={() => void handleDelete(editingSlot)}
-                            onClose={() => setEditingSlot(null)}
-                        />
-                    );
-                })()}
+            {ghost && (
+                <div
+                    className="planner-drag-ghost"
+                    data-kind={ghost.kind}
+                    style={{ left: ghost.x, top: ghost.y, ['--slot-accent' as string]: ghost.color }}
+                >
+                    <span className="planner-drag-ghost__subject">{ghost.label}</span>
+                    {ghost.teacher && <span className="planner-drag-ghost__teacher">{ghost.teacher}</span>}
+                </div>
+            )}
         </div>
     );
 }
