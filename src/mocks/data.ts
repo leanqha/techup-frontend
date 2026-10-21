@@ -189,22 +189,28 @@ export type GroupSubjectSeed = {
     semester: number;
     teacher_id: number | null;
     teacher_name: string;
+    lesson_type_id: number | null;
+    lesson_type_name: string;
+    lesson_type_color: string;
 };
 
 function buildGroupSubjects(): GroupSubjectSeed[] {
     const group = GROUPS[0]; // ИС-21
-    // [subjectIndex, semester, teacherId]
-    const plan: Array<[number, number, number | null]> = [
-        [0, 3, 11],
-        [1, 3, 12],
-        [2, 3, 13],
-        [3, 4, 11],
-        [4, 4, null],
+    // [subjectIndex, semester, teacherId, lessonTypeId]
+    const plan: Array<[number, number, number | null, number | null]> = [
+        [0, 3, 11, 1],
+        [1, 3, 12, 2],
+        [2, 3, 13, 3],
+        [3, 4, 11, 1],
+        [4, 4, null, null],
     ];
 
-    return plan.map(([subjectIndex, semester, teacherId], i) => {
+    return plan.map(([subjectIndex, semester, teacherId, lessonTypeId], i) => {
         const subject = SUBJECTS[subjectIndex];
         const teacher = teacherId ? TEACHERS.find(t => t.id === teacherId) : undefined;
+        const lessonType = lessonTypeId
+            ? LESSON_TYPES.find(t => t.id === lessonTypeId)
+            : undefined;
         return {
             id: i + 1,
             group_id: group.id,
@@ -214,6 +220,9 @@ function buildGroupSubjects(): GroupSubjectSeed[] {
             semester,
             teacher_id: teacherId,
             teacher_name: teacher ? teacher.full_name : '',
+            lesson_type_id: lessonType ? lessonType.id : null,
+            lesson_type_name: lessonType ? lessonType.name : '',
+            lesson_type_color: lessonType ? lessonType.color : '',
         };
     });
 }

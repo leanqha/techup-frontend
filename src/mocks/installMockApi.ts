@@ -115,6 +115,8 @@ function groupSubjectFromBody(body: Body, id: number): GroupSubjectSeed {
     const subject = SUBJECTS.find(s => s.id === Number(body.subject_id));
     const teacherId = body.teacher_id != null ? Number(body.teacher_id) : null;
     const teacher = teacherId ? TEACHERS.find(t => t.id === teacherId) : undefined;
+    const lessonTypeId = body.lesson_type_id != null ? Number(body.lesson_type_id) : null;
+    const lessonType = lessonTypeId ? LESSON_TYPES.find(t => t.id === lessonTypeId) : undefined;
     return {
         id,
         group_id: Number(body.group_id ?? 0),
@@ -124,6 +126,9 @@ function groupSubjectFromBody(body: Body, id: number): GroupSubjectSeed {
         semester: Number(body.semester ?? 0),
         teacher_id: teacherId && teacherId > 0 ? teacherId : null,
         teacher_name: teacher ? teacher.full_name : '',
+        lesson_type_id: lessonType ? lessonType.id : null,
+        lesson_type_name: lessonType ? lessonType.name : '',
+        lesson_type_color: lessonType ? lessonType.color : '',
     };
 }
 
