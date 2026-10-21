@@ -94,7 +94,7 @@
 }
 
 .map-edge {
-    stroke: #1f1f1f;
+    stroke: var(--text-strong);
     stroke-width: 0.7;
     opacity: 0.35;
 }
@@ -106,18 +106,18 @@
 
 .map-route {
     fill: none;
-    stroke: #4aa3e3;
+    stroke: var(--accent);
     stroke-width: 1.1;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
 
 .map-route-arrow {
-    fill: #4aa3e3;
+    fill: var(--accent);
 }
 
 .map-route-node {
-    fill: #4aa3e3;
+    fill: var(--accent);
     stroke: #ffffff;
     stroke-width: 0.4;
 }

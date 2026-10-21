@@ -161,11 +161,11 @@
     padding: 12px 14px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+    box-shadow: var(--accent-glow);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .teachers-page__modal-action:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 26px rgba(37, 99, 235, 0.32);
+    box-shadow: var(--accent-glow-strong);
 }
