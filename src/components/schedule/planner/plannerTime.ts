@@ -86,19 +86,30 @@ export const HOUR_MARKS: number[] = (() => {
 })();
 
 export type DropTarget = { parity: WeekParity; weekday: number; minute: number };
+export type DayColHit = { parity: WeekParity; weekday: number; rect: DOMRect };
 
-// Finds the day column under a client point (set by the calendar via data-*),
-// and the snapped minute at that vertical position. DOM-based so cross-component
-// drags (sidebar → calendar) resolve without shared refs.
-export function resolveDayColTarget(clientX: number, clientY: number): DropTarget | null {
+// Finds the day column under a client point (set by the calendar via data-*) and
+// its bounding rect. DOM-based so cross-component drags (sidebar → calendar) and
+// in-grid moves resolve without shared refs.
+export function resolveDayCol(clientX: number, clientY: number): DayColHit | null {
     const el = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
     const col = el?.closest('[data-daycol]') as HTMLElement | null;
     if (!col || !col.dataset.parity || !col.dataset.weekday) return null;
-    const rect = col.getBoundingClientRect();
     return {
         parity: col.dataset.parity as WeekParity,
         weekday: Number(col.dataset.weekday),
-        minute: clampMin(snapTime(yToMin(clientY - rect.top))),
+        rect: col.getBoundingClientRect(),
+    };
+}
+
+// Column under a point plus the snapped minute at that vertical position.
+export function resolveDayColTarget(clientX: number, clientY: number): DropTarget | null {
+    const hit = resolveDayCol(clientX, clientY);
+    if (!hit) return null;
+    return {
+        parity: hit.parity,
+        weekday: hit.weekday,
+        minute: clampMin(snapTime(yToMin(clientY - hit.rect.top))),
     };
 }
 
