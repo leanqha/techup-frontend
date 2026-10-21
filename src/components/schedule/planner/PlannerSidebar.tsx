@@ -32,10 +32,11 @@ export function PlannerSidebar({
 
             <div className="planner-rail__list">
                 {subjects.map(item => {
-                    const color = typeColor(defaultType);
+                    const type = item.lesson_type_name || defaultType;
+                    const color = item.lesson_type_color || typeColor(type);
                     const seed: NewSlotSeed = {
                         subject: item.subject_name,
-                        type: defaultType,
+                        type,
                         teacher_id: item.teacher_id,
                         teacher_name: item.teacher_name,
                         classroom: '',
@@ -48,10 +49,11 @@ export function PlannerSidebar({
                             style={{ ['--chip-accent' as string]: color }}
                             role="button"
                             tabIndex={0}
-                            aria-label={`Предмет ${item.subject_name}`}
+                            aria-label={`Предмет ${item.subject_name}${type ? `, ${type}` : ''}`}
                             onPointerDown={e => onStartCreate(e, seed)}
                         >
                             <span className="planner-chip__subject">{item.subject_name}</span>
+                            {type && <span className="planner-chip__type">{type}</span>}
                             <span className="planner-chip__teacher">
                                 {item.teacher_name || 'Преподаватель не назначен'}
                             </span>

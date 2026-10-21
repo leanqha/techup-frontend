@@ -153,6 +153,17 @@
     color: var(--text-strong);
 }
 
+.planner-chip__type {
+    align-self: flex-start;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 1px 8px;
+    border-radius: 999px;
+    color: var(--chip-accent, var(--accent));
+    background: color-mix(in srgb, var(--chip-accent, var(--accent)) 14%, transparent);
+}
+
 .planner-chip__teacher {
     font-size: 12px;
     color: var(--text-muted);
