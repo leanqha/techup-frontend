@@ -302,9 +302,16 @@
     cursor: grabbing;
 }
 
-/* Being dragged back to the rail to be removed — fades at its origin. */
-.planner-slot[data-removing='true'] {
-    opacity: 0.35;
+/* While being dragged, the source stays put as a faded placeholder (the live
+   block is carried separately) and ignores hit-testing so the drop resolves to
+   the grid underneath. */
+.planner-slot[data-dragging='true'] {
+    opacity: 0.4;
+    border-style: dashed;
+    background: color-mix(in srgb, var(--slot-accent, var(--accent)) 8%, transparent);
+    box-shadow: none;
+    pointer-events: none;
+    transition: opacity 0.12s ease, background 0.12s ease;
 }
 
 .planner-slot[data-conflict='true'] {
@@ -354,8 +361,9 @@
     pointer-events: none;
 }
 
-/* ---- Floating chip that tracks the pointer during a drag ---- */
-.planner-drag-ghost {
+/* ---- Element that tracks the pointer during a drag ---- */
+/* "create": a compact pill carried from the rail. */
+.planner-drag-ghost[data-kind='create'] {
     position: fixed;
     z-index: var(--z-modal, 1000);
     transform: translate(-50%, -120%);
@@ -371,6 +379,39 @@
     border-left: 4px solid var(--slot-accent, var(--accent));
     box-shadow: var(--glass-shadow);
     opacity: 0.96;
+    animation: planner-ghost-in 0.12s ease;
+}
+
+/* "move": the whole slot block, lifted off the grid and carried under the hand
+   at the point it was grabbed. */
+.planner-drag-ghost[data-kind='move'] {
+    position: fixed;
+    z-index: var(--z-modal, 1000);
+    pointer-events: none;
+    overflow: hidden;
+    padding: 4px 6px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--slot-accent, var(--accent));
+    background: color-mix(in srgb, var(--slot-accent, var(--accent)) 22%, var(--glass-bg-strong));
+    box-shadow: var(--glass-shadow), 0 14px 30px rgba(15, 23, 42, 0.3);
+    transform: scale(1.03) rotate(-1.5deg);
+    transform-origin: center;
+    cursor: grabbing;
+    animation: planner-pickup 0.14s ease;
+}
+
+@keyframes planner-pickup {
+    from {
+        transform: scale(0.98) rotate(0deg);
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.14);
+    }
+}
+
+@keyframes planner-ghost-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -110%) scale(0.95);
+    }
 }
 
 .planner-drag-ghost__subject {
@@ -405,6 +446,15 @@
     flex-direction: column;
     gap: 1px;
     overflow: hidden;
+    /* Glides between snapped positions as the slot is dragged. */
+    transition: top 0.1s ease, height 0.1s ease;
+    animation: planner-preview-in 0.12s ease;
+}
+
+@keyframes planner-preview-in {
+    from {
+        opacity: 0;
+    }
 }
 
 .planner-preview[data-valid='false'] {
@@ -498,6 +548,23 @@
     justify-content: space-between;
     gap: 10px;
     margin-top: 4px;
+}
+
+/* Respect reduced-motion: keep the drag usable, drop the flourishes. */
+@media (prefers-reduced-motion: reduce) {
+    .planner-drag-ghost[data-kind='move'] {
+        transform: none;
+        animation: none;
+    }
+
+    .planner-drag-ghost[data-kind='create'],
+    .planner-preview {
+        animation: none;
+    }
+
+    .planner-preview {
+        transition: none;
+    }
 }
 
 /* ---- Responsive ---- */

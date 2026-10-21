@@ -15,6 +15,7 @@ import {
     deleteSlot as apiDeleteSlot,
     generateSchedule,
     listSlots,
+    updateSlot,
     type SlotPayload,
     type SlotRecord,
     type WeekParity,
@@ -317,9 +318,53 @@ export function SchedulePlanner() {
         [reloadSlots],
     );
 
-    const { preview, ghost, railActive, startCreate, startRemove } = usePlannerDrag({
+    // Reposition a placed slot (new parity / weekday / time). Optimistic, with a
+    // revert to the original on failure.
+    const handleMove = useCallback(
+        async (slot: SlotRecord, parity: WeekParity, weekday: number, startMin: number, endMin: number) => {
+            const moved: SlotRecord = {
+                ...slot,
+                week_parity: parity,
+                weekday,
+                start_time: minToTime(startMin),
+                end_time: minToTime(endMin),
+            };
+            if (
+                moved.week_parity === slot.week_parity &&
+                moved.weekday === slot.weekday &&
+                moved.start_time === slot.start_time &&
+                moved.end_time === slot.end_time
+            ) {
+                return; // dropped back where it started
+            }
+            setAllSlots(prev => prev.map(s => (s.id === slot.id ? moved : s)));
+            if (slot.id < 0) return; // still being created; local move is enough
+            try {
+                const saved = await updateSlot(slot.id, slotToPayload(moved));
+                setAllSlots(prev =>
+                    prev.map(s =>
+                        s.id === slot.id
+                            ? {
+                                  ...saved,
+                                  group_name: saved.group_name || moved.group_name,
+                                  teacher_name: saved.teacher_name || moved.teacher_name,
+                              }
+                            : s,
+                    ),
+                );
+            } catch (err) {
+                setAllSlots(prev => prev.map(s => (s.id === slot.id ? slot : s)));
+                setError(err instanceof Error ? err.message : 'Не удалось переместить занятие');
+            }
+        },
+        [],
+    );
+
+    const { preview, ghost, railActive, startCreate, startMove } = usePlannerDrag({
         hasGroupOverlap,
         onCreate: handleCreate,
+        onMove: (slot, parity, weekday, startMin, endMin) =>
+            void handleMove(slot, parity, weekday, startMin, endMin),
         onRemove: slot => void handleDelete(slot),
     });
 
@@ -444,16 +489,37 @@ export function SchedulePlanner() {
                     conflicts={conflicts}
                     typeColor={typeColor}
                     mobileParity={mobileParity}
-                    removingSlotId={ghost?.kind === 'remove' ? ghost.slotId : null}
+                    draggingSlotId={ghost?.kind === 'move' ? ghost.slotId : null}
                     onMobileParityChange={setMobileParity}
-                    onStartRemove={startRemove}
+                    onStartMove={startMove}
                 />
             </div>
 
-            {ghost && (
+            {ghost && ghost.kind === 'move' && (
                 <div
                     className="planner-drag-ghost"
-                    data-kind={ghost.kind}
+                    data-kind="move"
+                    style={{
+                        left: ghost.x - ghost.offsetX,
+                        top: ghost.y - ghost.offsetY,
+                        width: ghost.width,
+                        height: ghost.height,
+                        ['--slot-accent' as string]: ghost.color,
+                    }}
+                >
+                    <div className="planner-slot__body">
+                        <span className="planner-slot__time">{ghost.time}</span>
+                        <span className="planner-slot__subject">{ghost.label}</span>
+                        {ghost.meta && <span className="planner-slot__meta">{ghost.meta}</span>}
+                        <span className="planner-slot__teacher">{ghost.teacher || 'Без преподавателя'}</span>
+                    </div>
+                </div>
+            )}
+
+            {ghost && ghost.kind === 'create' && (
+                <div
+                    className="planner-drag-ghost"
+                    data-kind="create"
                     style={{ left: ghost.x, top: ghost.y, ['--slot-accent' as string]: ghost.color }}
                 >
                     <span className="planner-drag-ghost__subject">{ghost.label}</span>

@@ -1,8 +1,7 @@
 // The two-week time-grid calendar. One self-contained grid per parity
 // (нечётная / чётная), a shared-per-week time axis, and absolutely positioned
-// slot blocks. Placed slots are locked (dashed, non-interactive) — the only
-// gesture is dragging one back onto the rail to remove it. A single live
-// "create" preview shows where a dragged subject will land.
+// slot blocks. A placed slot can be dragged to a new time/day, or back onto the
+// rail to remove it; a live preview shows where the dragged slot will land.
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useMemo } from 'react';
 import type { SlotRecord, WeekParity } from '../../../api/schedulePlanner';
@@ -25,9 +24,9 @@ type Props = {
     conflicts: Map<number, string[]>;
     typeColor: (type: string) => string;
     mobileParity: WeekParity;
-    removingSlotId: number | null;
+    draggingSlotId: number | null;
     onMobileParityChange: (p: WeekParity) => void;
-    onStartRemove: (e: ReactPointerEvent, slot: SlotRecord, color: string) => void;
+    onStartMove: (e: ReactPointerEvent, slot: SlotRecord, color: string, durationMin: number) => void;
 };
 
 export function PlannerCalendar({
@@ -36,9 +35,9 @@ export function PlannerCalendar({
     conflicts,
     typeColor,
     mobileParity,
-    removingSlotId,
+    draggingSlotId,
     onMobileParityChange,
-    onStartRemove,
+    onStartMove,
 }: Props) {
     const slotsByCell = useMemo(() => {
         const map = new Map<string, SlotRecord[]>();
@@ -60,17 +59,17 @@ export function PlannerCalendar({
                 slot={slot}
                 color={typeColor(slot.type)}
                 conflicts={conflicts.get(slot.id)}
-                removing={slot.id === removingSlotId}
-                onStartRemove={onStartRemove}
+                dragging={slot.id === draggingSlotId}
+                onStartMove={onStartMove}
             />
         ));
 
-        const showGhost = preview && preview.kind === 'create' && preview.parity === parity && preview.weekday === weekday;
+        const showPreview = preview && preview.parity === parity && preview.weekday === weekday;
 
         return (
             <>
                 {blocks}
-                {showGhost && <PreviewBlock preview={preview!} />}
+                {showPreview && <PreviewBlock preview={preview!} />}
             </>
         );
     };
@@ -142,11 +141,11 @@ type SlotBlockProps = {
     slot: SlotRecord;
     color: string;
     conflicts: string[] | undefined;
-    removing: boolean;
-    onStartRemove: (e: ReactPointerEvent, slot: SlotRecord, color: string) => void;
+    dragging: boolean;
+    onStartMove: (e: ReactPointerEvent, slot: SlotRecord, color: string, durationMin: number) => void;
 };
 
-function SlotBlock({ slot, color, conflicts, removing, onStartRemove }: SlotBlockProps) {
+function SlotBlock({ slot, color, conflicts, dragging, onStartMove }: SlotBlockProps) {
     const startMin = timeToMin(slot.start_time);
     const endMin = timeToMin(slot.end_time);
     const top = minToY(startMin);
@@ -157,13 +156,13 @@ function SlotBlock({ slot, color, conflicts, removing, onStartRemove }: SlotBloc
         <div
             className="planner-slot"
             data-conflict={hasConflict}
-            data-removing={removing}
+            data-dragging={dragging}
             style={{ top, height, ['--slot-accent' as string]: color }}
-            onPointerDown={e => onStartRemove(e, slot, color)}
+            onPointerDown={e => onStartMove(e, slot, color, endMin - startMin)}
             title={
                 hasConflict
                     ? `Преподаватель занят:\n${conflicts!.join('\n')}`
-                    : 'Перетащите обратно в учебный план, чтобы убрать'
+                    : 'Перетащите, чтобы переместить · в учебный план — чтобы убрать'
             }
         >
             <div className="planner-slot__body">
