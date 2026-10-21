@@ -1,24 +1,21 @@
 // Pointer-driven drag engine for the composer. Handles mouse, touch and pen
-// uniformly via Pointer Events + pointer capture, and drives a single live
-// "preview" (snapped to the time grid) for three interactions:
-//   - create: dragging a subject chip from the rail onto a day column
-//   - move:   dragging a placed slot to another time / day / parity
-//   - resize: dragging a slot's top or bottom edge
-// Geometry is resolved from the DOM (data-* on day columns), so the rail and the
-// calendar can share one engine without passing refs around.
+// uniformly via Pointer Events + pointer capture, and drives two interactions:
+//   - create: dragging a subject chip from the rail onto a day column. A live
+//     "ghost" tracks the pointer and a snapped preview shows the landing slot.
+//   - remove: dragging a placed (locked) slot back onto the rail to delete it.
+// Placed slots are otherwise locked — they can't be moved, resized or edited.
+// Geometry is resolved from the DOM (data-* on day columns / the rail), so the
+// rail and the calendar can share one engine without passing refs around.
 import { useCallback, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { SlotRecord, WeekParity } from '../../../api/schedulePlanner';
 import {
-    clampMin,
-    columnRect,
     DAY_END_MIN,
     DAY_START_MIN,
     DEFAULT_DURATION_MIN,
-    MIN_DURATION_MIN,
+    isOverRail,
     resolveDayColTarget,
     snapTime,
-    yToMin,
 } from './plannerTime';
 
 export type NewSlotSeed = {
@@ -30,9 +27,9 @@ export type NewSlotSeed = {
     color: string;
 };
 
+// Snapped landing preview, drawn inside a day column while creating a slot.
 export type DragPreview = {
-    kind: 'create' | 'move' | 'resize';
-    slotId: number | null;
+    kind: 'create';
     parity: WeekParity;
     weekday: number;
     startMin: number;
@@ -40,6 +37,17 @@ export type DragPreview = {
     label: string;
     color: string;
     valid: boolean;
+};
+
+// Floating chip that tracks the pointer during any drag.
+export type DragGhost = {
+    kind: 'create' | 'remove';
+    slotId: number | null;
+    x: number;
+    y: number;
+    label: string;
+    teacher: string;
+    color: string;
 };
 
 type OverlapCheck = (
@@ -53,25 +61,22 @@ type OverlapCheck = (
 type Callbacks = {
     hasGroupOverlap: OverlapCheck;
     onCreate: (parity: WeekParity, weekday: number, startMin: number, endMin: number, seed: NewSlotSeed) => void;
-    onMove: (slot: SlotRecord, parity: WeekParity, weekday: number, startMin: number, endMin: number) => void;
-    onResize: (slot: SlotRecord, startMin: number, endMin: number) => void;
-    onClick?: (slot: SlotRecord) => void;
+    onRemove: (slot: SlotRecord) => void;
 };
 
 type InternalState = {
-    kind: 'create' | 'move' | 'resize';
+    kind: 'create' | 'remove';
     pointerId: number;
     element: HTMLElement;
     moved: boolean;
     downX: number;
     downY: number;
-    // create
-    seed?: NewSlotSeed;
-    // move / resize
-    slot?: SlotRecord;
     durationMin: number;
-    grabOffsetMin: number; // move: pointer minute - slot start at grab time
-    edge?: 'start' | 'end'; // resize
+    label: string;
+    teacher: string;
+    color: string;
+    seed?: NewSlotSeed; // create
+    slot?: SlotRecord; // remove
 };
 
 const CLICK_SLOP_PX = 4;
@@ -85,50 +90,18 @@ export function usePlannerDrag(cb: Callbacks) {
     cbRef.current = cb;
 
     const [preview, setPreview] = useState<DragPreview | null>(null);
-    const previewRef = useRef<DragPreview | null>(null);
+    const [ghost, setGhost] = useState<DragGhost | null>(null);
+    const [railActive, setRailActive] = useState(false);
     const stateRef = useRef<InternalState | null>(null);
-
-    const setLivePreview = (p: DragPreview | null) => {
-        previewRef.current = p;
-        setPreview(p);
-    };
-
-    const computeMove = (st: InternalState, clientX: number, clientY: number): DragPreview | null => {
-        const slot = st.slot!;
-        const target = resolveDayColTarget(clientX, clientY);
-        if (!target) {
-            // keep last known position but mark invalid (can't drop outside a column)
-            const prev = previewRef.current;
-            return prev ? { ...prev, valid: false } : null;
-        }
-        const start = clampStart(snapTime(target.minute - st.grabOffsetMin), st.durationMin);
-        const end = start + st.durationMin;
-        const valid = !cbRef.current.hasGroupOverlap(target.parity, target.weekday, start, end, slot.id);
-        return {
-            kind: 'move',
-            slotId: slot.id,
-            parity: target.parity,
-            weekday: target.weekday,
-            startMin: start,
-            endMin: end,
-            label: slot.subject,
-            color: previewRef.current?.color ?? 'var(--accent)',
-            valid,
-        };
-    };
 
     const computeCreate = (st: InternalState, clientX: number, clientY: number): DragPreview | null => {
         const target = resolveDayColTarget(clientX, clientY);
-        if (!target) {
-            const prev = previewRef.current;
-            return prev ? { ...prev, valid: false } : null;
-        }
+        if (!target) return null; // off the grid → no landing preview (ghost still follows)
         const start = clampStart(snapTime(target.minute), st.durationMin);
         const end = start + st.durationMin;
         const valid = !cbRef.current.hasGroupOverlap(target.parity, target.weekday, start, end, null);
         return {
             kind: 'create',
-            slotId: null,
             parity: target.parity,
             weekday: target.weekday,
             startMin: start,
@@ -139,34 +112,26 @@ export function usePlannerDrag(cb: Callbacks) {
         };
     };
 
-    const computeResize = (st: InternalState, clientY: number): DragPreview | null => {
-        const slot = st.slot!;
-        const prev = previewRef.current;
-        if (!prev) return null;
-        const rect = columnRect(prev.parity, prev.weekday);
-        if (!rect) return { ...prev, valid: false };
-        const minute = clampMin(snapTime(yToMin(clientY - rect.top)));
-        let start = prev.startMin;
-        let end = prev.endMin;
-        if (st.edge === 'start') start = Math.min(minute, end - MIN_DURATION_MIN);
-        else end = Math.max(minute, start + MIN_DURATION_MIN);
-        start = Math.max(DAY_START_MIN, start);
-        end = Math.min(DAY_END_MIN, end);
-        const valid = !cbRef.current.hasGroupOverlap(prev.parity, prev.weekday, start, end, slot.id);
-        return { ...prev, startMin: start, endMin: end, valid };
-    };
-
     const handleMove = useCallback((ev: PointerEvent) => {
         const st = stateRef.current;
         if (!st || ev.pointerId !== st.pointerId) return;
         if (Math.abs(ev.clientX - st.downX) > CLICK_SLOP_PX || Math.abs(ev.clientY - st.downY) > CLICK_SLOP_PX) {
             st.moved = true;
         }
-        let next: DragPreview | null = null;
-        if (st.kind === 'move') next = computeMove(st, ev.clientX, ev.clientY);
-        else if (st.kind === 'create') next = computeCreate(st, ev.clientX, ev.clientY);
-        else next = computeResize(st, ev.clientY);
-        if (next) setLivePreview(next);
+        setGhost({
+            kind: st.kind,
+            slotId: st.slot?.id ?? null,
+            x: ev.clientX,
+            y: ev.clientY,
+            label: st.label,
+            teacher: st.teacher,
+            color: st.color,
+        });
+        if (st.kind === 'create') {
+            setPreview(computeCreate(st, ev.clientX, ev.clientY));
+        } else {
+            setRailActive(isOverRail(ev.clientX, ev.clientY));
+        }
     }, []);
 
     const handleEnd = useCallback((ev: PointerEvent) => {
@@ -182,27 +147,26 @@ export function usePlannerDrag(cb: Callbacks) {
             /* capture may already be gone */
         }
 
-        const pv = previewRef.current;
         const cancelled = ev.type === 'pointercancel';
-
-        if (!st.moved && st.kind !== 'create') {
-            // A tap/click on a placed slot opens its editor instead of moving it.
-            if (st.slot) cbRef.current.onClick?.(st.slot);
-        } else if (!cancelled && pv && pv.valid) {
+        if (!cancelled) {
             if (st.kind === 'create' && st.seed) {
-                cbRef.current.onCreate(pv.parity, pv.weekday, pv.startMin, pv.endMin, st.seed);
-            } else if (st.kind === 'move' && st.slot) {
-                cbRef.current.onMove(st.slot, pv.parity, pv.weekday, pv.startMin, pv.endMin);
-            } else if (st.kind === 'resize' && st.slot) {
-                cbRef.current.onResize(st.slot, pv.startMin, pv.endMin);
+                const pv = computeCreate(st, ev.clientX, ev.clientY);
+                if (pv && pv.valid) {
+                    cbRef.current.onCreate(pv.parity, pv.weekday, pv.startMin, pv.endMin, st.seed);
+                }
+            } else if (st.kind === 'remove' && st.slot && st.moved && isOverRail(ev.clientX, ev.clientY)) {
+                // Dropping a locked slot back on the учебный план removes it.
+                cbRef.current.onRemove(st.slot);
             }
         }
 
         stateRef.current = null;
-        setLivePreview(null);
+        setPreview(null);
+        setGhost(null);
+        setRailActive(false);
     }, [handleMove]);
 
-    const begin = (e: ReactPointerEvent, st: InternalState, initial: DragPreview | null) => {
+    const begin = (e: ReactPointerEvent, st: InternalState) => {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         const el = e.currentTarget as HTMLElement;
         try {
@@ -213,7 +177,16 @@ export function usePlannerDrag(cb: Callbacks) {
         st.element = el;
         st.pointerId = e.pointerId;
         stateRef.current = st;
-        if (initial) setLivePreview(initial);
+        setGhost({
+            kind: st.kind,
+            slotId: st.slot?.id ?? null,
+            x: e.clientX,
+            y: e.clientY,
+            label: st.label,
+            teacher: st.teacher,
+            color: st.color,
+        });
+        if (st.kind === 'create') setPreview(computeCreate(st, e.clientX, e.clientY));
         el.addEventListener('pointermove', handleMove);
         el.addEventListener('pointerup', handleEnd);
         el.addEventListener('pointercancel', handleEnd);
@@ -221,94 +194,39 @@ export function usePlannerDrag(cb: Callbacks) {
 
     const startCreate = useCallback((e: ReactPointerEvent, seed: NewSlotSeed) => {
         e.preventDefault();
-        const st: InternalState = {
+        begin(e, {
             kind: 'create',
             pointerId: e.pointerId,
             element: e.currentTarget as HTMLElement,
             moved: false,
             downX: e.clientX,
             downY: e.clientY,
-            seed,
             durationMin: DEFAULT_DURATION_MIN,
-            grabOffsetMin: 0,
-        };
-        begin(e, st, computeCreate(st, e.clientX, e.clientY));
+            label: seed.subject,
+            teacher: seed.teacher_name,
+            color: seed.color,
+            seed,
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleMove, handleEnd]);
 
-    const startMove = useCallback((e: ReactPointerEvent, slot: SlotRecord, color: string) => {
+    const startRemove = useCallback((e: ReactPointerEvent, slot: SlotRecord, color: string) => {
         e.preventDefault();
-        const duration = Math.max(MIN_DURATION_MIN, minutesOf(slot));
-        const target = resolveDayColTarget(e.clientX, e.clientY);
-        const slotStart = startMinOf(slot);
-        const grabOffsetMin = target ? target.minute - slotStart : 0;
-        const st: InternalState = {
-            kind: 'move',
+        begin(e, {
+            kind: 'remove',
             pointerId: e.pointerId,
             element: e.currentTarget as HTMLElement,
             moved: false,
             downX: e.clientX,
             downY: e.clientY,
-            slot,
-            durationMin: duration,
-            grabOffsetMin,
-        };
-        const initial: DragPreview = {
-            kind: 'move',
-            slotId: slot.id,
-            parity: slot.week_parity,
-            weekday: slot.weekday,
-            startMin: slotStart,
-            endMin: slotStart + duration,
+            durationMin: DEFAULT_DURATION_MIN,
             label: slot.subject,
+            teacher: slot.teacher_name,
             color,
-            valid: true,
-        };
-        begin(e, st, initial);
+            slot,
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleMove, handleEnd]);
 
-    const startResize = useCallback((e: ReactPointerEvent, slot: SlotRecord, edge: 'start' | 'end', color: string) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const slotStart = startMinOf(slot);
-        const st: InternalState = {
-            kind: 'resize',
-            pointerId: e.pointerId,
-            element: e.currentTarget as HTMLElement,
-            moved: true, // a resize is always a drag, never a click
-            downX: e.clientX,
-            downY: e.clientY,
-            slot,
-            durationMin: minutesOf(slot),
-            grabOffsetMin: 0,
-            edge,
-        };
-        const initial: DragPreview = {
-            kind: 'resize',
-            slotId: slot.id,
-            parity: slot.week_parity,
-            weekday: slot.weekday,
-            startMin: slotStart,
-            endMin: slotStart + minutesOf(slot),
-            label: slot.subject,
-            color,
-            valid: true,
-        };
-        begin(e, st, initial);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleMove, handleEnd]);
-
-    return { preview, startCreate, startMove, startResize };
-}
-
-function startMinOf(slot: SlotRecord): number {
-    const [h, m] = slot.start_time.split(':').map(Number);
-    return (h || 0) * 60 + (m || 0);
-}
-
-function minutesOf(slot: SlotRecord): number {
-    const [sh, sm] = slot.start_time.split(':').map(Number);
-    const [eh, em] = slot.end_time.split(':').map(Number);
-    return (eh || 0) * 60 + (em || 0) - ((sh || 0) * 60 + (sm || 0));
+    return { preview, ghost, railActive, startCreate, startRemove };
 }

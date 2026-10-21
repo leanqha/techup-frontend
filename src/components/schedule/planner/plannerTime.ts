@@ -111,6 +111,13 @@ export function columnRect(parity: WeekParity, weekday: number): DOMRect | null 
     return col ? col.getBoundingClientRect() : null;
 }
 
+// True when a client point falls over the curriculum rail (учебный план) — the
+// drop zone for removing a placed slot by dragging it back out of the calendar.
+export function isOverRail(clientX: number, clientY: number): boolean {
+    const el = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+    return Boolean(el?.closest('[data-planner-rail]'));
+}
+
 export type DetectedSemester = { number: number; season: 'осенний' | 'весенний' };
 
 // Autumn semester runs Sep–Jan, spring Feb–Aug. Within a course the autumn term

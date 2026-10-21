@@ -1,10 +1,11 @@
 // The two-week time-grid calendar. One self-contained grid per parity
-// (нечётная / чётная), a shared-per-week time axis, absolutely positioned slot
-// blocks with top/bottom resize handles, and a single live drag preview.
+// (нечётная / чётная), a shared-per-week time axis, and absolutely positioned
+// slot blocks. Placed slots are locked (dashed, non-interactive) — the only
+// gesture is dragging one back onto the rail to remove it. A single live
+// "create" preview shows where a dragged subject will land.
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useMemo } from 'react';
 import type { SlotRecord, WeekParity } from '../../../api/schedulePlanner';
-import { CloseIcon } from '../../icons';
 import type { DragPreview } from './usePlannerDrag';
 import {
     GRID_HEIGHT,
@@ -24,10 +25,9 @@ type Props = {
     conflicts: Map<number, string[]>;
     typeColor: (type: string) => string;
     mobileParity: WeekParity;
+    removingSlotId: number | null;
     onMobileParityChange: (p: WeekParity) => void;
-    onStartMove: (e: ReactPointerEvent, slot: SlotRecord, color: string) => void;
-    onStartResize: (e: ReactPointerEvent, slot: SlotRecord, edge: 'start' | 'end', color: string) => void;
-    onDelete: (slot: SlotRecord) => void;
+    onStartRemove: (e: ReactPointerEvent, slot: SlotRecord, color: string) => void;
 };
 
 export function PlannerCalendar({
@@ -36,10 +36,9 @@ export function PlannerCalendar({
     conflicts,
     typeColor,
     mobileParity,
+    removingSlotId,
     onMobileParityChange,
-    onStartMove,
-    onStartResize,
-    onDelete,
+    onStartRemove,
 }: Props) {
     const slotsByCell = useMemo(() => {
         const map = new Map<string, SlotRecord[]>();
@@ -55,32 +54,18 @@ export function PlannerCalendar({
     const renderCell = (parity: WeekParity, weekday: number) => {
         const cellSlots = slotsByCell.get(`${parity}:${weekday}`) ?? [];
 
-        const blocks = cellSlots.map(slot => {
-            const isMoving = preview?.slotId === slot.id && preview.kind === 'move';
-            if (isMoving) return null; // represented by the ghost preview instead
-            const resizing = preview?.slotId === slot.id && preview.kind === 'resize';
-            const startMin = resizing ? preview!.startMin : timeToMin(slot.start_time);
-            const endMin = resizing ? preview!.endMin : timeToMin(slot.end_time);
-            return (
-                <SlotBlock
-                    key={slot.id}
-                    slot={slot}
-                    startMin={startMin}
-                    endMin={endMin}
-                    color={typeColor(slot.type)}
-                    conflicts={conflicts.get(slot.id)}
-                    onStartMove={onStartMove}
-                    onStartResize={onStartResize}
-                    onDelete={onDelete}
-                />
-            );
-        });
+        const blocks = cellSlots.map(slot => (
+            <SlotBlock
+                key={slot.id}
+                slot={slot}
+                color={typeColor(slot.type)}
+                conflicts={conflicts.get(slot.id)}
+                removing={slot.id === removingSlotId}
+                onStartRemove={onStartRemove}
+            />
+        ));
 
-        const showGhost =
-            preview &&
-            (preview.kind === 'create' || preview.kind === 'move') &&
-            preview.parity === parity &&
-            preview.weekday === weekday;
+        const showGhost = preview && preview.kind === 'create' && preview.parity === parity && preview.weekday === weekday;
 
         return (
             <>
@@ -155,16 +140,15 @@ export function PlannerCalendar({
 
 type SlotBlockProps = {
     slot: SlotRecord;
-    startMin: number;
-    endMin: number;
     color: string;
     conflicts: string[] | undefined;
-    onStartMove: (e: ReactPointerEvent, slot: SlotRecord, color: string) => void;
-    onStartResize: (e: ReactPointerEvent, slot: SlotRecord, edge: 'start' | 'end', color: string) => void;
-    onDelete: (slot: SlotRecord) => void;
+    removing: boolean;
+    onStartRemove: (e: ReactPointerEvent, slot: SlotRecord, color: string) => void;
 };
 
-function SlotBlock({ slot, startMin, endMin, color, conflicts, onStartMove, onStartResize, onDelete }: SlotBlockProps) {
+function SlotBlock({ slot, color, conflicts, removing, onStartRemove }: SlotBlockProps) {
+    const startMin = timeToMin(slot.start_time);
+    const endMin = timeToMin(slot.end_time);
     const top = minToY(startMin);
     const height = minToY(endMin) - top;
     const hasConflict = Boolean(conflicts && conflicts.length);
@@ -173,23 +157,15 @@ function SlotBlock({ slot, startMin, endMin, color, conflicts, onStartMove, onSt
         <div
             className="planner-slot"
             data-conflict={hasConflict}
+            data-removing={removing}
             style={{ top, height, ['--slot-accent' as string]: color }}
-            onPointerDown={e => onStartMove(e, slot, color)}
-            title={hasConflict ? `Преподаватель занят:\n${conflicts!.join('\n')}` : undefined}
+            onPointerDown={e => onStartRemove(e, slot, color)}
+            title={
+                hasConflict
+                    ? `Преподаватель занят:\n${conflicts!.join('\n')}`
+                    : 'Перетащите обратно в учебный план, чтобы убрать'
+            }
         >
-            <span
-                className="planner-slot__resize planner-slot__resize--top"
-                onPointerDown={e => onStartResize(e, slot, 'start', color)}
-            />
-            <button
-                type="button"
-                className="planner-slot__del"
-                aria-label="Удалить занятие"
-                onPointerDown={e => e.stopPropagation()}
-                onClick={() => onDelete(slot)}
-            >
-                <CloseIcon size={12} />
-            </button>
             <div className="planner-slot__body">
                 <span className="planner-slot__time">
                     {minToTime(startMin)}–{minToTime(endMin)}
@@ -202,10 +178,6 @@ function SlotBlock({ slot, startMin, endMin, color, conflicts, onStartMove, onSt
                 <span className="planner-slot__teacher">{slot.teacher_name || 'Без преподавателя'}</span>
             </div>
             {hasConflict && <span className="planner-slot__warn">⚠ Накладка</span>}
-            <span
-                className="planner-slot__resize planner-slot__resize--bottom"
-                onPointerDown={e => onStartResize(e, slot, 'end', color)}
-            />
         </div>
     );
 }

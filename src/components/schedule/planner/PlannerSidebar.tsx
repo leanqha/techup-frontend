@@ -1,23 +1,34 @@
 // Left rail of the composer: the group's curriculum (учебный план) subjects for
-// the chosen semester, as chips you drag onto the calendar. Each chip carries
-// its assigned teacher so a dropped slot is pre-filled.
+// the chosen semester, as chips you drag onto the calendar. A placed subject
+// leaves the rail; dragging its slot back here returns the chip. Each chip
+// carries its assigned teacher so a dropped slot is pre-filled.
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { GroupSubjectRecord } from '../../../api/adminSchedule';
 import type { NewSlotSeed } from './usePlannerDrag';
 
 type Props = {
     subjects: GroupSubjectRecord[];
+    planHasSubjects: boolean;
+    dropActive: boolean;
     defaultType: string;
     typeColor: (type: string) => string;
     onStartCreate: (e: ReactPointerEvent, seed: NewSlotSeed) => void;
     loading: boolean;
 };
 
-export function PlannerSidebar({ subjects, defaultType, typeColor, onStartCreate, loading }: Props) {
+export function PlannerSidebar({
+    subjects,
+    planHasSubjects,
+    dropActive,
+    defaultType,
+    typeColor,
+    onStartCreate,
+    loading,
+}: Props) {
     return (
-        <aside className="planner-rail" aria-label="Учебный план">
+        <aside className="planner-rail" aria-label="Учебный план" data-planner-rail data-drop-active={dropActive}>
             <h3 className="planner-rail__title">Учебный план</h3>
-            <p className="planner-rail__hint">Перетащите предмет в сетку →</p>
+            <p className="planner-rail__hint">Перетащите предмет в сетку → · обратно, чтобы убрать</p>
 
             <div className="planner-rail__list">
                 {subjects.map(item => {
@@ -48,7 +59,13 @@ export function PlannerSidebar({ subjects, defaultType, typeColor, onStartCreate
                     );
                 })}
 
-                {!subjects.length && !loading && (
+                {!subjects.length && !loading && planHasSubjects && (
+                    <p className="planner-rail__empty">
+                        Все предметы распределены. Чтобы убрать занятие, перетащите его обратно сюда.
+                    </p>
+                )}
+
+                {!subjects.length && !loading && !planHasSubjects && (
                     <p className="planner-rail__empty">
                         В учебном плане этой группы на выбранный семестр пока нет предметов. Добавьте их на
                         вкладке «Учебный план» в редакторе расписания.

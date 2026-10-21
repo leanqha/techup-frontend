@@ -93,6 +93,15 @@
     backdrop-filter: blur(var(--glass-blur)) saturate(150%);
     position: sticky;
     top: 12px;
+    transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* Lit up while a placed slot is dragged over it — the "remove" drop zone. */
+.planner-rail[data-drop-active='true'] {
+    border-color: var(--danger, #dc2626);
+    border-style: dashed;
+    background: var(--danger-soft, rgba(220, 38, 38, 0.1));
+    box-shadow: 0 0 0 2px var(--danger, #dc2626) inset;
 }
 
 .planner-rail__title {
@@ -273,17 +282,15 @@
         repeating-linear-gradient(to bottom, rgba(148, 163, 184, 0.24) 0 1px, transparent 1px 56px);
 }
 
-/* ---- Slot block ---- */
+/* ---- Slot block (placed = locked, stays dashed) ---- */
 .planner-slot {
     position: absolute;
     left: 3px;
     right: 3px;
     overflow: hidden;
     border-radius: var(--radius-sm);
-    background: var(--glass-bg-strong);
-    border: 1px solid var(--glass-border);
-    border-left: 4px solid var(--slot-accent, var(--accent));
-    box-shadow: var(--glass-shadow-sm);
+    border: 2px dashed var(--slot-accent, var(--accent));
+    background: color-mix(in srgb, var(--slot-accent, var(--accent)) 16%, transparent);
     padding: 4px 6px;
     cursor: grab;
     touch-action: none;
@@ -293,6 +300,11 @@
 
 .planner-slot:active {
     cursor: grabbing;
+}
+
+/* Being dragged back to the rail to be removed — fades at its origin. */
+.planner-slot[data-removing='true'] {
+    opacity: 0.35;
 }
 
 .planner-slot[data-conflict='true'] {
@@ -342,50 +354,40 @@
     pointer-events: none;
 }
 
-.planner-slot__del {
-    position: absolute;
-    top: 2px;
-    right: 2px;
+/* ---- Floating chip that tracks the pointer during a drag ---- */
+.planner-drag-ghost {
+    position: fixed;
+    z-index: var(--z-modal, 1000);
+    transform: translate(-50%, -120%);
+    pointer-events: none;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    padding: 0;
-    border: none;
-    border-radius: var(--radius-sm);
-    background: var(--glass-bg-faint);
+    flex-direction: column;
+    gap: 2px;
+    max-width: 220px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--slot-accent, var(--accent));
+    box-shadow: var(--glass-shadow);
+    opacity: 0.96;
+}
+
+.planner-drag-ghost__subject {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-strong);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.planner-drag-ghost__teacher {
+    font-size: 11px;
     color: var(--text-muted);
-    opacity: 0;
-    transition: opacity 0.12s ease;
-    z-index: 3;
-}
-
-.planner-slot:hover .planner-slot__del {
-    opacity: 1;
-}
-
-.planner-slot__del:hover {
-    color: var(--danger);
-    background: var(--danger-soft);
-}
-
-.planner-slot__resize {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 9px;
-    cursor: ns-resize;
-    touch-action: none;
-    z-index: 3;
-}
-
-.planner-slot__resize--top {
-    top: 0;
-}
-
-.planner-slot__resize--bottom {
-    bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ---- Drag preview / ghost ---- */
