@@ -431,3 +431,34 @@ export async function importTeachers() {
     } as TeacherImportResult;
 }
 
+export type ScheduleImportResult = {
+    group: string;
+    weeks: number;
+    parsed: number;
+    imported: number;
+    skipped_no_teacher: number;
+    from_date: string;
+    to_date: string;
+};
+
+// Loads a group's schedule from spbti.ru on the server and replaces that
+// group's lessons across the fetched weeks. Teachers are matched to existing
+// teacher accounts by surname and initials; unmatched lessons are skipped, so
+// run the teacher import first. Returns a summary of what was imported.
+export async function importSPbTISchedule(group: string, weeks?: number) {
+    const data = (await request('/admin/schedule/import-spbti', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group, weeks: weeks ?? 0 }),
+    })) as Record<string, unknown>;
+    return {
+        group: String(data.group ?? group),
+        weeks: Number(data.weeks ?? 0),
+        parsed: Number(data.parsed ?? 0),
+        imported: Number(data.imported ?? 0),
+        skipped_no_teacher: Number(data.skipped_no_teacher ?? 0),
+        from_date: String(data.from_date ?? ''),
+        to_date: String(data.to_date ?? ''),
+    } as ScheduleImportResult;
+}
+
