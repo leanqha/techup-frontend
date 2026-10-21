@@ -1,0 +1,541 @@
+/* Schedule composer (конструктор расписания). Glass design tokens from
+   index.css. Geometry constants mirror plannerTime.ts: HOUR_PX = 56. */
+.planner {
+    --planner-hour-px: 56px;
+    --planner-head-h: 30px;
+    --planner-title-h: 26px;
+    --planner-col-w: 118px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ---- Toolbar ---- */
+.planner-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-lg);
+}
+
+.planner-toolbar__generate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.planner-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.planner-field__hint {
+    font-weight: 500;
+    color: var(--text-subtle);
+    text-transform: lowercase;
+}
+
+.planner-field select,
+.planner-field input {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--glass-border-soft);
+    background: var(--glass-bg-strong);
+}
+
+.planner-generate-btn {
+    white-space: nowrap;
+}
+
+.planner-conflict-banner {
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    background: rgba(234, 88, 12, 0.12);
+    border: 1px solid rgba(234, 88, 12, 0.32);
+    color: #b45309;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* ---- Body: rail + calendar ---- */
+.planner-body {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+/* ---- Rail (учебный план) ---- */
+.planner-rail {
+    flex: 0 0 240px;
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg-faint);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow-sm);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    position: sticky;
+    top: 12px;
+}
+
+.planner-rail__title {
+    margin: 0;
+    font-size: 15px;
+}
+
+.planner-rail__hint,
+.planner-rail__empty {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.planner-rail__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.planner-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--chip-accent, var(--accent));
+    box-shadow: var(--glass-shadow-sm);
+    cursor: grab;
+    touch-action: none; /* let dragging start without scrolling the list */
+    user-select: none;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.planner-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--glass-shadow);
+}
+
+.planner-chip:active {
+    cursor: grabbing;
+}
+
+.planner-chip__subject {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.planner-chip__teacher {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ---- Calendar ---- */
+.planner-calendar {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.planner-calendar__toggle {
+    display: none;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.planner-calendar__toggle-btn {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--glass-border-soft);
+    background: var(--glass-bg-faint);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.planner-calendar__toggle-btn[data-active='true'] {
+    background: var(--gradient-accent);
+    color: var(--accent-contrast);
+    border-color: transparent;
+}
+
+/* Board: one shared time axis + both week grids side by side */
+.planner-board {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    width: max-content;
+}
+
+.planner-weeks {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+
+.planner-week {
+    display: flex;
+    flex-direction: column;
+}
+
+.planner-week__title {
+    height: var(--planner-title-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+/* Shared time axis — a single timeline for both weeks */
+.planner-axis {
+    flex: 0 0 46px;
+    width: 46px;
+}
+
+/* Clears the week title + day-head rows so the hour marks line up with cells. */
+.planner-axis__spacer {
+    height: calc(var(--planner-title-h) + var(--planner-head-h));
+}
+
+.planner-axis__marks {
+    position: relative;
+}
+
+.planner-axis__mark {
+    position: absolute;
+    right: 6px;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-subtle);
+}
+
+/* Day columns */
+.planner-days {
+    display: flex;
+    gap: 4px;
+}
+
+.planner-daycol-wrap {
+    flex: 0 0 var(--planner-col-w);
+    width: var(--planner-col-w);
+    display: flex;
+    flex-direction: column;
+}
+
+.planner-daycol__head {
+    height: var(--planner-head-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.planner-daycol {
+    position: relative;
+    border-radius: var(--radius-sm);
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border-soft);
+    background-image:
+        repeating-linear-gradient(to bottom, rgba(148, 163, 184, 0.1) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(to bottom, rgba(148, 163, 184, 0.24) 0 1px, transparent 1px 56px);
+}
+
+/* ---- Slot block ---- */
+.planner-slot {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--slot-accent, var(--accent));
+    box-shadow: var(--glass-shadow-sm);
+    padding: 4px 6px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    z-index: 2;
+}
+
+.planner-slot:active {
+    cursor: grabbing;
+}
+
+.planner-slot[data-conflict='true'] {
+    box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.55);
+}
+
+.planner-slot__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    pointer-events: none;
+    line-height: 1.2;
+}
+
+.planner-slot__time {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.planner-slot__subject {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-strong);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.planner-slot__meta,
+.planner-slot__teacher {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.planner-slot__warn {
+    position: absolute;
+    bottom: 3px;
+    right: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #b45309;
+    pointer-events: none;
+}
+
+.planner-slot__del {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--glass-bg-faint);
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.12s ease;
+    z-index: 3;
+}
+
+.planner-slot:hover .planner-slot__del {
+    opacity: 1;
+}
+
+.planner-slot__del:hover {
+    color: var(--danger);
+    background: var(--danger-soft);
+}
+
+.planner-slot__resize {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 9px;
+    cursor: ns-resize;
+    touch-action: none;
+    z-index: 3;
+}
+
+.planner-slot__resize--top {
+    top: 0;
+}
+
+.planner-slot__resize--bottom {
+    bottom: 0;
+}
+
+/* ---- Drag preview / ghost ---- */
+.planner-preview {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    border-radius: var(--radius-sm);
+    border: 2px dashed var(--slot-accent, var(--accent));
+    background: color-mix(in srgb, var(--slot-accent, var(--accent)) 18%, transparent);
+    padding: 4px 6px;
+    pointer-events: none;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+}
+
+.planner-preview[data-valid='false'] {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+}
+
+.planner-preview__time {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.planner-preview__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-strong);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- Slot editor popover ---- */
+.planner-editor__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.32);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.planner-editor {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border-radius: var(--radius-lg);
+}
+
+.planner-editor__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.planner-editor__title {
+    margin: 0;
+    font-size: 16px;
+}
+
+.planner-editor__close {
+    display: flex;
+    padding: 6px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.planner-editor__times {
+    display: flex;
+    gap: 12px;
+}
+
+.planner-editor__times .planner-field {
+    flex: 1;
+}
+
+.planner-editor .planner-field input,
+.planner-editor .planner-field select {
+    width: 100%;
+}
+
+.planner-editor__error {
+    margin: 0;
+    color: var(--danger);
+    font-size: 12px;
+}
+
+.planner-editor__actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+    .planner {
+        --planner-col-w: 112px;
+    }
+}
+
+@media (max-width: 900px) {
+    .planner-body {
+        flex-direction: column;
+    }
+
+    .planner-rail {
+        position: static;
+        flex: none;
+        width: 100%;
+    }
+
+    .planner-rail__list {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .planner-chip {
+        flex: 0 0 auto;
+        min-width: 170px;
+    }
+
+    .planner-toolbar__generate {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .planner-calendar__toggle {
+        display: flex;
+    }
+
+    .planner-week[data-active='false'] {
+        display: none;
+    }
+
+    .planner {
+        --planner-col-w: 104px;
+    }
+}

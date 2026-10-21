@@ -1,10 +1,11 @@
-import { UsersIcon, CalendarIcon, UploadIcon, DownloadIcon, ChevronRightIcon } from '../icons';
+import { UsersIcon, CalendarIcon, UploadIcon, DownloadIcon, ChevronRightIcon, GridIcon } from '../icons';
 
 type AdminPageHeaderProps = {
     onOpenImport: () => void;
     onOpenAccounts: () => void;
     onOpenScheduleCrud: () => void;
     onOpenTeacherImport: () => void;
+    onOpenPlanner: () => void;
 };
 
 type Card = {
@@ -21,6 +22,7 @@ export function AdminPageHeader({
     onOpenAccounts,
     onOpenScheduleCrud,
     onOpenTeacherImport,
+    onOpenPlanner,
 }: AdminPageHeaderProps) {
     const cards: Card[] = [
         {
@@ -30,6 +32,14 @@ export function AdminPageHeader({
             icon: <UsersIcon size={22} />,
             action: 'Управлять аккаунтами',
             onClick: onOpenAccounts,
+        },
+        {
+            key: 'planner',
+            title: 'Конструктор расписания',
+            description: 'Соберите расписание группы перетаскиванием: чётная и нечётная недели, учебный план.',
+            icon: <GridIcon size={22} />,
+            action: 'Открыть конструктор',
+            onClick: onOpenPlanner,
         },
         {
             key: 'schedule',
