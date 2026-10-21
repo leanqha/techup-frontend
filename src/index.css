@@ -40,8 +40,8 @@
     --glass-bg-faint: rgba(255, 255, 255, 0.4);
     --glass-border: rgba(255, 255, 255, 0.65);
     --glass-border-soft: rgba(148, 163, 184, 0.28);
-    --glass-blur: 18px;
-    --glass-blur-strong: 24px;
+    --glass-blur: 20px;
+    --glass-blur-strong: 30px;
     --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
     --glass-shadow-sm: 0 4px 16px rgba(15, 23, 42, 0.08);
     --glass-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.22);
@@ -102,11 +102,30 @@ body::before {
     position: fixed;
     inset: 0;
     z-index: -1;
+    /* All-blue aurora abstraction — layered soft lights in the brand's
+       indigo / sky / accent range (no purple), over an icy blue base. */
     background:
-        radial-gradient(1100px 760px at 8% -12%, rgba(99, 102, 241, 0.28), transparent 60%),
-        radial-gradient(960px 680px at 112% 6%, rgba(56, 189, 248, 0.24), transparent 55%),
-        radial-gradient(880px 880px at 50% 118%, rgba(168, 85, 247, 0.18), transparent 60%),
-        linear-gradient(180deg, #eef2ff 0%, #f6f8ff 48%, #eaf4ff 100%);
+        radial-gradient(1240px 840px at 2% -20%, rgba(79, 124, 255, 0.34), transparent 58%),
+        radial-gradient(1060px 760px at 118% 2%, rgba(56, 189, 248, 0.30), transparent 56%),
+        radial-gradient(840px 700px at 84% 92%, rgba(37, 99, 235, 0.24), transparent 60%),
+        radial-gradient(640px 540px at 12% 112%, rgba(99, 102, 241, 0.22), transparent 62%),
+        radial-gradient(1000px 680px at 50% 36%, rgba(129, 160, 255, 0.10), transparent 72%),
+        linear-gradient(165deg, #e8f0ff 0%, #eef3ff 45%, #e4edff 100%);
+    background-attachment: fixed;
+}
+
+/* Second, offset layer of softer orbs — gives the blue field organic depth
+   so it reads as an abstraction rather than a flat gradient. */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(560px 560px at 70% 30%, rgba(56, 189, 248, 0.14), transparent 58%),
+        radial-gradient(720px 720px at 28% 76%, rgba(79, 124, 255, 0.14), transparent 60%),
+        radial-gradient(460px 460px at 94% 72%, rgba(37, 99, 235, 0.12), transparent 62%);
     background-attachment: fixed;
 }
 
@@ -162,9 +181,10 @@ button {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    box-shadow: var(--glass-shadow);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+    /* Lit top rim gives the frosted pane a crisp "wet glass" edge. */
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
 }
 
 /* ============================================================
@@ -334,4 +354,48 @@ button {
         flex: 1 1 0;
         width: auto;
     }
+}
+
+/* ============================================================
+   Tactile buttons
+   A shared press/animation layer for the app's primary, secondary
+   and action buttons. Each component keeps its own hover lift; this
+   guarantees a smooth transform transition and adds a springy
+   press-down so every button feels responsive.
+   ============================================================ */
+.submit-btn,
+.welcome-primary-btn,
+.welcome-secondary-btn,
+.admin-primary-button,
+.admin-secondary-button,
+.admin-danger-button,
+.admin-card__action,
+.teachers-page__modal-action,
+.schedule-filters-panel__toggle,
+.schedule-filters__submit,
+.schedule-filters-panel__reset,
+.lesson-note-modal__button,
+.planner-generate-btn {
+    transition:
+        transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.2s ease,
+        background 0.2s ease,
+        filter 0.2s ease;
+}
+
+.submit-btn:active,
+.welcome-primary-btn:active,
+.welcome-secondary-btn:active,
+.admin-primary-button:active,
+.admin-secondary-button:active,
+.admin-danger-button:active,
+.admin-card__action:active,
+.teachers-page__modal-action:active,
+.schedule-filters-panel__toggle:active,
+.schedule-filters__submit:active,
+.schedule-filters-panel__reset:active,
+.lesson-note-modal__button:active,
+.planner-generate-btn:active {
+    transform: scale(0.96);
+    filter: saturate(1.06);
 }
