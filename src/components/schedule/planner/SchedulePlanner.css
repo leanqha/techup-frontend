@@ -209,10 +209,17 @@
     color: var(--text-strong);
 }
 
-/* Shared time axis — a single timeline for both weeks */
+/* Shared time axis — a single timeline for both weeks. Sticks to the left edge
+   of the scroll container so the time stays put while the days scroll. */
 .planner-axis {
     flex: 0 0 46px;
     width: 46px;
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
 }
 
 /* Clears the week title + day-head rows so the hour marks line up with cells. */

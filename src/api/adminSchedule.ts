@@ -52,6 +52,22 @@ export type GroupSubjectFilters = {
     semester?: number;
 };
 
+export type FacultySessionRecord = {
+    id: number;
+    faculty_id: number;
+    faculty_name: string;
+    name: string;
+    start_date: string; // YYYY-MM-DD
+    end_date: string;
+};
+
+export type FacultySessionPayload = {
+    faculty_id: number;
+    name: string;
+    start_date: string;
+    end_date: string;
+};
+
 export type LessonRecord = {
     id: number;
     date: string;
@@ -312,6 +328,46 @@ export async function updateGroupSubject(id: number, payload: GroupSubjectPayloa
 
 export async function deleteGroupSubject(id: number) {
     await request(`/admin/group-subject/${id}`, { method: 'DELETE' });
+}
+
+function normalizeFacultySession(raw: unknown): FacultySessionRecord {
+    const data = raw as Record<string, unknown>;
+    return {
+        id: Number(data.id ?? 0),
+        faculty_id: Number(data.faculty_id ?? 0),
+        faculty_name: String(data.faculty_name ?? ''),
+        name: String(data.name ?? ''),
+        start_date: String(data.start_date ?? ''),
+        end_date: String(data.end_date ?? ''),
+    };
+}
+
+export async function listFacultySessions(facultyId?: number) {
+    const path = facultyId
+        ? `/schedule/faculty-sessions?faculty_id=${facultyId}`
+        : '/schedule/faculty-sessions';
+    const data = (await request(path)) as unknown[];
+    return (Array.isArray(data) ? data : []).map(normalizeFacultySession);
+}
+
+export async function createFacultySession(payload: FacultySessionPayload) {
+    return (await request('/admin/faculty-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })) as FacultySessionRecord;
+}
+
+export async function updateFacultySession(id: number, payload: FacultySessionPayload) {
+    return (await request(`/admin/faculty-session/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })) as FacultySessionRecord;
+}
+
+export async function deleteFacultySession(id: number) {
+    await request(`/admin/faculty-session/${id}`, { method: 'DELETE' });
 }
 
 export async function searchAdminLessons(filters: LessonSearchFilters) {

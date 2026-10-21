@@ -82,6 +82,11 @@
     grid-template-columns: 0.9fr 1fr 1.4fr 0.9fr 0.9fr 1fr 0.9fr 220px;
 }
 
+.admin-schedule-header--sessions,
+.admin-schedule-row--sessions {
+    grid-template-columns: 1.3fr 1.4fr 0.9fr 0.9fr 220px;
+}
+
 .admin-plan-title {
     margin: 0 0 10px;
     font-size: 15px;
@@ -208,7 +213,8 @@
 
     .admin-schedule-row--faculties,
     .admin-schedule-row--groups,
-    .admin-schedule-row--lessons {
+    .admin-schedule-row--lessons,
+    .admin-schedule-row--sessions {
         grid-template-columns: 1fr;
         gap: 6px;
     }

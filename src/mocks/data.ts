@@ -278,5 +278,40 @@ export const SLOTS: SlotSeed[] = [
     makeSlot(4, 102, 3, 'odd', 1, '09:00', '10:30', 'Веб-разработка', 'Лекция', 11, 'Г-410'),
 ];
 
+// Faculty exam sessions (экзаменационные сессии): период с датами начала и
+// конца для каждого факультета. У факультета может быть несколько сессий.
+export type FacultySessionSeed = {
+    id: number;
+    faculty_id: number;
+    faculty_name: string;
+    name: string;
+    start_date: string; // YYYY-MM-DD
+    end_date: string;
+};
+
+function makeFacultySession(
+    id: number,
+    facultyId: number,
+    name: string,
+    start: string,
+    end: string,
+): FacultySessionSeed {
+    const faculty = FACULTIES.find(f => f.id === facultyId);
+    return {
+        id,
+        faculty_id: facultyId,
+        faculty_name: faculty ? faculty.name : '',
+        name,
+        start_date: start,
+        end_date: end,
+    };
+}
+
+export const FACULTY_SESSIONS: FacultySessionSeed[] = [
+    makeFacultySession(1, 1, 'Зимняя сессия 2026/2027', '2027-01-12', '2027-01-31'),
+    makeFacultySession(2, 1, 'Летняя сессия 2026/2027', '2027-06-08', '2027-06-28'),
+    makeFacultySession(3, 2, 'Зимняя сессия 2026/2027', '2027-01-19', '2027-02-07'),
+];
+
 // In-memory lesson notes, seeded with one example.
 export const NOTES = new Map<number, string>([[1, 'Повторить примеры из лекции перед семинаром.']]);
