@@ -1,30 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
     createFaculty,
+    createFacultySession,
     createGroup,
     createGroupSubject,
     createLesson,
     createLessonType,
     createSubject,
     deleteFaculty,
+    deleteFacultySession,
     deleteGroup,
     deleteGroupSubject,
     deleteLesson,
     deleteLessonType,
     deleteSubject,
     listFaculties,
+    listFacultySessions,
     listGroups,
     listGroupSubjects,
     listLessonTypes,
     listSubjects,
     searchAdminLessons,
     updateFaculty,
+    updateFacultySession,
     updateGroup,
     updateGroupSubject,
     updateLesson,
     updateLessonType,
     updateSubject,
     type Faculty,
+    type FacultySessionPayload,
+    type FacultySessionRecord,
     type GroupPayload,
     type GroupRecord,
     type GroupSubjectPayload,
@@ -40,7 +46,14 @@ import type { Profile as AccountProfile } from '../../api/types/types';
 import { AdminModal } from './AdminModal';
 import './AdminScheduleManager.css';
 
-type TabKey = 'faculties' | 'groups' | 'subjects' | 'lessonTypes' | 'groupSubjects' | 'lessons';
+type TabKey =
+    | 'faculties'
+    | 'groups'
+    | 'subjects'
+    | 'lessonTypes'
+    | 'groupSubjects'
+    | 'sessions'
+    | 'lessons';
 
 const DEFAULT_TYPE_COLOR = '#2563eb';
 
@@ -86,6 +99,20 @@ const emptyGroupSubjectForm: GroupSubjectFormState = {
     subject_id: '',
     semester: '1',
     teacher_id: '',
+};
+
+type FacultySessionFormState = {
+    faculty_id: string;
+    name: string;
+    start_date: string;
+    end_date: string;
+};
+
+const emptyFacultySessionForm: FacultySessionFormState = {
+    faculty_id: '',
+    name: '',
+    start_date: '',
+    end_date: '',
 };
 
 const emptyGroupForm: GroupFormState = {
@@ -155,6 +182,12 @@ export function AdminScheduleManager() {
     const [groupSubjectForm, setGroupSubjectForm] = useState<GroupSubjectFormState>(emptyGroupSubjectForm);
     const [editingGroupSubject, setEditingGroupSubject] = useState<GroupSubjectRecord | null>(null);
     const [groupSubjectModalOpen, setGroupSubjectModalOpen] = useState(false);
+
+    const [facultySessions, setFacultySessions] = useState<FacultySessionRecord[]>([]);
+    const [sessionFacultyFilter, setSessionFacultyFilter] = useState('');
+    const [facultySessionForm, setFacultySessionForm] = useState<FacultySessionFormState>(emptyFacultySessionForm);
+    const [editingFacultySession, setEditingFacultySession] = useState<FacultySessionRecord | null>(null);
+    const [facultySessionModalOpen, setFacultySessionModalOpen] = useState(false);
 
     const [lessons, setLessons] = useState<LessonRecord[]>([]);
     const [lessonForm, setLessonForm] = useState<LessonFormState>(emptyLessonForm);
@@ -227,6 +260,11 @@ export function AdminScheduleManager() {
         });
     }, [groupSubjects, gsGroupFilter, gsSemesterFilter]);
 
+    const visibleFacultySessions = useMemo(() => {
+        if (!sessionFacultyFilter) return facultySessions;
+        return facultySessions.filter(item => String(item.faculty_id) === sessionFacultyFilter);
+    }, [facultySessions, sessionFacultyFilter]);
+
     // Switching groups drops a semester filter that may not exist in the new one.
     const handleSelectPlanGroup = (groupId: string) => {
         setGsGroupFilter(groupId);
@@ -272,6 +310,11 @@ export function AdminScheduleManager() {
         setGroupSubjects(data);
     };
 
+    const loadFacultySessionsData = async () => {
+        const data = await listFacultySessions();
+        setFacultySessions(data);
+    };
+
     const loadLessonsData = async (filters: LessonSearchFilters = lessonFilters) => {
         const data = await searchAdminLessons(filters);
         setLessons(data);
@@ -295,6 +338,7 @@ export function AdminScheduleManager() {
                 loadSubjectsData(),
                 loadLessonTypesData(),
                 loadGroupSubjectsData(),
+                loadFacultySessionsData(),
                 loadTeachersData(),
                 loadRoomsData(),
             ]);
@@ -686,6 +730,94 @@ export function AdminScheduleManager() {
         }
     };
 
+    const openCreateFacultySession = () => {
+        setEditingFacultySession(null);
+        setFacultySessionForm({
+            ...emptyFacultySessionForm,
+            faculty_id: sessionFacultyFilter || '',
+        });
+        setFacultySessionModalOpen(true);
+    };
+
+    const openEditFacultySession = (item: FacultySessionRecord) => {
+        setEditingFacultySession(item);
+        setFacultySessionForm({
+            faculty_id: String(item.faculty_id),
+            name: item.name,
+            start_date: item.start_date,
+            end_date: item.end_date,
+        });
+        setFacultySessionModalOpen(true);
+    };
+
+    const closeFacultySessionModal = () => {
+        setFacultySessionModalOpen(false);
+        setEditingFacultySession(null);
+        setFacultySessionForm(emptyFacultySessionForm);
+    };
+
+    const handleSaveFacultySession = async () => {
+        if (!facultySessionForm.faculty_id) {
+            setError('Выберите факультет');
+            return;
+        }
+        if (!facultySessionForm.start_date || !facultySessionForm.end_date) {
+            setError('Укажите даты начала и конца сессии');
+            return;
+        }
+        if (facultySessionForm.end_date < facultySessionForm.start_date) {
+            setError('Дата конца не может быть раньше даты начала');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            const payload: FacultySessionPayload = {
+                faculty_id: Number(facultySessionForm.faculty_id),
+                name: facultySessionForm.name.trim(),
+                start_date: facultySessionForm.start_date,
+                end_date: facultySessionForm.end_date,
+            };
+            if (editingFacultySession) {
+                await updateFacultySession(editingFacultySession.id, payload);
+                setMessage('Сессия обновлена');
+            } else {
+                await createFacultySession(payload);
+                setMessage('Сессия создана');
+            }
+
+            await loadFacultySessionsData();
+            closeFacultySessionModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteFacultySession = async (item: FacultySessionRecord) => {
+        const label = item.name || `сессия факультета ${item.faculty_name || `#${item.faculty_id}`}`;
+        if (!window.confirm(`Удалить «${label}»?`)) return;
+
+        setDeletingId(item.id);
+        setError(null);
+        setMessage(null);
+
+        try {
+            await deleteFacultySession(item.id);
+            await loadFacultySessionsData();
+            setMessage('Сессия удалена');
+            if (editingFacultySession?.id === item.id) closeFacultySessionModal();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Ошибка запроса');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     const openCreateLesson = () => {
         setEditingLesson(null);
         setLessonForm(emptyLessonForm);
@@ -844,6 +976,13 @@ export function AdminScheduleManager() {
                     onClick={() => setTab('groupSubjects')}
                 >
                     Учебный план
+                </button>
+                <button
+                    type="button"
+                    className={`admin-tab ${tab === 'sessions' ? 'active' : ''}`}
+                    onClick={() => setTab('sessions')}
+                >
+                    Сессии
                 </button>
                 <button
                     type="button"
@@ -1273,6 +1412,82 @@ export function AdminScheduleManager() {
                 </div>
             )}
 
+            {tab === 'sessions' && (
+                <div className="admin-crud-panel">
+                    <div className="admin-accounts-filters">
+                        <label className="admin-field">
+                            Факультет
+                            <select
+                                value={sessionFacultyFilter}
+                                onChange={event => setSessionFacultyFilter(event.target.value)}
+                            >
+                                <option value="">Все</option>
+                                {faculties.map(faculty => (
+                                    <option key={faculty.id} value={faculty.id}>
+                                        {faculty.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <div className="admin-filters-actions">
+                            <button
+                                type="button"
+                                className="admin-secondary-button"
+                                onClick={() => void runAction(loadFacultySessionsData)}
+                                disabled={loading}
+                            >
+                                Обновить список
+                            </button>
+                            <button
+                                type="button"
+                                className="admin-primary-button"
+                                onClick={openCreateFacultySession}
+                            >
+                                Добавить сессию
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-schedule-table">
+                        <div className="admin-schedule-header admin-schedule-header--sessions">
+                            <span>Факультет</span>
+                            <span>Название</span>
+                            <span>Начало</span>
+                            <span>Конец</span>
+                            <span>Действия</span>
+                        </div>
+                        {visibleFacultySessions.map(session => (
+                            <div key={session.id} className="admin-schedule-row admin-schedule-row--sessions">
+                                <span>{session.faculty_name || `#${session.faculty_id}`}</span>
+                                <span>{session.name || '—'}</span>
+                                <span>{session.start_date}</span>
+                                <span>{session.end_date}</span>
+                                <span className="admin-accounts-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-secondary-button"
+                                        onClick={() => openEditFacultySession(session)}
+                                    >
+                                        Изменить
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-danger-button"
+                                        onClick={() => void handleDeleteFacultySession(session)}
+                                        disabled={deletingId === session.id}
+                                    >
+                                        Удалить
+                                    </button>
+                                </span>
+                            </div>
+                        ))}
+                        {!visibleFacultySessions.length && !loading && (
+                            <p className="admin-section-status">Сессии не найдены</p>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {tab === 'lessons' && (
                 <div className="admin-crud-panel">
                     <div className="admin-accounts-filters">
@@ -1627,6 +1842,80 @@ export function AdminScheduleManager() {
                             type="button"
                             className="admin-primary-button"
                             onClick={() => void handleSaveGroupSubject()}
+                            disabled={saving}
+                        >
+                            {saving ? 'Сохранение...' : 'Сохранить'}
+                        </button>
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
+                open={facultySessionModalOpen}
+                title={editingFacultySession ? 'Редактирование сессии' : 'Новая сессия'}
+                onClose={closeFacultySessionModal}
+            >
+                <div className="admin-edit-form">
+                    <label className="admin-field">
+                        Факультет
+                        <select
+                            value={facultySessionForm.faculty_id}
+                            onChange={event =>
+                                setFacultySessionForm({ ...facultySessionForm, faculty_id: event.target.value })
+                            }
+                        >
+                            <option value="">Выберите</option>
+                            {faculties.map(faculty => (
+                                <option key={faculty.id} value={faculty.id}>
+                                    {faculty.name}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="admin-field">
+                        Название
+                        <input
+                            type="text"
+                            value={facultySessionForm.name}
+                            onChange={event =>
+                                setFacultySessionForm({ ...facultySessionForm, name: event.target.value })
+                            }
+                            placeholder="Зимняя сессия 2026/2027"
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Начало сессии
+                        <input
+                            type="date"
+                            value={facultySessionForm.start_date}
+                            onChange={event =>
+                                setFacultySessionForm({ ...facultySessionForm, start_date: event.target.value })
+                            }
+                        />
+                    </label>
+                    <label className="admin-field">
+                        Конец сессии
+                        <input
+                            type="date"
+                            value={facultySessionForm.end_date}
+                            onChange={event =>
+                                setFacultySessionForm({ ...facultySessionForm, end_date: event.target.value })
+                            }
+                        />
+                    </label>
+                    <div className="admin-edit-actions">
+                        <button
+                            type="button"
+                            className="admin-secondary-button"
+                            onClick={closeFacultySessionModal}
+                            disabled={saving}
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-primary-button"
+                            onClick={() => void handleSaveFacultySession()}
                             disabled={saving}
                         >
                             {saving ? 'Сохранение...' : 'Сохранить'}

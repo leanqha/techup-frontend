@@ -18,10 +18,11 @@ import {
     ROOMS,
     LESSONS,
     SLOTS,
+    FACULTY_SESSIONS,
     ADMIN_ACCOUNTS,
     NOTES,
 } from './data';
-import type { GroupSubjectSeed, SlotSeed } from './data';
+import type { GroupSubjectSeed, SlotSeed, FacultySessionSeed } from './data';
 import type { Lesson } from '../api/types/schedule';
 
 const API_PREFIX = '/api/v1';
@@ -144,6 +145,19 @@ function slotFromBody(body: Body, id: number): SlotSeed {
         teacher_id: teacherId && teacherId > 0 ? teacherId : null,
         teacher_name: teacher ? teacher.full_name : '',
         classroom: String(body.classroom ?? ''),
+    };
+}
+
+function facultySessionFromBody(body: Body, id: number): FacultySessionSeed {
+    const facultyId = Number(body.faculty_id ?? 0);
+    const faculty = FACULTIES.find(f => f.id === facultyId);
+    return {
+        id,
+        faculty_id: facultyId,
+        faculty_name: faculty ? faculty.name : '',
+        name: String(body.name ?? ''),
+        start_date: String(body.start_date ?? ''),
+        end_date: String(body.end_date ?? ''),
     };
 }
 
@@ -275,6 +289,12 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
                 if (teacherId && s.teacher_id !== Number(teacherId)) return false;
                 return true;
             }),
+        );
+    }
+    if (path === '/schedule/faculty-sessions') {
+        const facultyId = params.get('faculty_id');
+        return json(
+            FACULTY_SESSIONS.filter(s => !facultyId || s.faculty_id === Number(facultyId)),
         );
     }
     if (path === '/schedule/classrooms') return json(CLASSROOMS);
@@ -501,6 +521,26 @@ function route(method: string, path: string, params: URLSearchParams, body: Body
     }
     if (path === '/admin/schedule/generate' && method === 'POST') {
         return json(generateLessonsFromSlots(body));
+    }
+
+    // ---- Admin: faculty exam sessions (экзаменационные сессии) ----
+    if (path === '/admin/faculty-session' && method === 'POST') {
+        const session = facultySessionFromBody(body, nextId(FACULTY_SESSIONS));
+        FACULTY_SESSIONS.push(session);
+        return json(session, 201);
+    }
+    if (path.startsWith('/admin/faculty-session/')) {
+        const id = idFromPath(path);
+        const idx = FACULTY_SESSIONS.findIndex(s => s.id === id);
+        if (idx === -1) return notFound();
+        if (method === 'DELETE') {
+            FACULTY_SESSIONS.splice(idx, 1);
+            return noContent();
+        }
+        if (method === 'PUT') {
+            FACULTY_SESSIONS[idx] = facultySessionFromBody(body, id as number);
+            return json(FACULTY_SESSIONS[idx]);
+        }
     }
 
     // ---- Admin: accounts ----
