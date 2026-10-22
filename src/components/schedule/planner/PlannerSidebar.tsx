@@ -1,7 +1,8 @@
 // Left rail of the composer: the group's curriculum (учебный план) subjects for
-// the chosen semester, as chips you drag onto the calendar. A placed subject
-// leaves the rail; dragging its slot back here returns the chip. Each chip
-// carries its assigned teacher so a dropped slot is pre-filled.
+// the chosen semester, as chips you drag onto the calendar. Chips stay in the
+// rail so a subject can be placed as many times as needed (several pairs a
+// week); dragging a placed slot back here removes it. Each chip carries its
+// assigned teacher so a dropped slot is pre-filled.
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { GroupSubjectRecord } from '../../../api/adminSchedule';
 import type { NewSlotSeed } from './usePlannerDrag';
@@ -28,7 +29,9 @@ export function PlannerSidebar({
     return (
         <aside className="planner-rail" aria-label="Учебный план" data-planner-rail data-drop-active={dropActive}>
             <h3 className="planner-rail__title">Учебный план</h3>
-            <p className="planner-rail__hint">Перетащите предмет в сетку → · обратно, чтобы убрать</p>
+            <p className="planner-rail__hint">
+                Перетащите предмет в сетку → · можно добавлять несколько раз · обратно, чтобы убрать
+            </p>
 
             <div className="planner-rail__list">
                 {subjects.map(item => {
@@ -60,12 +63,6 @@ export function PlannerSidebar({
                         </div>
                     );
                 })}
-
-                {!subjects.length && !loading && planHasSubjects && (
-                    <p className="planner-rail__empty">
-                        Все предметы распределены. Чтобы убрать занятие, перетащите его обратно сюда.
-                    </p>
-                )}
 
                 {!subjects.length && !loading && !planHasSubjects && (
                     <p className="planner-rail__empty">
