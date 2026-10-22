@@ -62,7 +62,7 @@ function makeTeacherFilters(teacherId: number): ScheduleFilterValues {
 }
 
 export function SchedulePage() {
-    const { profile } = useAuth();
+    const { profile, loading: authLoading } = useAuth();
     const { preferences } = useSchedulePreferences();
     const [searchParams] = useSearchParams();
 
@@ -70,7 +70,9 @@ export function SchedulePage() {
 
     const [weekOffset, setWeekOffset] = useState(0);
     const [lessons, setLessons] = useState<Lesson[]>([]);
-    const [loading, setLoading] = useState(false);
+    // Start loading so the skeleton shows from the first render (through
+    // auth-boot) rather than a flash of the empty state.
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [hasAutoScrolledToToday, setHasAutoScrolledToToday] = useState(false);
     const [showGroupInLessonCard, setShowGroupInLessonCard] = useState(Boolean(teacherIdFromQuery));
@@ -122,7 +124,11 @@ export function SchedulePage() {
     }, [preferences.weekStart, weekOffset]);
 
     useEffect(() => {
-        if (!profile?.group_id && !appliedFilters) return;
+        if (!profile?.group_id && !appliedFilters) {
+            // Keep the skeleton up while auth is still resolving the profile.
+            if (!authLoading) setLoading(false);
+            return;
+        }
         let cancelled = false;
 
         const load = async () => {
@@ -156,7 +162,7 @@ export function SchedulePage() {
 
         load();
         return () => { cancelled = true; };
-    }, [appliedFilters, loadByFilters, preferences.weekStart, profile?.group_id, weekOffset]);
+    }, [appliedFilters, authLoading, loadByFilters, preferences.weekStart, profile?.group_id, weekOffset]);
 
     useEffect(() => {
         if (teacherIdFromQuery) {
@@ -198,6 +204,8 @@ export function SchedulePage() {
         setHasAutoScrolledToToday(true);
     }, [hasAutoScrolledToToday, loading, preferences.autoScrollToToday, sortedDates, todayIso, weekOffset]);
 
+    const showSkeleton = authLoading || loading;
+
     return (
         <div className="schedule-page">
             <h1 className="schedule-page__title">Расписание</h1>
@@ -211,14 +219,14 @@ export function SchedulePage() {
                 onSearch={handleSearch}
             />
 
-            {loading && <ScheduleSkeleton days={4} />}
+            {showSkeleton && <ScheduleSkeleton days={4} />}
             {error && <p className="schedule-page__error">{error}</p>}
 
-            {sortedDates.length === 0 && !loading && !error && (
+            {sortedDates.length === 0 && !showSkeleton && !error && (
                 <div className="schedule-page__empty">Пар нет</div>
             )}
 
-            {!loading && sortedDates.map(date => (
+            {!showSkeleton && sortedDates.map(date => (
                 <div
                     key={date}
                     ref={node => {

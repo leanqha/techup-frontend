@@ -88,6 +88,9 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
+    /* Reserve the badge row height so the card stays put whether the type badge
+       is present, still loading (placeholder), or absent for this lesson. */
+    min-height: 26px;
 }
 
 .lesson-card__type {
