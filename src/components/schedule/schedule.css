@@ -73,6 +73,17 @@
     box-shadow: var(--glass-shadow);
 }
 
+/* Loading placeholder: neutral accent edge, no hover lift. */
+.lesson-card--skeleton {
+    --lesson-accent: rgba(148, 163, 184, 0.45);
+    min-height: 96px;
+}
+
+.lesson-card--skeleton:hover {
+    transform: none;
+    box-shadow: var(--glass-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
 .lesson-card__top {
     display: flex;
     align-items: flex-start;

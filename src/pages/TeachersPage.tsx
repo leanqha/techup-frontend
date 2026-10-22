@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchTeachers } from '../api/schedule.ts';
 import type { Profile as AccountProfile } from '../api/types/types.ts';
-import { Loader } from '../components/Loader.tsx';
+import { TeachersGridSkeleton } from '../components/TeachersGridSkeleton.tsx';
 import { Popup } from '../components/ui/Popup.tsx';
 import { CloseIcon } from '../components/icons/CloseIcon.tsx';
 import './TeachersPage.css';
@@ -99,7 +99,7 @@ export function TeachersPage() {
                 />
             </label>
 
-            {loading && <Loader />}
+            {loading && <TeachersGridSkeleton />}
             {error && <p className="teachers-page__error">{error}</p>}
 
             {!loading && !error && (

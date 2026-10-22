@@ -5,9 +5,9 @@ import { useSchedulePreferences, type WeekStart } from '../context/useSchedulePr
 import { fetchLessons, searchLessons } from '../api/schedule';
 import { ScheduleFiltersPanel, type ScheduleFilterValues } from '../components/schedule/ScheduleFiltersPanel.tsx';
 import { ScheduleDay } from '../components/schedule/ScheduleDay';
+import { ScheduleSkeleton } from '../components/schedule/ScheduleSkeleton';
 import type { Lesson } from '../api/types/schedule';
 import type { Dispatch, SetStateAction } from 'react';
-import { Loader } from '../components/Loader.tsx';
 import { ChevronLeftIcon, ChevronRightIcon } from '../components/icons';
 import './SchedulePage.css';
 
@@ -211,14 +211,14 @@ export function SchedulePage() {
                 onSearch={handleSearch}
             />
 
-            {loading && <Loader />}
+            {loading && <ScheduleSkeleton days={4} />}
             {error && <p className="schedule-page__error">{error}</p>}
 
             {sortedDates.length === 0 && !loading && !error && (
                 <div className="schedule-page__empty">Пар нет</div>
             )}
 
-            {sortedDates.map(date => (
+            {!loading && sortedDates.map(date => (
                 <div
                     key={date}
                     ref={node => {
