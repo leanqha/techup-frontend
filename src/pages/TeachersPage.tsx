@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/useAuth.ts';
 import { fetchTeachers } from '../api/schedule.ts';
 import type { Profile as AccountProfile } from '../api/types/types.ts';
 import { TeachersGridSkeleton } from '../components/TeachersGridSkeleton.tsx';
@@ -16,10 +17,13 @@ function formatTeacherName(teacher: AccountProfile) {
 
 export function TeachersPage() {
     const navigate = useNavigate();
+    const { loading: authLoading } = useAuth();
 
     const [teachers, setTeachers] = useState<AccountProfile[]>([]);
     const [search, setSearch] = useState('');
-    const [loading, setLoading] = useState(false);
+    // Start loading so the skeleton shows from the first render (through
+    // auth-boot) rather than a flash of the empty grid.
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedTeacher, setSelectedTeacher] = useState<AccountProfile | null>(null);
 
@@ -73,6 +77,8 @@ export function TeachersPage() {
         });
     }, [search, visibleTeachers]);
 
+    const showSkeleton = authLoading || loading;
+
     const openTeacher = (teacher: AccountProfile) => {
         setSelectedTeacher(teacher);
     };
@@ -99,10 +105,10 @@ export function TeachersPage() {
                 />
             </label>
 
-            {loading && <TeachersGridSkeleton />}
+            {showSkeleton && <TeachersGridSkeleton />}
             {error && <p className="teachers-page__error">{error}</p>}
 
-            {!loading && !error && (
+            {!showSkeleton && !error && (
                 <div className="teachers-page__grid">
                     {filteredTeachers.map(teacher => (
                         <button
@@ -117,7 +123,7 @@ export function TeachersPage() {
                 </div>
             )}
 
-            {!loading && !error && filteredTeachers.length === 0 && (
+            {!showSkeleton && !error && filteredTeachers.length === 0 && (
                 <p className="teachers-page__empty">Ничего не найдено</p>
             )}
 

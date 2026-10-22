@@ -6,7 +6,7 @@ function LessonCardSkeleton() {
     return (
         <div className="lesson-card lesson-card--skeleton" aria-hidden="true">
             <div className="lesson-card__top">
-                <Skeleton width={76} height={22} radius="var(--radius-pill)" />
+                <Skeleton width={76} height={24} radius="var(--radius-pill)" />
                 <Skeleton width={92} height={16} style={{ marginLeft: 'auto' }} />
             </div>
             <Skeleton width="70%" height={18} />
