@@ -71,6 +71,17 @@
     box-shadow: var(--glass-shadow);
 }
 
+/* Loading placeholder: no pointer affordance or hover lift. */
+.teachers-page__card--skeleton {
+    cursor: default;
+}
+
+.teachers-page__card--skeleton:hover {
+    transform: none;
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow-sm);
+}
+
 .teachers-page__card-name {
     font-weight: 600;
     color: var(--text-strong);

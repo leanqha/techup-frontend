@@ -5,9 +5,9 @@ import './HomePage.css';
 import { useAuth } from '../context/useAuth';
 import { fetchLessons } from '../api/schedule';
 import { ScheduleDay } from '../components/schedule/ScheduleDay';
+import { ScheduleDaySkeleton } from '../components/schedule/ScheduleSkeleton';
 import type { Lesson } from '../api/types/schedule';
 import { format } from 'date-fns';
-import {Loader} from "../components/Loader.tsx";
 
 export function HomePage() {
     const { profile } = useAuth();
@@ -41,7 +41,7 @@ export function HomePage() {
             <h2 className="home-page__title">Сегодня</h2>
 
             {loading ? (
-                <Loader />
+                <ScheduleDaySkeleton />
             ) : lessons.length > 0 ? (
                 <ScheduleDay date={todayISO} lessons={lessons} />
             ) : (
