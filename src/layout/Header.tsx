@@ -11,14 +11,14 @@ export function Header({ toggleSidebar }: Props) {
     const { profile } = useAuth();
     const { canInstall, promptInstall } = usePwaInstall();
 
-    if (!profile) return null;
-
     const hour = new Date().getHours();
     const greeting =
         hour < 12 ? 'Доброе утро' :
             hour < 18 ? 'Добрый день' :
                 'Добрый вечер';
 
+    // The bar renders even before the profile is loaded (auth-boot) so it keeps
+    // its height and the page below it doesn't drop in once the greeting fills.
     return (
         <header className="header">
             <div className="headerLeft">
@@ -33,12 +33,14 @@ export function Header({ toggleSidebar }: Props) {
                     </button>
                 )}
 
-                <span className="greeting">
-                    {greeting}, {profile.first_name} 👋
-                </span>
+                {profile && (
+                    <span className="greeting">
+                        {greeting}, {profile.first_name} 👋
+                    </span>
+                )}
             </div>
 
-            {canInstall && (
+            {profile && canInstall && (
                 <button
                     onClick={() => void promptInstall()}
                     className="installButton"

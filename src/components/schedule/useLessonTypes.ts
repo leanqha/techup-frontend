@@ -23,10 +23,16 @@ async function loadLessonTypes(): Promise<LessonTypeMeta[]> {
     return inflight;
 }
 
-export function useLessonTypes(): LessonTypeMeta[] {
+// `loading` is true only until the catalog is first resolved. Once cached (at
+// module scope), later consumers start ready — so the type badge renders right
+// away and never pops in on subsequent navigations.
+export function useLessonTypes(): { types: LessonTypeMeta[]; loading: boolean } {
     const [types, setTypes] = useState<LessonTypeMeta[]>(cache ?? []);
+    const [loading, setLoading] = useState<boolean>(cache === null);
 
     useEffect(() => {
+        // When the catalog is already cached, loadLessonTypes resolves on the
+        // next microtask, so state is reconciled without a synchronous setState.
         let cancelled = false;
         void loadLessonTypes()
             .then(loaded => {
@@ -34,11 +40,15 @@ export function useLessonTypes(): LessonTypeMeta[] {
             })
             .catch(() => {
                 /* leave the (possibly empty) current value; cards fall back to a neutral accent */
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
             });
+
         return () => {
             cancelled = true;
         };
     }, []);
 
-    return types;
+    return { types, loading };
 }

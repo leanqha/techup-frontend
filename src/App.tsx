@@ -20,7 +20,7 @@ function App() {
             <Route
                 path="/"
                 element={
-                    <ProtectedRoute>
+                    <ProtectedRoute renderChildrenWhileLoading>
                         <Layout>
                             <HomePage />
                         </Layout>
@@ -74,7 +74,7 @@ function App() {
             <Route
                 path="/schedule"
                 element={
-                    <ProtectedRoute>
+                    <ProtectedRoute renderChildrenWhileLoading>
                         <Layout>
                             <SchedulePage />
                         </Layout>
@@ -85,7 +85,7 @@ function App() {
             <Route
                 path="/teachers"
                 element={
-                    <ProtectedRoute>
+                    <ProtectedRoute renderChildrenWhileLoading>
                         <Layout>
                             <TeachersPage />
                         </Layout>

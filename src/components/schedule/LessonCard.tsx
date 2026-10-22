@@ -6,6 +6,7 @@ import { deleteLessonNote, fetchLessonNote, saveLessonNote } from '../../api/sch
 import { formatTime } from '../../utils/date';
 import { LessonNoteModal } from './LessonNoteModal';
 import { useLessonTypes } from './useLessonTypes';
+import { Skeleton } from '../ui/Skeleton';
 import './schedule.css';
 
 const NEUTRAL_ACCENT = '#64748b';
@@ -57,7 +58,7 @@ export function LessonCard({ lesson, showGroup = false }: { lesson: Lesson; show
         lesson.classroom.trim() !== '';
     const showGroupName = showGroup && Boolean(lesson.group?.name);
 
-    const lessonTypes = useLessonTypes();
+    const { types: lessonTypes, loading: typesLoading } = useLessonTypes();
     const typeCatalog = useMemo(
         () => new Map(lessonTypes.map(item => [item.name, item])),
         [lessonTypes],
@@ -148,8 +149,19 @@ export function LessonCard({ lesson, showGroup = false }: { lesson: Lesson; show
         <>
             <div className="lesson-card" style={cardStyle}>
                 <div className="lesson-card__top">
-                    {typeMeta.label && (
-                        <span className="lesson-card__type">{typeMeta.label}</span>
+                    {typesLoading ? (
+                        // Reserve the badge slot while the type catalog loads so the
+                        // card height doesn't jump once the real badge arrives.
+                        <Skeleton
+                            className="lesson-card__type-skeleton"
+                            width={74}
+                            height={24}
+                            radius="var(--radius-pill)"
+                        />
+                    ) : (
+                        typeMeta.label && (
+                            <span className="lesson-card__type">{typeMeta.label}</span>
+                        )
                     )}
                     <div className="lesson-card__time">
                         {formatTime(lesson.start_time)} - {formatTime(lesson.end_time)}

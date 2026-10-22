@@ -10,15 +10,21 @@ import type { Lesson } from '../api/types/schedule';
 import { format } from 'date-fns';
 
 export function HomePage() {
-    const { profile } = useAuth();
+    const { profile, loading: authLoading } = useAuth();
 
     const [lessons, setLessons] = useState<Lesson[]>([]);
-    const [loading, setLoading] = useState(false);
+    // Start in the loading state so the skeleton shows from the first render
+    // (through auth-boot) instead of a flash of the empty state.
+    const [loading, setLoading] = useState(true);
 
     const todayISO = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
 
     useEffect(() => {
-        if (!profile?.group_id) return;
+        if (!profile?.group_id) {
+            // Keep the skeleton up while auth is still resolving the profile.
+            if (!authLoading) setLoading(false);
+            return;
+        }
 
         const loadToday = async () => {
             setLoading(true);
@@ -34,13 +40,15 @@ export function HomePage() {
         };
 
         loadToday();
-    }, [profile?.group_id, todayISO]);
+    }, [authLoading, profile?.group_id, todayISO]);
+
+    const showSkeleton = authLoading || loading;
 
     return (
         <div className="home-page">
             <h2 className="home-page__title">Сегодня</h2>
 
-            {loading ? (
+            {showSkeleton ? (
                 <ScheduleDaySkeleton />
             ) : lessons.length > 0 ? (
                 <ScheduleDay date={todayISO} lessons={lessons} />
