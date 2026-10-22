@@ -186,7 +186,8 @@ function mondayOfLocal(d: Date): Date {
 }
 
 // Expand a group's semester slots into dated lessons, replacing that group's
-// lessons in range — mirrors the Go service's expandSlots.
+// lessons in range — mirrors the Go service's expandSlots. Slots without a
+// teacher are kept too; the lesson just carries an empty teacher.
 function generateLessonsFromSlots(body: Body): { generated: number; skipped: number } {
     const groupId = Number(body.group_id);
     const semester = Number(body.semester);
@@ -196,7 +197,6 @@ function generateLessonsFromSlots(body: Body): { generated: number; skipped: num
 
     const group = GROUPS.find(g => g.id === groupId) ?? GROUPS[0];
     const groupSlots = SLOTS.filter(s => s.group_id === groupId && s.semester === semester);
-    const skipped = groupSlots.filter(s => s.teacher_id == null).length;
 
     const startIso = isoLocal(start);
     const endIso = isoLocal(end);
@@ -213,7 +213,7 @@ function generateLessonsFromSlots(body: Body): { generated: number; skipped: num
         if (weekMonday > end) break;
         const parity = week % 2 === 0 ? firstParity : firstParity === 'odd' ? 'even' : 'odd';
         for (const slot of groupSlots) {
-            if (slot.week_parity !== parity || slot.teacher_id == null) continue;
+            if (slot.week_parity !== parity) continue;
             const date = addDaysLocal(weekMonday, slot.weekday - 1);
             if (date < start || date > end) continue;
             const teacher =
@@ -233,7 +233,8 @@ function generateLessonsFromSlots(body: Body): { generated: number; skipped: num
             generated++;
         }
     }
-    return { generated, skipped };
+    // Teacher-less slots are generated now, so nothing is skipped.
+    return { generated, skipped: 0 };
 }
 
 function route(method: string, path: string, params: URLSearchParams, body: Body): Response {

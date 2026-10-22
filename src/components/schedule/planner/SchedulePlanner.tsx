@@ -107,28 +107,6 @@ export function SchedulePlanner() {
 
     const slots = useMemo(() => allSlots.filter(s => s.semester === semester), [allSlots, semester]);
 
-    // A subject chip leaves the rail once it has a slot on the board (matched by
-    // subject + teacher + lesson type); deleting that slot returns the chip.
-    // Greedy per key so the same subject listed under several lesson types (e.g.
-    // Лекция and Практика) stays as distinct chips and can each be placed.
-    const availableSubjects = useMemo(() => {
-        const used = new Map<string, number>();
-        for (const s of slots) {
-            const key = `${s.subject}__${s.teacher_id ?? ''}__${s.type}`;
-            used.set(key, (used.get(key) ?? 0) + 1);
-        }
-        return subjects.filter(sub => {
-            const type = sub.lesson_type_name || defaultType;
-            const key = `${sub.subject_name}__${sub.teacher_id ?? ''}__${type}`;
-            const n = used.get(key) ?? 0;
-            if (n > 0) {
-                used.set(key, n - 1);
-                return false;
-            }
-            return true;
-        });
-    }, [subjects, slots, defaultType]);
-
     // ---- initial reference data ----
     useEffect(() => {
         let cancelled = false;
@@ -477,7 +455,7 @@ export function SchedulePlanner() {
 
             <div className="planner-body">
                 <PlannerSidebar
-                    subjects={availableSubjects}
+                    subjects={subjects}
                     planHasSubjects={subjects.length > 0}
                     dropActive={railActive}
                     defaultType={defaultType}
