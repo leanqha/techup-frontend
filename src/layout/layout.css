@@ -1,9 +1,12 @@
-/* App shell. The shell locks its own height so the page scrolls internally,
-   while standalone pages (welcome / auth) keep normal document scrolling. */
+/* App shell. The shell is pinned to the viewport so it never travels with the
+   document — in an installed PWA the body can still be dragged (overscroll),
+   and a shell merely sized to the viewport would carry the header along with
+   it. Pinning keeps the header fixed; only .page scrolls. Standalone pages
+   (welcome / auth) don't use .layout, so they keep normal document scrolling. */
 .layout {
+    position: fixed;
+    inset: 0;
     display: flex;
-    height: 100vh;
-    height: 100dvh;
     width: 100%;
     overflow: hidden;
 }
@@ -237,6 +240,8 @@
     flex: 1;
     padding: 24px;
     overflow-y: auto;
+    /* Keep the rubber-band inside .page so it never chains to the body. */
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
 
